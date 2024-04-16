@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use std::error::Error as StdError;
 use std::fmt;
 
@@ -48,4 +49,15 @@ impl StdError for Error {
             Error::LocalError(_) => None,
         }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub(crate) struct ApiXmlErrors {
+    #[serde(rename = "$value")]
+    pub(crate) errors: Vec<ApiXmlError>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub(crate) struct ApiXmlError {
+    pub(crate) message: String,
 }
