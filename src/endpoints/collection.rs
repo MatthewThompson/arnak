@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::future::Future;
 
-use crate::api::BoardGameGeekAPI;
+use crate::api::BoardGameGeekApi;
 use crate::utils::deserialize_1_0_bool;
+use crate::Result;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Collection {
@@ -57,7 +58,7 @@ pub struct CollectionGameStats {
 }
 
 pub struct CollectionApi<'api> {
-    pub(crate) api: &'api BoardGameGeekAPI,
+    pub(crate) api: &'api BoardGameGeekApi,
     endpoint: &'api str,
 }
 
@@ -119,27 +120,21 @@ impl<'a> CollectionQuery<'a> {
 }
 
 impl<'api> CollectionApi<'api> {
-    pub fn new(api: &'api BoardGameGeekAPI) -> Self {
+    pub fn new(api: &'api BoardGameGeekApi) -> Self {
         Self {
             api,
             endpoint: "collection",
         }
     }
 
-    pub fn get_owned(
-        &self,
-        username: &str,
-    ) -> impl Future<Output = Result<Collection, reqwest::Error>> + 'api {
+    pub fn get_owned(&self, username: &str) -> impl Future<Output = Result<Collection>> + 'api {
         let query = CollectionQuery::new(username).owned(true);
         let request = self.api.build_request(self.endpoint, &query.build());
         let future = self.api.execute_request::<Collection>(request);
         future
     }
 
-    pub fn get_wishlist(
-        &self,
-        username: &str,
-    ) -> impl Future<Output = Result<Collection, reqwest::Error>> + 'api {
+    pub fn get_wishlist(&self, username: &str) -> impl Future<Output = Result<Collection>> + 'api {
         let query = CollectionQuery::new(username).wishlist(true);
         let request = self.api.build_request(self.endpoint, &query.build());
         self.api.execute_request::<Collection>(request)
@@ -148,7 +143,7 @@ impl<'api> CollectionApi<'api> {
     pub fn get_from_query(
         &self,
         query: CollectionQuery,
-    ) -> impl Future<Output = Result<Collection, reqwest::Error>> + 'api {
+    ) -> impl Future<Output = Result<Collection>> + 'api {
         let request = self.api.build_request(self.endpoint, &query.build());
         self.api.execute_request::<Collection>(request)
     }
