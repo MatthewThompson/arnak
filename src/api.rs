@@ -23,6 +23,7 @@ impl Default for BoardGameGeekApi {
 impl BoardGameGeekApi {
     const BASE_URL: &'static str = "https://boardgamegeek.com/xmlapi2";
 
+    /// Creates a new API with a default constructed reqwest client.
     pub fn new() -> Self {
         Self {
             base_url: BoardGameGeekApi::BASE_URL,
