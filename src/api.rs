@@ -72,7 +72,6 @@ impl BoardGameGeekApi {
                     // from failing to parse the output type.
                     Err(_) => Err(Error::ParseError(e)),
                 }
-                
             }
         }
     }
