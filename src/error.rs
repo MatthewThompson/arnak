@@ -1,47 +1,51 @@
-use std::{error::Error, fmt};
+use std::error::Error as StdError;
+use std::fmt;
 
-/// Result containing BoardGameGeekApiError on failure.
-pub type Result<T> = std::result::Result<T, BoardGameGeekApiError>;
+/// A `Result` alias where the `Err` case is `arnak::Error`.
+pub type Result<T> = std::result::Result<T, Error>;
 
 /// An error returned by the API. This is an enum representing
 /// either an http error (reqwest::Error), or an error parsing the
 /// output (serde_xml_rs::Error), or finally just a string. Which
 /// is typically returned in some case an error shouldn't happen.
 #[derive(Debug)]
-pub enum BoardGameGeekApiError {
+pub enum Error {
     HttpError(reqwest::Error),
     ParseError(serde_xml_rs::Error),
     ApiError(String),
+    LocalError(String),
 }
 
-impl From<reqwest::Error> for BoardGameGeekApiError {
+impl From<reqwest::Error> for Error {
     fn from(err: reqwest::Error) -> Self {
-        BoardGameGeekApiError::HttpError(err)
+        Error::HttpError(err)
     }
 }
 
-impl From<serde_xml_rs::Error> for BoardGameGeekApiError {
+impl From<serde_xml_rs::Error> for Error {
     fn from(err: serde_xml_rs::Error) -> Self {
-        BoardGameGeekApiError::ParseError(err)
+        Error::ParseError(err)
     }
 }
 
-impl fmt::Display for BoardGameGeekApiError {
+impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            BoardGameGeekApiError::HttpError(e) => write!(f, "error making request: {}", e),
-            BoardGameGeekApiError::ParseError(e) => write!(f, "error parsing output: {}", e),
-            BoardGameGeekApiError::ApiError(s) => write!(f, "{s}"),
+            Error::HttpError(e) => write!(f, "error making request: {}", e),
+            Error::ParseError(e) => write!(f, "error parsing output: {}", e),
+            Error::ApiError(s) => write!(f, "{s}"),
+            Error::LocalError(s) => write!(f, "{s}"),
         }
     }
 }
 
-impl Error for BoardGameGeekApiError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
+impl StdError for Error {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match &self {
-            BoardGameGeekApiError::HttpError(e) => Some(e),
-            BoardGameGeekApiError::ParseError(e) => Some(e),
-            BoardGameGeekApiError::ApiError(_) => None,
+            Error::HttpError(e) => Some(e),
+            Error::ParseError(e) => Some(e),
+            Error::ApiError(_) => None,
+            Error::LocalError(_) => None,
         }
     }
 }

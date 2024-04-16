@@ -6,7 +6,7 @@ use serde_xml_rs::from_str;
 use tokio::time::sleep;
 
 use crate::endpoints::collection::CollectionApi;
-use crate::{BoardGameGeekApiError, Result};
+use crate::{Error, Result};
 
 pub struct BoardGameGeekApi {
     pub(crate) base_url: &'static str,
@@ -57,7 +57,7 @@ impl BoardGameGeekApi {
         let response = self.execute_request_raw(request).await?;
         let response_text = response.text().await?;
 
-        from_str(&response_text).map_err(BoardGameGeekApiError::ParseError)
+        from_str(&response_text).map_err(Error::ParseError)
     }
 
     // Handles an HTTP request. execute_request_raw accepts a reqwest::ReqwestBuilder,
@@ -71,12 +71,12 @@ impl BoardGameGeekApi {
         let retries: u32 = 0;
         async move {
             loop {
-                let request_clone = request.try_clone().ok_or(BoardGameGeekApiError::ApiError(
+                let request_clone = request.try_clone().ok_or(Error::LocalError(
                     "Unknown error, failed to clone request".to_string(),
                 ))?;
                 let response = match request_clone.send().await {
                     Ok(response) => response,
-                    Err(e) => break Err(BoardGameGeekApiError::HttpError(e)),
+                    Err(e) => break Err(Error::HttpError(e)),
                 };
                 if response.status() == reqwest::StatusCode::ACCEPTED {
                     // Request has been accepted but the data isn't ready yet, we wait a short amount of time
@@ -87,7 +87,7 @@ impl BoardGameGeekApi {
                     continue;
                 }
                 break match response.error_for_status() {
-                    Err(e) => Err(BoardGameGeekApiError::HttpError(e)),
+                    Err(e) => Err(Error::HttpError(e)),
                     Ok(res) => Ok(res),
                 };
             }
