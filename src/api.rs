@@ -84,7 +84,7 @@ impl BoardGameGeekApi {
         &self,
         request: RequestBuilder,
     ) -> impl Future<Output = Result<Response>> + 'a {
-        let retries: u32 = 0;
+        let mut retries: u32 = 0;
         async move {
             loop {
                 let request_clone = request.try_clone().ok_or(Error::LocalError(
@@ -95,9 +95,13 @@ impl BoardGameGeekApi {
                     Err(e) => break Err(Error::HttpError(e)),
                 };
                 if response.status() == reqwest::StatusCode::ACCEPTED {
+                    if retries > 4 {
+                        break Err(Error::LocalError(format!("Response was accepted but maximum retries hit. Retried {retries} times.")))
+                    }
                     // Request has been accepted but the data isn't ready yet, we wait a short amount of time
                     // before trying again, with exponential backoff.
                     let backoff_multiplier = 2_u64.pow(retries);
+                    retries += 1;
                     let delay = Duration::from_millis(200 * backoff_multiplier);
                     sleep(delay).await;
                     continue;
