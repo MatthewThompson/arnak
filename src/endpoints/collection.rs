@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::future::Future;
 
 use crate::api::BoardGameGeekApi;
@@ -6,7 +6,7 @@ use crate::utils::deserialize_1_0_bool;
 use crate::Result;
 
 /// A user's collection on boardgamegeek.
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Collection {
     /// List of games and expansions in the user's collection. Each item
     /// is not necessarily owned but can be preowned, wishlisted etc.
@@ -15,7 +15,7 @@ pub struct Collection {
 }
 
 /// A game or game expansion in a collection.
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct CollectionGame {
     /// The ID of the game.
     #[serde(rename = "objectid")]
@@ -35,7 +35,7 @@ pub struct CollectionGame {
 }
 
 /// The type of game, board game or expansion.
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize)]
 pub enum GameType {
     /// A board game.
     #[serde(rename = "boardgame")]
@@ -47,7 +47,7 @@ pub enum GameType {
 
 /// The status of the game in the user's collection, such as preowned or wishlist.
 /// Can be any or none of them.
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct CollectionGameStatus {
     /// User owns the game.
     #[serde(deserialize_with = "deserialize_1_0_bool")]
@@ -59,7 +59,7 @@ pub struct CollectionGameStatus {
 
 /// Stats of the game such as playercount and duration. Can be omitted from the response.
 /// More stats can be found from the specific game endpoint.
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct CollectionGameStats {
     /// Minimum players the game supports.
     #[serde(rename = "minplayers")]
