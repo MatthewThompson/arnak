@@ -69,7 +69,7 @@ impl<'api> BoardGameGeekApi<'api> {
                 // for a more specific error.
                 let api_error = from_str::<ApiXmlErrors>(&response_text);
                 match api_error {
-                    Ok(api_error) => Err(Error::from(api_error)),
+                    Ok(api_error) => Err(api_error.into()),
                     // If it's not a parseable error, we want to return the orignal error
                     // from failing to parse the output type.
                     Err(_) => Err(Error::UnexpectedResponseError(e)),
