@@ -8,19 +8,20 @@ use tokio::time::sleep;
 use crate::endpoints::collection::CollectionApi;
 use crate::{ApiXmlErrors, Error, Result};
 
-pub struct BoardGameGeekApi {
-    pub(crate) base_url: &'static str,
-    /// Http client for making requests.
+pub struct BoardGameGeekApi<'api> {
+    // URL for the board game geek API.
+    base_url: &'api str,
+    // Http client for making requests.
     pub(crate) client: reqwest::Client,
 }
 
-impl Default for BoardGameGeekApi {
+impl<'api> Default for BoardGameGeekApi<'api> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl BoardGameGeekApi {
+impl<'api> BoardGameGeekApi<'api> {
     const BASE_URL: &'static str = "https://boardgamegeek.com/xmlapi2";
 
     /// Creates a new API with a default constructed reqwest client.
@@ -55,7 +56,7 @@ impl BoardGameGeekApi {
         &'a self,
         request: RequestBuilder,
     ) -> Result<T> {
-        let response = self.execute_request_raw(request).await?;
+        let response = self.send_request(request).await?;
         let response_text = response.text().await?;
 
         let parse_result = from_str(&response_text);
@@ -76,11 +77,11 @@ impl BoardGameGeekApi {
         }
     }
 
-    // Handles an HTTP request. execute_request_raw accepts a reqwest::ReqwestBuilder,
+    // Handles an HTTP request. send_request accepts a reqwest::ReqwestBuilder,
     // sends it and awaits. If the response is Accepted (202), it will wait for the data to
     // be ready and try again. Any errors are wrapped in the local BoardGameGeekApiError
     // enum before being returned.
-    fn execute_request_raw<'a>(
+    fn send_request<'a>(
         &self,
         request: RequestBuilder,
     ) -> impl Future<Output = Result<Response>> + 'a {
@@ -95,8 +96,9 @@ impl BoardGameGeekApi {
                     Err(e) => break Err(Error::HttpError(e)),
                 };
                 if response.status() == reqwest::StatusCode::ACCEPTED {
-                    if retries > 4 {
-                        break Err(Error::LocalError(format!("Response was accepted but maximum retries hit. Retried {retries} times.")))
+                    // Attempt the request 5 times total
+                    if retries >= 4 {
+                        break Err(Error::LocalError(format!("Response was accepted but maximum retries hit. Retried {retries} times.")));
                     }
                     // Request has been accepted but the data isn't ready yet, we wait a short amount of time
                     // before trying again, with exponential backoff.
@@ -112,5 +114,119 @@ impl BoardGameGeekApi {
                 };
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_send_request() {
+        let mut server = mockito::Server::new_async().await;
+        let url = server.url();
+        let api = BoardGameGeekApi {
+            base_url: &url,
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/some_endpoint")
+            .with_status(200)
+            .with_body("hello there")
+            .create_async()
+            .await;
+
+        let req = api.build_request("some_endpoint", &[]);
+        let res = api.send_request(req).await;
+
+        mock.assert();
+        assert!(res.is_ok());
+        assert!(res.unwrap().text().await.unwrap() == "hello there");
+    }
+
+    #[tokio::test]
+    async fn test_send_failed_request() {
+        let mut server = mockito::Server::new_async().await;
+        let url = server.url();
+        let api = BoardGameGeekApi {
+            base_url: &url,
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/some_endpoint")
+            .with_status(500)
+            .create_async()
+            .await;
+
+        let req = api.build_request("some_endpoint", &[]);
+        let res = api.send_request(req).await;
+
+        mock.assert();
+        assert!(res.is_err());
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn test_send_request_202_retries() {
+        let mut server = mockito::Server::new_async().await;
+        let url = server.url();
+        let api = BoardGameGeekApi {
+            base_url: &url,
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/some_endpoint")
+            .with_status(202)
+            .create_async()
+            .await;
+
+        let req = api.build_request("some_endpoint", &[]);
+        let res = api.send_request(req).await;
+
+        mock.expect(1);
+
+        let mock = server
+            .mock("GET", "/some_endpoint")
+            .with_status(202)
+            .create_async()
+            .await;
+        tokio::time::sleep(Duration::from_millis(200)).await;
+        mock.expect(2);
+
+        let mock = server
+            .mock("GET", "/some_endpoint")
+            .with_status(202)
+            .create_async()
+            .await;
+        tokio::time::sleep(Duration::from_millis(400)).await;
+        mock.expect(3);
+
+        let mock = server
+            .mock("GET", "/some_endpoint")
+            .with_status(202)
+            .create_async()
+            .await;
+        tokio::time::sleep(Duration::from_millis(800)).await;
+        mock.expect(4);
+
+        let mock = server
+            .mock("GET", "/some_endpoint")
+            .with_status(202)
+            .create_async()
+            .await;
+        tokio::time::sleep(Duration::from_millis(1600)).await;
+        mock.expect(5);
+
+        let mock = server
+            .mock("GET", "/some_endpoint")
+            .with_status(202)
+            .create_async()
+            .await;
+        tokio::time::sleep(Duration::from_millis(3200)).await;
+        mock.expect(5);
+
+        assert!(res.is_err());
     }
 }
