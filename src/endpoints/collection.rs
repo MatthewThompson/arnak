@@ -58,7 +58,7 @@ pub struct CollectionGameStats {
 }
 
 pub struct CollectionApi<'api> {
-    pub(crate) api: &'api BoardGameGeekApi,
+    pub(crate) api: &'api BoardGameGeekApi<'api>,
     endpoint: &'api str,
 }
 
