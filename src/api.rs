@@ -69,10 +69,10 @@ impl<'api> BoardGameGeekApi<'api> {
                 // for a more specific error.
                 let api_error = from_str::<ApiXmlErrors>(&response_text);
                 match api_error {
-                    Ok(api_error) => Err(Error::ApiError(api_error.errors[0].message.to_string())),
+                    Ok(api_error) => Err(api_error.into()),
                     // If it's not a parseable error, we want to return the orignal error
                     // from failing to parse the output type.
-                    Err(_) => Err(Error::ParseError(e)),
+                    Err(_) => Err(Error::UnexpectedResponseError(e)),
                 }
             }
         }
@@ -89,9 +89,7 @@ impl<'api> BoardGameGeekApi<'api> {
         let mut retries: u32 = 0;
         async move {
             loop {
-                let request_clone = request.try_clone().ok_or(Error::LocalError(
-                    "Unknown error, failed to clone request".to_string(),
-                ))?;
+                let request_clone = request.try_clone().expect("Couldn't clone request");
                 let response = match request_clone.send().await {
                     Ok(response) => response,
                     Err(e) => break Err(Error::HttpError(e)),
@@ -99,7 +97,7 @@ impl<'api> BoardGameGeekApi<'api> {
                 if response.status() == reqwest::StatusCode::ACCEPTED {
                     // Attempt the request 5 times total
                     if retries >= 4 {
-                        break Err(Error::LocalError(format!("Response was accepted but maximum retries hit. Retried {retries} times.")));
+                        break Err(Error::MaxRetryError(retries));
                     }
                     // Request has been accepted but the data isn't ready yet, we wait a short amount of time
                     // before trying again, with exponential backoff.

@@ -8,7 +8,7 @@
 //!     BoardGameGeekApi,
 //!     GameType,
 //! };
-//! 
+//!
 //! // Enter tokio async runtime.
 //! let rt = tokio::runtime::Runtime::new().unwrap();
 //! rt.block_on(async {
@@ -23,7 +23,6 @@
 //!     }
 //! })
 //! ```
-//!
 
 mod api;
 pub use api::*;
