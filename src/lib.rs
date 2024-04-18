@@ -4,15 +4,24 @@
 //!
 //! ## Example:
 //! ```rust
-//! let api = BoardGameGeekApi::new();
-//! let collection = api.collection().get_owned("blueearbgg").await?;
+//! use arnak::{
+//!     BoardGameGeekApi,
+//!     GameType,
+//! };
+//! 
+//! // Enter tokio async runtime.
+//! let rt = tokio::runtime::Runtime::new().unwrap();
+//! rt.block_on(async {
+//!     let api = BoardGameGeekApi::new();
+//!     let collection = api.collection().get_owned("bluebearbgg").await.expect("Failed to get owned games.");
 //!
-//! for game in collection.games {
-//!     match game.game_type {
-//!         GameType::BoardGame => println!("{}", game.name),
-//!         GameType::BoardGameExpansion => println!("{} [expansion]", game.name),
+//!     for game in collection.games {
+//!         match game.game_type {
+//!             GameType::BoardGame => println!("{}", game.name),
+//!             GameType::BoardGameExpansion => println!("{} [expansion]", game.name),
+//!         }
 //!     }
-//! }
+//! })
 //! ```
 //!
 
