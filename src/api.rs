@@ -8,6 +8,7 @@ use tokio::time::sleep;
 use crate::endpoints::collection::CollectionApi;
 use crate::{ApiXmlErrors, Error, Result};
 
+/// API for making requests to the [Board Game Geek API](https://boardgamegeek.com/wiki/page/BGG_XML_API2).
 pub struct BoardGameGeekApi<'api> {
     // URL for the board game geek API.
     base_url: &'api str,
@@ -24,7 +25,7 @@ impl<'api> Default for BoardGameGeekApi<'api> {
 impl<'api> BoardGameGeekApi<'api> {
     const BASE_URL: &'static str = "https://boardgamegeek.com/xmlapi2";
 
-    /// Creates a new API with a default constructed reqwest client.
+    /// Creates a new API.
     pub fn new() -> Self {
         Self {
             base_url: BoardGameGeekApi::BASE_URL,

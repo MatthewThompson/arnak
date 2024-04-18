@@ -5,71 +5,81 @@ use crate::api::BoardGameGeekApi;
 use crate::utils::deserialize_1_0_bool;
 use crate::Result;
 
+/// A user's collection on boardgamegeek.
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Collection {
+    /// List of games and expansions in the user's collection. Each item
+    /// is not necessarily owned but can be preowned, wishlisted etc.
     #[serde(rename = "$value")]
     pub games: Vec<CollectionGame>,
 }
 
+/// A game or game expansion in a collection.
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct CollectionGame {
     /// The ID of the game.
     #[serde(rename = "objectid")]
     pub id: u64,
-    /// The the object type, which will either be boardgame or expansion.
+    /// The type of game, which will either be boardgame or expansion.
     #[serde(rename = "subtype")]
     pub game_type: GameType,
-    // TODO make sure this actually works because this is technically a list
-    // of different languages, tagged with primary/alternate
-    // Possibly make a list of LanguageName structs and then manually set
-    // the name value to the primary afterwards
+    /// The name of the game.
     pub name: String,
     /// The year the game was first published.
     #[serde(rename = "yearpublished")]
     pub year_published: i64,
-    /// Status of the game in this collection, such as own, preowned, wishlist...
+    /// Status of the game in this collection, such as own, preowned, wishlist.
     pub status: CollectionGameStatus,
     /// Game stats such as number of players, can sometimes be omitted from the result.
     pub stats: Option<CollectionGameStats>,
 }
 
+/// The type of game, board game or expansion.
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub enum GameType {
+    /// A board game.
     #[serde(rename = "boardgame")]
     BoardGame,
+    /// A board game expansion.
     #[serde(rename = "boardgameexpansion")]
     BoardGameExpansion,
 }
 
+/// The status of the game in the user's collection, such as preowned or wishlist.
+/// Can be any or none of them.
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct CollectionGameStatus {
+    /// User owns the game.
     #[serde(deserialize_with = "deserialize_1_0_bool")]
     pub own: bool,
+    /// User has the game on their wishlist.
     #[serde(deserialize_with = "deserialize_1_0_bool")]
     pub wishlist: bool,
 }
 
+/// Stats of the game such as playercount and duration. Can be omitted from the response.
+/// More stats can be found from the specific game endpoint.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct CollectionGameStats {
+    /// Minimum players the game supports.
     #[serde(rename = "minplayers")]
     pub min_players: u32,
+    /// Maximum players the game supports.
     #[serde(rename = "maxplayers")]
     pub max_players: u32,
 }
 
-pub struct CollectionApi<'api> {
-    pub(crate) api: &'api BoardGameGeekApi<'api>,
-    endpoint: &'api str,
-}
-
-pub struct CollectionQuery<'q> {
+/// Struct for building a query for the request to the collection endpoint.
+pub struct CollectionQueryBuilder<'q> {
     username: &'q str,
     include_owned: Option<bool>,
     include_wishlist: Option<bool>,
     include_stats: Option<bool>,
 }
 
-impl<'a> CollectionQuery<'a> {
+impl<'a> CollectionQueryBuilder<'a> {
+    /// Constructs a new query builder from a name, which is a required parmeter.
+    /// Sets all other fields to None.
     pub fn new(username: &'a str) -> Self {
         Self {
             username,
@@ -79,21 +89,30 @@ impl<'a> CollectionQuery<'a> {
         }
     }
 
+    /// Sets the include_owned field. If true the result will include items that
+    /// the user owns. Unless all status fields are kept at None, then they are all included.
     pub fn owned(mut self, include_owned: bool) -> Self {
         self.include_owned = Some(include_owned);
         self
     }
 
+    /// Sets the include_wishlist field. If true the result will include the items
+    /// that the user has on their wishlist. Unless all status fields are kept at None, then they are all included.
     pub fn wishlist(mut self, include_wishlist: bool) -> Self {
         self.include_wishlist = Some(include_wishlist);
         self
     }
 
+    /// Sets the include_stats field. If false the stats are omitted.
+    /// Since the default behaviour is inconsistent. Keeping this at None will
+    /// be treated as true at build time.
     pub fn stats(mut self, include_stats: bool) -> Self {
         self.include_stats = Some(include_stats);
         self
     }
 
+    /// Converts the fields into a vector of (&str, &str) tuples that match
+    /// the expected query parameter key value pairs.
     pub fn build(self) -> Vec<(&'a str, &'a str)> {
         let mut query_params: Vec<_> = vec![];
         query_params.push(("username", self.username));
@@ -119,30 +138,40 @@ impl<'a> CollectionQuery<'a> {
     }
 }
 
+/// Collection endpoint of the API. Used for returning user's collections
+/// of games by their username. Filtering by [CollectionGameStatus], rating, recorded plays.
+pub struct CollectionApi<'api> {
+    pub(crate) api: &'api BoardGameGeekApi<'api>,
+    endpoint: &'api str,
+}
+
 impl<'api> CollectionApi<'api> {
-    pub fn new(api: &'api BoardGameGeekApi) -> Self {
+    pub(crate) fn new(api: &'api BoardGameGeekApi) -> Self {
         Self {
             api,
             endpoint: "collection",
         }
     }
 
+    /// Gets all the games that a given user owns.
     pub fn get_owned(&self, username: &str) -> impl Future<Output = Result<Collection>> + 'api {
-        let query = CollectionQuery::new(username).owned(true);
+        let query = CollectionQueryBuilder::new(username).owned(true);
         let request = self.api.build_request(self.endpoint, &query.build());
         let future = self.api.execute_request::<Collection>(request);
         future
     }
 
+    /// Gets all the games that a given user has on their wishlist.
     pub fn get_wishlist(&self, username: &str) -> impl Future<Output = Result<Collection>> + 'api {
-        let query = CollectionQuery::new(username).wishlist(true);
+        let query = CollectionQueryBuilder::new(username).wishlist(true);
         let request = self.api.build_request(self.endpoint, &query.build());
         self.api.execute_request::<Collection>(request)
     }
 
+    /// Makes a request from a [CollectionQueryBuilder].
     pub fn get_from_query(
         &self,
-        query: CollectionQuery,
+        query: CollectionQueryBuilder,
     ) -> impl Future<Output = Result<Collection>> + 'api {
         let request = self.api.build_request(self.endpoint, &query.build());
         self.api.execute_request::<Collection>(request)
