@@ -6,7 +6,7 @@ use crate::utils::deserialize_1_0_bool;
 use crate::Result;
 
 /// A user's collection on boardgamegeek.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Collection {
     /// List of games and expansions in the user's collection. Each item
     /// is not necessarily owned but can be preowned, wishlisted etc.
@@ -15,11 +15,14 @@ pub struct Collection {
 }
 
 /// A game or game expansion in a collection.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionGame {
     /// The ID of the game.
     #[serde(rename = "objectid")]
     pub id: u64,
+    /// The collection ID of the object.
+    #[serde(rename = "collid")]
+    pub collection_id: u64,
     /// The type of game, which will either be boardgame or expansion.
     #[serde(rename = "subtype")]
     pub game_type: GameType,
@@ -28,6 +31,10 @@ pub struct CollectionGame {
     /// The year the game was first published.
     #[serde(rename = "yearpublished")]
     pub year_published: i64,
+    /// A link to a jpg image for the game.
+    pub image: String,
+    /// A link to a jpg thumbnail image for the game.
+    pub thumbnail: String,
     /// Status of the game in this collection, such as own, preowned, wishlist.
     pub status: CollectionGameStatus,
     /// Game stats such as number of players, can sometimes be omitted from the result.
@@ -35,9 +42,21 @@ pub struct CollectionGame {
 }
 
 /// The type of game, board game or expansion.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub enum GameType {
-    /// A board game.
+    /// A board game, or expansion.
+    ///
+    /// Due to the way the API works, this type can include expansions too.
+    /// If a request is made for just board games, or the game type is not
+    /// filtered, then both items with a type of [GameType::BoardGame] and
+    /// those with a type of [GameType::BoardGameExpansion] will be returned,
+    /// and they will ALL have the type of [GameType::BoardGame]. However when
+    /// requesting just expansions, the returned items will correctly have the
+    /// type [GameType::BoardGameExpansion].
+    ///
+    /// A workaround to this can be to make 2 requests, one to include
+    /// [GameType::BoardGame] and exclude [GameType::BoardGameExpansion],
+    /// followed by another to just include [GameType::BoardGameExpansion].
     #[serde(rename = "boardgame")]
     BoardGame,
     /// A board game expansion.
@@ -47,7 +66,7 @@ pub enum GameType {
 
 /// The status of the game in the user's collection, such as preowned or wishlist.
 /// Can be any or none of them.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionGameStatus {
     /// User owns the game.
     #[serde(deserialize_with = "deserialize_1_0_bool")]
@@ -59,7 +78,7 @@ pub struct CollectionGameStatus {
 
 /// Stats of the game such as playercount and duration. Can be omitted from the response.
 /// More stats can be found from the specific game endpoint.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionGameStats {
     /// Minimum players the game supports.
     #[serde(rename = "minplayers")]
@@ -175,5 +194,74 @@ impl<'api> CollectionApi<'api> {
     ) -> impl Future<Output = Result<Collection>> + 'api {
         let request = self.api.build_request(self.endpoint, &query.build());
         self.api.execute_request::<Collection>(request)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use mockito::Matcher;
+
+    #[tokio::test]
+    async fn test_get_owned() {
+        let mut server = mockito::Server::new_async().await;
+        let url = server.url();
+        let api = BoardGameGeekApi {
+            base_url: &url,
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "somename".into()),
+                Matcher::UrlEncoded("own".into(), "1".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+              ]))
+            .with_status(200)
+            .with_body(r#"
+<items>
+    <item objecttype="thing" objectid="131835" subtype="boardgame" collid="118278872">
+        <name sortindex="1">Boss Monster: The Dungeon Building Card Game</name>
+        <yearpublished>2013</yearpublished>
+        <image>
+            https://domain/img.jpg
+        </image>
+        <thumbnail>
+            https://domain/thumbnail.jpg
+        </thumbnail>
+        <status own="1" prevowned="0" fortrade="0" want="0" wanttoplay="0" wanttobuy="0" wishlist="0" preordered="0" lastmodified="2024-04-13 18:29:01"/>
+        <numplays>0</numplays>
+    </item>
+</items>
+            "#)
+            .create_async()
+            .await;
+
+        let collection = api.collection().get_owned("somename").await;
+        mock.assert();
+
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+
+        assert_eq!(collection.games.len(), 1);
+        assert_eq!(
+            collection.games[0],
+            CollectionGame {
+                id: 131835,
+                collection_id: 118278872,
+                game_type: GameType::BoardGame,
+                name: "Boss Monster: The Dungeon Building Card Game".to_string(),
+                year_published: 2013,
+                image: "https://domain/img.jpg".to_string(),
+                thumbnail: "https://domain/thumbnail.jpg".to_string(),
+                status: CollectionGameStatus {
+                    own: true,
+                    wishlist: false
+                },
+                stats: None,
+            },
+            "returned collection game doesn't match expected"
+        );
     }
 }

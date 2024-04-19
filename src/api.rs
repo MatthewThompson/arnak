@@ -11,7 +11,7 @@ use crate::{ApiXmlErrors, Error, Result};
 /// API for making requests to the [Board Game Geek API](https://boardgamegeek.com/wiki/page/BGG_XML_API2).
 pub struct BoardGameGeekApi<'api> {
     // URL for the board game geek API.
-    base_url: &'api str,
+    pub(crate) base_url: &'api str,
     // Http client for making requests.
     pub(crate) client: reqwest::Client,
 }
