@@ -20,6 +20,9 @@ pub struct CollectionGame {
     /// The ID of the game.
     #[serde(rename = "objectid")]
     pub id: u64,
+    /// The collection ID of the object.
+    #[serde(rename = "collid")]
+    pub collection_id: u64,
     /// The type of game, which will either be boardgame or expansion.
     #[serde(rename = "subtype")]
     pub game_type: GameType,
@@ -28,6 +31,10 @@ pub struct CollectionGame {
     /// The year the game was first published.
     #[serde(rename = "yearpublished")]
     pub year_published: i64,
+    /// A link to a jpg image for the game.
+    pub image: String,
+    /// A link to a jpg thumbnail image for the game.
+    pub thumbnail: String,
     /// Status of the game in this collection, such as own, preowned, wishlist.
     pub status: CollectionGameStatus,
     /// Game stats such as number of players, can sometimes be omitted from the result.
@@ -37,7 +44,19 @@ pub struct CollectionGame {
 /// The type of game, board game or expansion.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub enum GameType {
-    /// A board game.
+    /// A board game, or expansion.
+    ///
+    /// Due to the way the API works, this type can include expansions too.
+    /// If a request is made for just board games, or the game type is not
+    /// filtered, then both items with a type of [GameType::BoardGame] and
+    /// those with a type of [GameType::BoardGameExpansion] will be returned,
+    /// and they will ALL have the type of [GameType::BoardGame]. However when
+    /// requesting just expansions, the returned items will correctly have the
+    /// type [GameType::BoardGameExpansion].
+    ///
+    /// A workaround to this can be to make 2 requests, one to include
+    /// [GameType::BoardGame] and exclude [GameType::BoardGameExpansion],
+    /// followed by another to just include [GameType::BoardGameExpansion].
     #[serde(rename = "boardgame")]
     BoardGame,
     /// A board game expansion.
@@ -206,10 +225,10 @@ mod tests {
         <name sortindex="1">Boss Monster: The Dungeon Building Card Game</name>
         <yearpublished>2013</yearpublished>
         <image>
-            https://cf.geekdo-images.com/VBwaHyx-NWL3VLcCWKRA0w__original/img/izAmJ81QELl5DoK3y2bzJw55lhA=/0x0/filters:format(jpeg)/pic1732644.jpg
+            https://domain/img.jpg
         </image>
         <thumbnail>
-            https://cf.geekdo-images.com/VBwaHyx-NWL3VLcCWKRA0w__thumb/img/wisLXxKXbo5-Ci-ZjEj8ryyoN2g=/fit-in/200x150/filters:strip_icc()/pic1732644.jpg
+            https://domain/thumbnail.jpg
         </thumbnail>
         <status own="1" prevowned="0" fortrade="0" want="0" wanttoplay="0" wanttobuy="0" wishlist="0" preordered="0" lastmodified="2024-04-13 18:29:01"/>
         <numplays>0</numplays>
@@ -226,13 +245,23 @@ mod tests {
         let collection = collection.unwrap();
 
         assert_eq!(collection.games.len(), 1);
-        assert_eq!(collection.games[0], CollectionGame {
-            id: 131835,
-            game_type: GameType::BoardGame,
-            name: "Boss Monster: The Dungeon Building Card Game".to_string(),
-            year_published: 2013,
-            status: CollectionGameStatus { own: true, wishlist: false },
-            stats: None,
-        }, "returned collection game doesn't match expected");
+        assert_eq!(
+            collection.games[0],
+            CollectionGame {
+                id: 131835,
+                collection_id: 118278872,
+                game_type: GameType::BoardGame,
+                name: "Boss Monster: The Dungeon Building Card Game".to_string(),
+                year_published: 2013,
+                image: "https://domain/img.jpg".to_string(),
+                thumbnail: "https://domain/thumbnail.jpg".to_string(),
+                status: CollectionGameStatus {
+                    own: true,
+                    wishlist: false
+                },
+                stats: None,
+            },
+            "returned collection game doesn't match expected"
+        );
     }
 }
