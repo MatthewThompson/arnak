@@ -2,7 +2,7 @@ use serde::Deserialize;
 use std::future::Future;
 
 use crate::api::BoardGameGeekApi;
-use crate::utils::deserialize_1_0_bool;
+use crate::utils::{deserialize_1_0_bool, deserialize_wishlist_priority};
 use crate::Result;
 
 /// A user's collection on boardgamegeek.
@@ -37,6 +37,9 @@ pub struct CollectionGame {
     pub thumbnail: String,
     /// Status of the game in this collection, such as own, preowned, wishlist.
     pub status: CollectionGameStatus,
+    /// The number of times the user has played the game.
+    #[serde(rename = "numplays")]
+    pub number_of_plays: u64,
     /// Game stats such as number of players, can sometimes be omitted from the result.
     pub stats: Option<CollectionGameStats>,
 }
@@ -71,9 +74,50 @@ pub struct CollectionGameStatus {
     /// User owns the game.
     #[serde(deserialize_with = "deserialize_1_0_bool")]
     pub own: bool,
+    /// User has previously owned the game.
+    #[serde(rename = "prevowned", deserialize_with = "deserialize_1_0_bool")]
+    pub previously_owned: bool,
+    /// User wants to trade away the game.
+    #[serde(rename = "fortrade", deserialize_with = "deserialize_1_0_bool")]
+    pub for_trade: bool,
+    /// User wants to receive the game in a trade.
+    #[serde(rename = "want", deserialize_with = "deserialize_1_0_bool")]
+    pub want_in_trade: bool,
+    /// User wants to play the game.
+    #[serde(rename = "wanttoplay", deserialize_with = "deserialize_1_0_bool")]
+    pub want_to_play: bool,
+    /// User wants to buy the game.
+    #[serde(rename = "wanttobuy", deserialize_with = "deserialize_1_0_bool")]
+    pub want_to_buy: bool,
     /// User has the game on their wishlist.
     #[serde(deserialize_with = "deserialize_1_0_bool")]
     pub wishlist: bool,
+    /// The priority of the wishlist.
+    #[serde(
+        default,
+        rename = "wishlistpriority",
+        deserialize_with = "deserialize_wishlist_priority"
+    )]
+    pub wishlist_priority: Option<WishlistPriority>,
+    /// User pre-ordered the game.
+    #[serde(rename = "preordered", deserialize_with = "deserialize_1_0_bool")]
+    pub pre_ordered: bool,
+}
+
+/// The status of the game in the user's collection, such as preowned or wishlist.
+/// Can be any or none of them.
+#[derive(Clone, Debug, Deserialize, PartialEq, PartialOrd)]
+pub enum WishlistPriority {
+    /// Lowest priority.
+    DontBuyThis,
+    /// Thinking about buying it.
+    ThinkingAboutIt,
+    /// The default value, would like to have it.
+    LikeToHave,
+    /// Would love to have it.
+    LoveToHave,
+    /// Highest wishlist priority, a must have.
+    MustHave,
 }
 
 /// Stats of the game such as playercount and duration. Can be omitted from the response.
@@ -231,7 +275,7 @@ mod tests {
             https://domain/thumbnail.jpg
         </thumbnail>
         <status own="1" prevowned="0" fortrade="0" want="0" wanttoplay="0" wanttobuy="0" wishlist="0" preordered="0" lastmodified="2024-04-13 18:29:01"/>
-        <numplays>0</numplays>
+        <numplays>2</numplays>
     </item>
 </items>
             "#)
@@ -239,6 +283,7 @@ mod tests {
             .await;
 
         let collection = api.collection().get_owned("somename").await;
+        println!("{collection:?}");
         mock.assert();
 
         assert!(collection.is_ok(), "error returned when okay expected");
@@ -257,11 +302,91 @@ mod tests {
                 thumbnail: "https://domain/thumbnail.jpg".to_string(),
                 status: CollectionGameStatus {
                     own: true,
-                    wishlist: false
+                    previously_owned: false,
+                    for_trade: false,
+                    want_in_trade: false,
+                    want_to_play: false,
+                    want_to_buy: false,
+                    wishlist: false,
+                    wishlist_priority: None,
+                    pre_ordered: false,
                 },
+                number_of_plays: 2,
                 stats: None,
             },
-            "returned collection game doesn't match expected"
+            "returned collection game doesn't match expected",
+        );
+    }
+
+    #[tokio::test]
+    async fn test_get_wishlist() {
+        let mut server = mockito::Server::new_async().await;
+        let url = server.url();
+        let api = BoardGameGeekApi {
+            base_url: &url,
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "somename".into()),
+                Matcher::UrlEncoded("wishlist".into(), "1".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+              ]))
+            .with_status(200)
+            .with_body(r#"
+<items>
+    <item objecttype="thing" objectid="177736" subtype="boardgame" collid="118332974">
+        <name sortindex="3">A Feast for Odin</name>
+        <yearpublished>2016</yearpublished>
+        <image>
+            https://domain/img.jpg
+        </image>
+        <thumbnail>
+            https://domain/thumbnail.jpg
+        </thumbnail>
+        <status own="0" prevowned="0" fortrade="0" want="1" wanttoplay="0" wanttobuy="0" wishlist="1" wishlistpriority="2" preordered="0" lastmodified="2024-04-18 19:28:17"/>
+        <numplays>0</numplays>
+    </item>
+</items>
+            "#)
+            .create_async()
+            .await;
+
+        let collection = api.collection().get_wishlist("somename").await;
+        println!("{collection:?}");
+        mock.assert();
+
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+
+        assert_eq!(collection.games.len(), 1);
+        assert_eq!(
+            collection.games[0],
+            CollectionGame {
+                id: 177736,
+                collection_id: 118332974,
+                game_type: GameType::BoardGame,
+                name: "A Feast for Odin".to_string(),
+                year_published: 2016,
+                image: "https://domain/img.jpg".to_string(),
+                thumbnail: "https://domain/thumbnail.jpg".to_string(),
+                status: CollectionGameStatus {
+                    own: false,
+                    previously_owned: false,
+                    for_trade: false,
+                    want_in_trade: true,
+                    want_to_play: false,
+                    want_to_buy: false,
+                    wishlist: true,
+                    wishlist_priority: Some(WishlistPriority::LoveToHave),
+                    pre_ordered: false,
+                },
+                number_of_plays: 0,
+                stats: None,
+            },
+            "returned collection game doesn't match expected",
         );
     }
 }
