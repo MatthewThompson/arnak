@@ -11,12 +11,12 @@ pub struct Collection {
     /// List of games and expansions in the user's collection. Each item
     /// is not necessarily owned but can be preowned, wishlisted etc.
     #[serde(rename = "$value")]
-    pub games: Vec<CollectionGame>,
+    pub items: Vec<CollectionItem>,
 }
 
 /// A game or game expansion in a collection.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct CollectionGame {
+pub struct CollectionItem {
     /// The ID of the game.
     #[serde(rename = "objectid")]
     pub id: u64,
@@ -25,7 +25,7 @@ pub struct CollectionGame {
     pub collection_id: u64,
     /// The type of game, which will either be boardgame or expansion.
     #[serde(rename = "subtype")]
-    pub game_type: GameType,
+    pub item_type: ItemType,
     /// The name of the game.
     pub name: String,
     /// The year the game was first published.
@@ -36,17 +36,17 @@ pub struct CollectionGame {
     /// A link to a jpg thumbnail image for the game.
     pub thumbnail: String,
     /// Status of the game in this collection, such as own, preowned, wishlist.
-    pub status: CollectionGameStatus,
+    pub status: CollectionItemStatus,
     /// The number of times the user has played the game.
     #[serde(rename = "numplays")]
     pub number_of_plays: u64,
     /// Game stats such as number of players, can sometimes be omitted from the result.
-    pub stats: Option<CollectionGameStats>,
+    pub stats: Option<CollectionItemStats>,
 }
 
 /// The type of game, board game or expansion.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub enum GameType {
+pub enum ItemType {
     /// A board game, or expansion.
     ///
     /// Due to the way the API works, this type can include expansions too.
@@ -70,7 +70,7 @@ pub enum GameType {
 /// The status of the game in the user's collection, such as preowned or wishlist.
 /// Can be any or none of them.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct CollectionGameStatus {
+pub struct CollectionItemStatus {
     /// User owns the game.
     #[serde(deserialize_with = "deserialize_1_0_bool")]
     pub own: bool,
@@ -123,7 +123,7 @@ pub enum WishlistPriority {
 /// Stats of the game such as playercount and duration. Can be omitted from the response.
 /// More stats can be found from the specific game endpoint.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct CollectionGameStats {
+pub struct CollectionItemStats {
     /// Minimum players the game supports.
     #[serde(rename = "minplayers")]
     pub min_players: u32,
@@ -289,18 +289,18 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.games.len(), 1);
+        assert_eq!(collection.items.len(), 1);
         assert_eq!(
-            collection.games[0],
-            CollectionGame {
+            collection.items[0],
+            CollectionItem {
                 id: 131835,
                 collection_id: 118278872,
-                game_type: GameType::BoardGame,
+                item_type: ItemType::BoardGame,
                 name: "Boss Monster: The Dungeon Building Card Game".to_string(),
                 year_published: 2013,
                 image: "https://domain/img.jpg".to_string(),
                 thumbnail: "https://domain/thumbnail.jpg".to_string(),
-                status: CollectionGameStatus {
+                status: CollectionItemStatus {
                     own: true,
                     previously_owned: false,
                     for_trade: false,
@@ -361,18 +361,18 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.games.len(), 1);
+        assert_eq!(collection.items.len(), 1);
         assert_eq!(
-            collection.games[0],
-            CollectionGame {
+            collection.items[0],
+            CollectionItem {
                 id: 177736,
                 collection_id: 118332974,
-                game_type: GameType::BoardGame,
+                item_type: ItemType::BoardGame,
                 name: "A Feast for Odin".to_string(),
                 year_published: 2016,
                 image: "https://domain/img.jpg".to_string(),
                 thumbnail: "https://domain/thumbnail.jpg".to_string(),
-                status: CollectionGameStatus {
+                status: CollectionItemStatus {
                     own: false,
                     previously_owned: false,
                     for_trade: false,

@@ -6,7 +6,7 @@
 //! ```rust
 //! use arnak::{
 //!     BoardGameGeekApi,
-//!     GameType,
+//!     ItemType,
 //! };
 //!
 //! // Enter tokio async runtime.
@@ -15,10 +15,10 @@
 //!     let api = BoardGameGeekApi::new();
 //!     let collection = api.collection().get_owned("bluebearbgg").await.expect("Failed to get owned games.");
 //!
-//!     for game in collection.games {
-//!         match game.game_type {
-//!             GameType::BoardGame => println!("{}", game.name),
-//!             GameType::BoardGameExpansion => println!("{} [expansion]", game.name),
+//!     for game in collection.items {
+//!         match game.item_type {
+//!             ItemType::BoardGame => println!("{}", game.name),
+//!             ItemType::BoardGameExpansion => println!("{} [expansion]", game.name),
 //!         }
 //!     }
 //! })
