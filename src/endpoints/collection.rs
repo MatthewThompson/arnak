@@ -1,9 +1,59 @@
+use chrono::{DateTime, Utc};
+use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use std::future::Future;
 
 use crate::api::BoardGameGeekApi;
-use crate::utils::{deserialize_1_0_bool, deserialize_wishlist_priority};
+use crate::utils::{date_deserializer, deserialize_1_0_bool, deserialize_wishlist_priority};
 use crate::Result;
+
+pub trait CollectionType<'q> {
+    fn base_query(username: &'q str) -> BaseCollectionQuery<'q>;
+}
+
+impl<'q> CollectionType<'q> for CollectionBrief {
+    fn base_query(username: &'q str) -> BaseCollectionQuery<'q> {
+        BaseCollectionQuery {
+            username,
+            brief: true,
+        }
+    }
+}
+impl<'q> CollectionType<'q> for Collection {
+    fn base_query(username: &'q str) -> BaseCollectionQuery<'q> {
+        BaseCollectionQuery {
+            username,
+            brief: false,
+        }
+    }
+}
+
+/// A user's collection on boardgamegeek, with only the name and statuses returned.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct CollectionBrief {
+    /// List of games and expansions in the user's collection. Each item
+    /// is not necessarily owned but can be preowned, wishlisted etc.
+    #[serde(rename = "$value")]
+    pub items: Vec<CollectionItemBrief>,
+}
+
+/// An item in a collection, in brief form. With only the name, status, type, and IDs.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct CollectionItemBrief {
+    /// The ID of the game.
+    #[serde(rename = "objectid")]
+    pub id: u64,
+    /// The collection ID of the object.
+    #[serde(rename = "collid")]
+    pub collection_id: u64,
+    /// The type of game, which will either be boardgame or expansion.
+    #[serde(rename = "subtype")]
+    pub item_type: ItemType,
+    /// The name of the game.
+    pub name: String,
+    /// Status of the game in this collection, such as own, preowned, wishlist.
+    pub status: CollectionItemStatus,
+}
 
 /// A user's collection on boardgamegeek.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
@@ -102,6 +152,9 @@ pub struct CollectionItemStatus {
     /// User pre-ordered the game.
     #[serde(rename = "preordered", deserialize_with = "deserialize_1_0_bool")]
     pub pre_ordered: bool,
+    /// When the collection status was last modified
+    #[serde(rename = "lastmodified", with = "date_deserializer")]
+    pub last_modified: DateTime<Utc>,
 }
 
 /// The status of the game in the user's collection, such as preowned or wishlist.
@@ -132,37 +185,56 @@ pub struct CollectionItemStats {
     pub max_players: u32,
 }
 
+/// Required query paramters. Any type the collection query can implement
+/// must be able to return a base query, so valid queries can be constructed
+/// for both [Collection] and [CollectionBrief]
+#[derive(Clone, Debug)]
+pub struct BaseCollectionQuery<'q> {
+    pub(crate) username: &'q str,
+    pub(crate) brief: bool,
+}
+
 /// Struct for building a query for the request to the collection endpoint.
+#[derive(Clone, Debug)]
 pub struct CollectionQueryBuilder<'q> {
-    username: &'q str,
-    include_owned: Option<bool>,
-    include_wishlist: Option<bool>,
-    include_stats: Option<bool>,
+    base: BaseCollectionQuery<'q>,
+    params: CollectionQueryParams,
+}
+
+/// All optional query parameters for making a request to the
+/// collection endpoint.
+#[derive(Clone, Debug, Default)]
+pub struct CollectionQueryParams {
+    pub include_owned: Option<bool>,
+    pub include_wishlist: Option<bool>,
+    pub include_stats: Option<bool>,
 }
 
 impl<'a> CollectionQueryBuilder<'a> {
-    /// Constructs a new query builder from a name, which is a required parmeter.
-    /// Sets all other fields to None.
-    pub fn new(username: &'a str) -> Self {
+    /// Constructs a new query builder from a base query, and the rest of the parameters are set to None.
+    fn new(base: BaseCollectionQuery<'a>) -> Self {
         Self {
-            username,
-            include_owned: None,
-            include_wishlist: None,
-            include_stats: None,
+            base,
+            params: CollectionQueryParams::default(),
         }
+    }
+
+    /// Constructs a new query builder from a base query, and the rest of the parameters.
+    fn new_from_params(base: BaseCollectionQuery<'a>, params: CollectionQueryParams) -> Self {
+        Self { base, params }
     }
 
     /// Sets the include_owned field. If true the result will include items that
     /// the user owns. Unless all status fields are kept at None, then they are all included.
     pub fn owned(mut self, include_owned: bool) -> Self {
-        self.include_owned = Some(include_owned);
+        self.params.include_owned = Some(include_owned);
         self
     }
 
     /// Sets the include_wishlist field. If true the result will include the items
     /// that the user has on their wishlist. Unless all status fields are kept at None, then they are all included.
     pub fn wishlist(mut self, include_wishlist: bool) -> Self {
-        self.include_wishlist = Some(include_wishlist);
+        self.params.include_wishlist = Some(include_wishlist);
         self
     }
 
@@ -170,7 +242,7 @@ impl<'a> CollectionQueryBuilder<'a> {
     /// Since the default behaviour is inconsistent. Keeping this at None will
     /// be treated as true at build time.
     pub fn stats(mut self, include_stats: bool) -> Self {
-        self.include_stats = Some(include_stats);
+        self.params.include_stats = Some(include_stats);
         self
     }
 
@@ -178,19 +250,24 @@ impl<'a> CollectionQueryBuilder<'a> {
     /// the expected query parameter key value pairs.
     pub fn build(self) -> Vec<(&'a str, &'a str)> {
         let mut query_params: Vec<_> = vec![];
-        query_params.push(("username", self.username));
+        query_params.push(("username", self.base.username));
 
-        match self.include_owned {
+        match self.base.brief {
+            true => query_params.push(("brief", "1")),
+            false => query_params.push(("brief", "0")),
+        }
+
+        match self.params.include_owned {
             Some(true) => query_params.push(("own", "1")),
             Some(false) => query_params.push(("own", "0")),
             None => {}
         }
-        match self.include_wishlist {
+        match self.params.include_wishlist {
             Some(true) => query_params.push(("wishlist", "1")),
             Some(false) => query_params.push(("wishlist", "0")),
             None => {}
         }
-        match self.include_stats {
+        match self.params.include_stats {
             Some(true) => query_params.push(("stats", "1")),
             Some(false) => query_params.push(("stats", "0")),
             // When omitted, the API has inconsistent behaviour, and will include the stats usually
@@ -203,48 +280,113 @@ impl<'a> CollectionQueryBuilder<'a> {
 
 /// Collection endpoint of the API. Used for returning user's collections
 /// of games by their username. Filtering by [CollectionGameStatus], rating, recorded plays.
-pub struct CollectionApi<'api> {
+pub struct CollectionApi<'api, T: DeserializeOwned + CollectionType<'api> + 'api> {
     pub(crate) api: &'api BoardGameGeekApi<'api>,
     endpoint: &'api str,
+    type_marker: std::marker::PhantomData<T>,
 }
 
-impl<'api> CollectionApi<'api> {
+impl<'api, T: DeserializeOwned + CollectionType<'api> + 'api> CollectionApi<'api, T> {
     pub(crate) fn new(api: &'api BoardGameGeekApi) -> Self {
         Self {
             api,
             endpoint: "collection",
+            type_marker: std::marker::PhantomData,
         }
     }
 
     /// Gets all the games that a given user owns.
-    pub fn get_owned(&self, username: &str) -> impl Future<Output = Result<Collection>> + 'api {
-        let query = CollectionQueryBuilder::new(username).owned(true);
+    pub fn get_owned(&self, username: &'api str) -> impl Future<Output = Result<T>> + 'api {
+        let query = CollectionQueryBuilder::new(T::base_query(username)).owned(true);
         let request = self.api.build_request(self.endpoint, &query.build());
-        let future = self.api.execute_request::<Collection>(request);
+        let future = self.api.execute_request::<T>(request);
         future
     }
 
     /// Gets all the games that a given user has on their wishlist.
-    pub fn get_wishlist(&self, username: &str) -> impl Future<Output = Result<Collection>> + 'api {
-        let query = CollectionQueryBuilder::new(username).wishlist(true);
+    pub fn get_wishlist(&self, username: &'api str) -> impl Future<Output = Result<T>> + 'api {
+        let query = CollectionQueryBuilder::new(T::base_query(username)).wishlist(true);
         let request = self.api.build_request(self.endpoint, &query.build());
-        self.api.execute_request::<Collection>(request)
+        self.api.execute_request::<T>(request)
     }
 
     /// Makes a request from a [CollectionQueryBuilder].
     pub fn get_from_query(
         &self,
-        query: CollectionQueryBuilder,
-    ) -> impl Future<Output = Result<Collection>> + 'api {
+        username: &'api str,
+        query_params: CollectionQueryParams,
+    ) -> impl Future<Output = Result<T>> + 'api {
+        let query = CollectionQueryBuilder::new_from_params(T::base_query(username), query_params);
         let request = self.api.build_request(self.endpoint, &query.build());
-        self.api.execute_request::<Collection>(request)
+        self.api.execute_request::<T>(request)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::TimeZone;
     use mockito::Matcher;
+
+    #[tokio::test]
+    async fn test_get_owned_brief() {
+        let mut server = mockito::Server::new_async().await;
+        let url = server.url();
+        let api = BoardGameGeekApi {
+            base_url: &url,
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "somename".into()),
+                Matcher::UrlEncoded("own".into(), "1".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+              ]))
+            .with_status(200)
+            .with_body(r#"
+<items>
+    <item objecttype="thing" objectid="131835" subtype="boardgame" collid="118278872">
+        <name sortindex="1">Boss Monster: The Dungeon Building Card Game</name>
+        <status own="1" prevowned="0" fortrade="0" want="0" wanttoplay="0" wanttobuy="0" wishlist="0" preordered="0" lastmodified="2024-04-13 18:29:01"/>
+    </item>
+</items>
+            "#)
+            .create_async()
+            .await;
+
+        let collection = api.collection_brief().get_owned("somename").await;
+        println!("{collection:?}");
+        mock.assert();
+
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+
+        assert_eq!(collection.items.len(), 1);
+        assert_eq!(
+            collection.items[0],
+            CollectionItemBrief {
+                id: 131835,
+                collection_id: 118278872,
+                item_type: ItemType::BoardGame,
+                name: "Boss Monster: The Dungeon Building Card Game".to_string(),
+                status: CollectionItemStatus {
+                    own: true,
+                    previously_owned: false,
+                    for_trade: false,
+                    want_in_trade: false,
+                    want_to_play: false,
+                    want_to_buy: false,
+                    wishlist: false,
+                    wishlist_priority: None,
+                    pre_ordered: false,
+                    last_modified: Utc.with_ymd_and_hms(2024, 4, 13, 18, 29, 1).unwrap(),
+                },
+            },
+            "returned collection game doesn't match expected",
+        );
+    }
 
     #[tokio::test]
     async fn test_get_owned() {
@@ -310,6 +452,7 @@ mod tests {
                     wishlist: false,
                     wishlist_priority: None,
                     pre_ordered: false,
+                    last_modified: Utc.with_ymd_and_hms(2024, 4, 13, 18, 29, 1).unwrap(),
                 },
                 number_of_plays: 2,
                 stats: None,
@@ -382,6 +525,7 @@ mod tests {
                     wishlist: true,
                     wishlist_priority: Some(WishlistPriority::LoveToHave),
                     pre_ordered: false,
+                    last_modified: Utc.with_ymd_and_hms(2024, 4, 18, 19, 28, 17).unwrap(),
                 },
                 number_of_plays: 0,
                 stats: None,
