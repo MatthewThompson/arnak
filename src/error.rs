@@ -22,6 +22,8 @@ pub enum Error {
     MaxRetryError(u32),
     /// The username requested was not found.
     UnknownUsernameError,
+    /// Invalid value supplied for subtype ([ItemType]) query parameter.
+    InvalidCollectionItemType,
     /// The API returned a list of errors that we do not recognise.
     UnknownApiErrors(Vec<String>),
 }
@@ -47,6 +49,7 @@ impl fmt::Display for Error {
                 write!(f, "data still not ready after {retries} retries, aborting")
             }
             Error::UnknownUsernameError => write!(f, "username not found"),
+            Error::InvalidCollectionItemType => write!(f, "invalid collection item type provided"),
             Error::UnknownApiErrors(messages) => match messages.len() {
                 0 => write!(f, "got error from API with no message"),
                 1 => write!(f, "got unknown error from API: {}", messages[0]),
@@ -63,6 +66,7 @@ impl StdError for Error {
             Error::UnexpectedResponseError(e) => Some(e),
             Error::MaxRetryError(_) => None,
             Error::UnknownUsernameError => None,
+            Error::InvalidCollectionItemType => None,
             Error::UnknownApiErrors(_) => None,
         }
     }
@@ -86,6 +90,9 @@ impl From<ApiXmlErrors> for Error {
             let error_message = &error_messages[0];
             if error_message == "Invalid username specified" {
                 return Self::UnknownUsernameError;
+            }
+            if error_message == "Invalid collection subtype" {
+                return Self::InvalidCollectionItemType;
             }
         }
         Self::UnknownApiErrors(error_messages)

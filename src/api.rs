@@ -50,7 +50,7 @@ impl<'api> BoardGameGeekApi<'api> {
     pub(crate) fn build_request(
         &self,
         endpoint: &str,
-        query: &[(&str, &str)],
+        query: &[(&str, String)],
     ) -> reqwest::RequestBuilder {
         self.client
             .get(format!("{}/{}", self.base_url, endpoint))
