@@ -631,29 +631,20 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
 
     /// Get all items of all types in the user's collection.
     pub fn get_all(&self, username: &'api str) -> impl Future<Output = Result<T>> + 'api {
-        let query =
-            CollectionQueryBuilder::new(T::base_query(username), CollectionQueryParams::new());
-
-        let request = self.api.build_request(self.endpoint, &query.build());
-        self.api.execute_request::<T>(request)
+        let query_params = CollectionQueryParams::default();
+        self.get_from_query(username, query_params)
     }
 
     /// Gets all the games that a given user owns.
     pub fn get_owned(&self, username: &'api str) -> impl Future<Output = Result<T>> + 'api {
         let query_params = CollectionQueryParams::new().include_owned(true);
-        let query = CollectionQueryBuilder::new(T::base_query(username), query_params);
-
-        let request = self.api.build_request(self.endpoint, &query.build());
-        self.api.execute_request::<T>(request)
+        self.get_from_query(username, query_params)
     }
 
     /// Gets all the games that a given user has on their wishlist.
     pub fn get_wishlist(&self, username: &'api str) -> impl Future<Output = Result<T>> + 'api {
         let query_params = CollectionQueryParams::new().include_wishlist(true);
-        let query = CollectionQueryBuilder::new(T::base_query(username), query_params);
-
-        let request = self.api.build_request(self.endpoint, &query.build());
-        self.api.execute_request::<T>(request)
+        self.get_from_query(username, query_params)
     }
 
     /// Makes a request from a [CollectionQueryParams].
@@ -674,6 +665,11 @@ mod tests {
     use super::*;
     use chrono::TimeZone;
     use mockito::Matcher;
+
+    #[test]
+    fn sort_wishlist_priority() {
+        assert!(WishlistPriority::DontBuyThis < WishlistPriority::MustHave);
+    }
 
     #[tokio::test]
     async fn test_get_owned_brief() {
