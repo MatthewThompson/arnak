@@ -688,14 +688,10 @@ mod tests {
                 Matcher::UrlEncoded("stats".into(), "1".into()),
               ]))
             .with_status(200)
-            .with_body(r#"
-<items>
-    <item objecttype="thing" objectid="131835" subtype="boardgame" collid="118278872">
-        <name sortindex="1">Boss Monster: The Dungeon Building Card Game</name>
-        <status own="1" prevowned="0" fortrade="0" want="0" wanttoplay="0" wanttobuy="0" wishlist="0" preordered="0" lastmodified="2024-04-13 18:29:01"/>
-    </item>
-</items>
-            "#)
+            .with_body(
+                std::fs::read_to_string("test_data/collection_brief_owned_single.xml")
+                    .expect("failed to load test data")
+            )
             .create_async()
             .await;
 
@@ -749,22 +745,10 @@ mod tests {
                 Matcher::UrlEncoded("stats".into(), "1".into()),
               ]))
             .with_status(200)
-            .with_body(r#"
-<items>
-    <item objecttype="thing" objectid="131835" subtype="boardgame" collid="118278872">
-        <name sortindex="1">Boss Monster: The Dungeon Building Card Game</name>
-        <yearpublished>2013</yearpublished>
-        <image>
-            https://domain/img.jpg
-        </image>
-        <thumbnail>
-            https://domain/thumbnail.jpg
-        </thumbnail>
-        <status own="1" prevowned="0" fortrade="0" want="0" wanttoplay="0" wanttobuy="0" wishlist="0" preordered="0" lastmodified="2024-04-13 18:29:01"/>
-        <numplays>2</numplays>
-    </item>
-</items>
-            "#)
+            .with_body(
+                std::fs::read_to_string("test_data/collection_owned_single.xml")
+                    .expect("failed to load test data")
+            )
             .create_async()
             .await;
 
@@ -822,22 +806,10 @@ mod tests {
                 Matcher::UrlEncoded("stats".into(), "1".into()),
               ]))
             .with_status(200)
-            .with_body(r#"
-<items>
-    <item objecttype="thing" objectid="177736" subtype="boardgame" collid="118332974">
-        <name sortindex="3">A Feast for Odin</name>
-        <yearpublished>2016</yearpublished>
-        <image>
-            https://domain/img.jpg
-        </image>
-        <thumbnail>
-            https://domain/thumbnail.jpg
-        </thumbnail>
-        <status own="0" prevowned="0" fortrade="0" want="1" wanttoplay="0" wanttobuy="0" wishlist="1" wishlistpriority="2" preordered="0" lastmodified="2024-04-18 19:28:17"/>
-        <numplays>0</numplays>
-    </item>
-</items>
-            "#)
+            .with_body(
+                std::fs::read_to_string("test_data/collection_wishlist_single.xml")
+                    .expect("failed to load test data")
+            )
             .create_async()
             .await;
 
@@ -886,7 +858,6 @@ mod tests {
             base_url: &url,
             client: reqwest::Client::new(),
         };
-
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
@@ -899,7 +870,10 @@ mod tests {
                 Matcher::UrlEncoded("wishlistpriority".into(), "5".into()),
             ]))
             .with_status(200)
-            .with_body("todo")
+            .with_body(
+                std::fs::read_to_string("test_data/collection_owned_single.xml")
+                    .expect("failed to load test data")
+            )
             .create_async()
             .await;
 
