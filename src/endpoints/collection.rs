@@ -748,6 +748,7 @@ mod tests {
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "somename".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
                 Matcher::UrlEncoded("own".into(), "1".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
               ]))
@@ -772,7 +773,6 @@ mod tests {
             .await;
 
         let collection = api.collection().get_owned("somename").await;
-        println!("{collection:?}");
         mock.assert();
 
         assert!(collection.is_ok(), "error returned when okay expected");
@@ -821,6 +821,7 @@ mod tests {
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "somename".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
                 Matcher::UrlEncoded("wishlist".into(), "1".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
               ]))
@@ -879,5 +880,41 @@ mod tests {
             },
             "returned collection game doesn't match expected",
         );
+    }
+
+    #[tokio::test]
+    async fn test_get_from_query() {
+        let mut server = mockito::Server::new_async().await;
+        let url = server.url();
+        let api = BoardGameGeekApi {
+            base_url: &url,
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "someone".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
+                Matcher::UrlEncoded("hasparts".into(), "0".into()),
+                Matcher::UrlEncoded("own".into(), "1".into()),
+                Matcher::UrlEncoded("minplays".into(), "14".into()),
+                Matcher::UrlEncoded("wishlist".into(), "1".into()),
+                Matcher::UrlEncoded("wishlistpriority".into(), "5".into()),
+            ]))
+            .with_status(200)
+            .with_body("todo")
+            .create_async()
+            .await;
+
+        let query = CollectionQueryParams::new()
+            .has_parts(false)
+            .include_owned(true)
+            .min_plays(14)
+            .include_wishlist(true)
+            .wishlist_priority(WishlistPriority::DontBuyThis);
+
+        let _ = api.collection().get_from_query("someone", query).await;
+        mock.assert();
     }
 }
