@@ -127,7 +127,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_send_request() {
+    async fn send_request() {
         let mut server = mockito::Server::new_async().await;
         let url = server.url();
         let api = BoardGameGeekApi {
@@ -151,7 +151,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_send_failed_request() {
+    async fn send_failed_request() {
         let mut server = mockito::Server::new_async().await;
         let url = server.url();
         let api = BoardGameGeekApi {
@@ -173,7 +173,7 @@ mod tests {
     }
 
     #[tokio::test(start_paused = true)]
-    async fn test_send_request_202_retries() {
+    async fn send_request_202_retries() {
         let mut server = mockito::Server::new_async().await;
         let url = server.url();
         let api = BoardGameGeekApi {

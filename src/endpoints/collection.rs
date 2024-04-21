@@ -672,7 +672,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_owned_brief() {
+    async fn get_owned_brief() {
         let mut server = mockito::Server::new_async().await;
         let url = server.url();
         let api = BoardGameGeekApi {
@@ -732,7 +732,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_owned() {
+    async fn get_owned() {
         let mut server = mockito::Server::new_async().await;
         let url = server.url();
         let api = BoardGameGeekApi {
@@ -805,7 +805,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_wishlist() {
+    async fn get_wishlist() {
         let mut server = mockito::Server::new_async().await;
         let url = server.url();
         let api = BoardGameGeekApi {
@@ -879,7 +879,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_from_query() {
+    async fn get_from_query() {
         let mut server = mockito::Server::new_async().await;
         let url = server.url();
         let api = BoardGameGeekApi {
