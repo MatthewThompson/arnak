@@ -1,3 +1,5 @@
+use chrono::Duration;
+
 use crate::WishlistPriority;
 
 pub(crate) fn deserialize_1_0_bool<'de, D>(deserializer: D) -> Result<bool, D::Error>
@@ -11,6 +13,21 @@ where
         "0" => Ok(false),
         _ => Err(serde::de::Error::unknown_variant(&s, &["1", "0"])),
     }
+}
+
+pub(crate) fn deserialize_minutes<'de, D>(deserializer: D) -> Result<Duration, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    let s: String = serde::de::Deserialize::deserialize(deserializer)?;
+    // Parse as unsigned because although Duration supports negative durations,
+    // we do not want to support that for game playing time.
+    let minutes = s.parse::<u32>().map_err(|e| {
+        serde::de::Error::custom(format!(
+            "unable to parse duration minutes string to u32: {e}"
+        ))
+    });
+    minutes.map(|m| Duration::minutes(m as i64))
 }
 
 pub(crate) fn deserialize_wishlist_priority<'de, D>(

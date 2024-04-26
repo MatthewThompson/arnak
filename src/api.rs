@@ -6,7 +6,7 @@ use serde_xml_rs::from_str;
 use tokio::time::sleep;
 
 use crate::endpoints::collection::CollectionApi;
-use crate::{ApiXmlErrors, Collection, CollectionBrief, Error, Result};
+use crate::{ApiXmlErrors, CollectionItem, CollectionItemBrief, Error, Result};
 
 /// API for making requests to the [Board Game Geek API](https://boardgamegeek.com/wiki/page/BGG_XML_API2).
 pub struct BoardGameGeekApi<'api> {
@@ -35,13 +35,13 @@ impl<'api> BoardGameGeekApi<'api> {
 
     /// Returns the collection endpoint of the API, which is used for querying a specific
     /// user's board game collection.
-    pub fn collection(&self) -> CollectionApi<Collection> {
+    pub fn collection(&self) -> CollectionApi<CollectionItem> {
         CollectionApi::new(self)
     }
 
     /// Returns the collection endpoint of the API, which is used for querying a specific
     /// user's board game collection.
-    pub fn collection_brief(&self) -> CollectionApi<CollectionBrief> {
+    pub fn collection_brief(&self) -> CollectionApi<CollectionItemBrief> {
         CollectionApi::new(self)
     }
 

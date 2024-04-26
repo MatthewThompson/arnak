@@ -1,40 +1,53 @@
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{DateTime, Duration, NaiveDate, Utc};
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
-use std::future::Future;
+use std::ops::RangeInclusive;
 
 use crate::api::BoardGameGeekApi;
-use crate::utils::{date_deserializer, deserialize_1_0_bool, deserialize_wishlist_priority};
+use crate::utils::{
+    date_deserializer, deserialize_1_0_bool, deserialize_minutes, deserialize_wishlist_priority,
+};
 use crate::Result;
 
-pub trait CollectionType<'q>: DeserializeOwned {
-    fn base_query(username: &'q str) -> BaseCollectionQuery<'q>;
+pub trait CollectionItemType<'a>: DeserializeOwned {
+    fn base_query(username: &'a str) -> BaseCollectionQuery<'a>;
+
+    fn get_stats(&self) -> Option<CollectionItemStats>;
 }
 
-impl<'q> CollectionType<'q> for CollectionBrief {
-    fn base_query(username: &'q str) -> BaseCollectionQuery<'q> {
+impl<'a> CollectionItemType<'a> for CollectionItemBrief {
+    fn base_query(username: &'a str) -> BaseCollectionQuery<'a> {
         BaseCollectionQuery {
             username,
             brief: true,
         }
     }
+
+    fn get_stats(&self) -> Option<CollectionItemStats> {
+        self.stats
+    }
 }
-impl<'q> CollectionType<'q> for Collection {
-    fn base_query(username: &'q str) -> BaseCollectionQuery<'q> {
+
+impl<'a> CollectionItemType<'a> for CollectionItem {
+    fn base_query(username: &'a str) -> BaseCollectionQuery<'a> {
         BaseCollectionQuery {
             username,
             brief: false,
         }
     }
+
+    fn get_stats(&self) -> Option<CollectionItemStats> {
+        self.stats
+    }
 }
 
-/// A user's collection on boardgamegeek, with only the name and statuses returned.
+/// A user's collection on boardgamegeek.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct CollectionBrief {
+pub struct Collection<T> {
     /// List of games and expansions in the user's collection. Each item
     /// is not necessarily owned but can be preowned, wishlisted etc.
     #[serde(rename = "$value")]
-    pub items: Vec<CollectionItemBrief>,
+    pub items: Vec<T>,
 }
 
 /// An item in a collection, in brief form. With only the name, status, type, and IDs.
@@ -53,15 +66,8 @@ pub struct CollectionItemBrief {
     pub name: String,
     /// Status of the game in this collection, such as own, preowned, wishlist.
     pub status: CollectionItemStatus,
-}
-
-/// A user's collection on boardgamegeek.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct Collection {
-    /// List of games and expansions in the user's collection. Each item
-    /// is not necessarily owned but can be preowned, wishlisted etc.
-    #[serde(rename = "$value")]
-    pub items: Vec<CollectionItem>,
+    /// Game stats such as number of players, can sometimes be omitted from the result.
+    pub stats: Option<CollectionItemStats>,
 }
 
 /// A game or game expansion in a collection.
@@ -175,7 +181,7 @@ pub enum WishlistPriority {
 
 /// Stats of the game such as playercount and duration. Can be omitted from the response.
 /// More stats can be found from the specific game endpoint.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemStats {
     /// Minimum players the game supports.
     #[serde(rename = "minplayers")]
@@ -183,6 +189,18 @@ pub struct CollectionItemStats {
     /// Maximum players the game supports.
     #[serde(rename = "maxplayers")]
     pub max_players: u32,
+    /// Minimum amount of time the game is suggested to take to play.
+    #[serde(rename = "minplaytime", deserialize_with = "deserialize_minutes")]
+    pub min_playtime: Duration,
+    /// Maximum amount of time the game is suggested to take to play.
+    #[serde(rename = "maxplaytime", deserialize_with = "deserialize_minutes")]
+    pub max_playtime: Duration,
+    /// The amount of time the game is suggested to take to play.
+    #[serde(rename = "playingtime", deserialize_with = "deserialize_minutes")]
+    pub playing_time: Duration,
+    /// The number of people that own this game.
+    #[serde(rename = "numowned")]
+    pub owned_by: u64,
 }
 
 /// Required query paramters. Any type the collection query can implement
@@ -614,13 +632,13 @@ impl<'a> CollectionQueryBuilder<'a> {
 
 /// Collection endpoint of the API. Used for returning user's collections
 /// of games by their username. Filtering by [CollectionGameStatus], rating, recorded plays.
-pub struct CollectionApi<'api, T: CollectionType<'api>> {
+pub struct CollectionApi<'api, T: CollectionItemType<'api>> {
     pub(crate) api: &'api BoardGameGeekApi<'api>,
     endpoint: &'api str,
     type_marker: std::marker::PhantomData<T>,
 }
 
-impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
+impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
     pub(crate) fn new(api: &'api BoardGameGeekApi) -> Self {
         Self {
             api,
@@ -630,33 +648,51 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
     }
 
     /// Get all items of all types in the user's collection.
-    pub fn get_all(&self, username: &'api str) -> impl Future<Output = Result<T>> + 'api {
+    pub async fn get_all(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::default();
-        self.get_from_query(username, query_params)
+        self.get_from_query(username, query_params).await
     }
 
     /// Gets all the games that a given user owns.
-    pub fn get_owned(&self, username: &'api str) -> impl Future<Output = Result<T>> + 'api {
+    pub async fn get_owned(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::new().include_owned(true);
-        self.get_from_query(username, query_params)
+        self.get_from_query(username, query_params).await
     }
 
     /// Gets all the games that a given user has on their wishlist.
-    pub fn get_wishlist(&self, username: &'api str) -> impl Future<Output = Result<T>> + 'api {
+    pub async fn get_wishlist(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::new().include_wishlist(true);
-        self.get_from_query(username, query_params)
+        self.get_from_query(username, query_params).await
+    }
+
+    pub async fn get_by_player_counts(
+        &self,
+        username: &'api str,
+        player_counts: &RangeInclusive<u32>,
+        query_params: CollectionQueryParams,
+    ) -> Result<Collection<T>> {
+        let mut collection = self
+            .get_from_query(username, query_params.include_stats(true))
+            .await?;
+
+        collection.items.retain(|item| {
+            item.get_stats().is_some_and(|s| {
+                *player_counts.start() < s.max_players && *player_counts.end() > s.min_players
+            })
+        });
+        Ok(collection)
     }
 
     /// Makes a request from a [CollectionQueryParams].
-    pub fn get_from_query(
+    pub async fn get_from_query(
         &self,
         username: &'api str,
         query_params: CollectionQueryParams,
-    ) -> impl Future<Output = Result<T>> + 'api {
+    ) -> Result<Collection<T>> {
         let query = CollectionQueryBuilder::new(T::base_query(username), query_params);
 
         let request = self.api.build_request(self.endpoint, &query.build());
-        self.api.execute_request::<T>(request)
+        self.api.execute_request::<Collection<T>>(request).await
     }
 }
 
@@ -686,11 +722,11 @@ mod tests {
                 Matcher::UrlEncoded("username".into(), "somename".into()),
                 Matcher::UrlEncoded("own".into(), "1".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
-              ]))
+            ]))
             .with_status(200)
             .with_body(
                 std::fs::read_to_string("test_data/collection_brief_owned_single.xml")
-                    .expect("failed to load test data")
+                    .expect("failed to load test data"),
             )
             .create_async()
             .await;
@@ -722,6 +758,7 @@ mod tests {
                     pre_ordered: false,
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 13, 18, 29, 1).unwrap(),
                 },
+                stats: None,
             },
             "returned collection game doesn't match expected",
         );
@@ -743,11 +780,11 @@ mod tests {
                 Matcher::UrlEncoded("brief".into(), "0".into()),
                 Matcher::UrlEncoded("own".into(), "1".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
-              ]))
+            ]))
             .with_status(200)
             .with_body(
                 std::fs::read_to_string("test_data/collection_owned_single.xml")
-                    .expect("failed to load test data")
+                    .expect("failed to load test data"),
             )
             .create_async()
             .await;
@@ -782,7 +819,14 @@ mod tests {
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 13, 18, 29, 1).unwrap(),
                 },
                 number_of_plays: 2,
-                stats: None,
+                stats: Some(CollectionItemStats{
+                    min_players: 2,
+                    max_players: 4,
+                    min_playtime: Duration::minutes(30),
+                    max_playtime: Duration::minutes(30),
+                    playing_time: Duration::minutes(30),
+                    owned_by: 35935,
+                }),
             },
             "returned collection game doesn't match expected",
         );
@@ -804,11 +848,11 @@ mod tests {
                 Matcher::UrlEncoded("brief".into(), "0".into()),
                 Matcher::UrlEncoded("wishlist".into(), "1".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
-              ]))
+            ]))
             .with_status(200)
             .with_body(
                 std::fs::read_to_string("test_data/collection_wishlist_single.xml")
-                    .expect("failed to load test data")
+                    .expect("failed to load test data"),
             )
             .create_async()
             .await;
@@ -872,7 +916,7 @@ mod tests {
             .with_status(200)
             .with_body(
                 std::fs::read_to_string("test_data/collection_owned_single.xml")
-                    .expect("failed to load test data")
+                    .expect("failed to load test data"),
             )
             .create_async()
             .await;

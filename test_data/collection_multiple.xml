@@ -8,15 +8,6 @@
         <thumbnail>
             https://domain/thumbnail.jpg
         </thumbnail>
-        <stats minplayers="2" maxplayers="4" minplaytime="30" maxplaytime="30" playingtime="30" numowned="35935">
-            <rating value="3">
-                <usersrated value="16898"/>
-                <average value="6.27125"/>
-                <bayesaverage value="6.08912"/>
-                <stddev value="1.46047"/>
-                <median value="0"/>
-            </rating>
-        </stats>
         <status own="1" prevowned="0" fortrade="0" want="0" wanttoplay="0" wanttobuy="0" wishlist="0" preordered="0" lastmodified="2024-04-13 18:29:01"/>
         <numplays>2</numplays>
     </item>
