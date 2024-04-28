@@ -5,7 +5,8 @@ use std::ops::RangeInclusive;
 
 use crate::api::BoardGameGeekApi;
 use crate::utils::{
-    date_deserializer, deserialize_1_0_bool, deserialize_minutes, deserialize_wishlist_priority,
+    date_deserializer, deserialize_1_0_bool, deserialize_game_ratings, deserialize_minutes,
+    deserialize_wishlist_priority,
 };
 use crate::Result;
 
@@ -201,6 +202,35 @@ pub struct CollectionItemStats {
     /// The number of people that own this game.
     #[serde(rename = "numowned")]
     pub owned_by: u64,
+    ///
+    #[serde(rename = "$value", deserialize_with = "deserialize_game_ratings")]
+    pub rating: CollectionItemRating,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub struct CollectionItemRating {
+    ///
+    pub value: f64,
+    ///
+    pub users_rated: u64,
+    ///
+    pub average: f64,
+    ///
+    pub bayesian_average: f64,
+    ///
+    pub standard_deviation: f64,
+    ///
+    pub(crate) median: f64,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct XmlIntValue {
+    pub value: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct XmlFloatValue {
+    pub value: f64,
 }
 
 /// Required query paramters. Any type the collection query can implement
@@ -765,6 +795,41 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn get_owned_all() {
+        let mut server = mockito::Server::new_async().await;
+        let url = server.url();
+        let api = BoardGameGeekApi {
+            base_url: &url,
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "somename".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
+                Matcher::UrlEncoded("own".into(), "1".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/collection_multiple.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let collection = api.collection().get_owned("somename").await;
+        mock.assert();
+
+        println!("{:?}", collection);
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+
+        assert_eq!(collection.items.len(), 33);
+    }
+
+    #[tokio::test]
     async fn get_owned() {
         let mut server = mockito::Server::new_async().await;
         let url = server.url();
@@ -792,6 +857,7 @@ mod tests {
         let collection = api.collection().get_owned("somename").await;
         mock.assert();
 
+        println!("{:?}", collection);
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
@@ -819,13 +885,21 @@ mod tests {
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 13, 18, 29, 1).unwrap(),
                 },
                 number_of_plays: 2,
-                stats: Some(CollectionItemStats{
+                stats: Some(CollectionItemStats {
                     min_players: 2,
                     max_players: 4,
                     min_playtime: Duration::minutes(30),
                     max_playtime: Duration::minutes(30),
                     playing_time: Duration::minutes(30),
                     owned_by: 35935,
+                    rating: CollectionItemRating {
+                        value: 3.0,
+                        users_rated: 16898,
+                        average: 6.27125,
+                        bayesian_average: 6.08912,
+                        standard_deviation: 1.46047,
+                        median: 0.0,
+                    },
                 }),
             },
             "returned collection game doesn't match expected",
