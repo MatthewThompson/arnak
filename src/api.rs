@@ -6,6 +6,7 @@ use serde_xml_rs::from_str;
 use tokio::time::sleep;
 
 use crate::endpoints::collection::CollectionApi;
+use crate::escape_xml::escape_xml;
 use crate::{ApiXmlErrors, CollectionItem, CollectionItemBrief, Error, Result};
 
 /// API for making requests to the [Board Game Geek API](https://boardgamegeek.com/wiki/page/BGG_XML_API2).
@@ -66,14 +67,19 @@ impl<'api> BoardGameGeekApi<'api> {
         let response = self.send_request(request).await?;
         let response_text = response.text().await?;
 
-        let parse_result = from_str(&response_text);
+        // The API doesn't sanitise string values such as the names and descriptions.
+        // So we must escape the & chars to stop this parsing from erroring on any
+        // names that inclue them.
+        let escaped = escape_xml(&response_text);
+
+        let parse_result = from_str(&escaped);
         match parse_result {
             Ok(result) => Ok(result),
             Err(e) => {
                 // The API returns a 200 but with an XML error in some cases,
                 // such as a usename not found, so we try to parse that first
                 // for a more specific error.
-                let api_error = from_str::<ApiXmlErrors>(&response_text);
+                let api_error = from_str::<ApiXmlErrors>(&escaped);
                 match api_error {
                     Ok(api_error) => Err(api_error.into()),
                     // If it's not a parseable error, we want to return the orignal error

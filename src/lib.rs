@@ -31,4 +31,6 @@ pub use endpoints::*;
 mod error;
 pub use error::*;
 
+mod escape_xml;
+
 mod utils;
