@@ -801,8 +801,7 @@ impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
 
         collection.items.retain(|item| {
             item.get_stats().is_some_and(|s| {
-                *player_counts.start() <= s.max_players
-                && *player_counts.end() >= s.min_players
+                *player_counts.start() <= s.max_players && *player_counts.end() >= s.min_players
             })
         });
         Ok(collection)
@@ -822,10 +821,8 @@ impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
             .await?;
 
         collection.items.retain(|item| {
-            item.get_stats().is_some_and(|s| {
-                player_count <= s.max_players
-                && player_count >= s.min_players
-            })
+            item.get_stats()
+                .is_some_and(|s| player_count <= s.max_players && player_count >= s.min_players)
         });
         Ok(collection)
     }
@@ -1247,16 +1244,16 @@ mod tests {
             )
             .create_async()
             .await;
-    
+
         let collection = api
             .collection()
             .get_by_player_counts("someone", 1..=16, CollectionQueryParams::new())
             .await;
         mock.assert();
-    
+
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
-    
+
         assert_eq!(collection.items.len(), 37);
 
         // Looking for a game that supports 17 players, not in the collection. Nothing should be returned.
@@ -1273,16 +1270,16 @@ mod tests {
             )
             .create_async()
             .await;
-    
+
         let collection = api
             .collection()
             .get_by_player_counts("someone", 17..=17, CollectionQueryParams::new())
             .await;
         mock.assert();
-    
+
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
-    
+
         assert_eq!(collection.items.len(), 0);
     }
 
@@ -1392,21 +1389,21 @@ mod tests {
             )
             .create_async()
             .await;
-    
+
         let collection = api
             .collection()
             .get_by_player_count("someone", 2, CollectionQueryParams::new())
             .await;
         mock.assert();
-    
+
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
-    
+
         assert_eq!(collection.items.len(), 30);
         for item in collection.items {
             assert!(
                 item.stats.as_ref().unwrap().min_players <= 2
-                && item.stats.unwrap().max_players >= 2
+                    && item.stats.unwrap().max_players >= 2
             )
         }
 
@@ -1424,16 +1421,16 @@ mod tests {
             )
             .create_async()
             .await;
-    
+
         let collection = api
             .collection()
             .get_by_player_count("someone", 17, CollectionQueryParams::new())
             .await;
         mock.assert();
-    
+
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
-    
+
         assert_eq!(collection.items.len(), 0);
     }
 }
