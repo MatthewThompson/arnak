@@ -808,6 +808,28 @@ impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
         Ok(collection)
     }
 
+    /// Gets all the games that support the given player count.
+    /// The include_stats parameter is automatically set to true, as it is
+    /// needed to filter the results.
+    pub async fn get_by_player_count(
+        &self,
+        username: &'api str,
+        player_count: u32,
+        query_params: CollectionQueryParams,
+    ) -> Result<Collection<T>> {
+        let mut collection = self
+            .get_from_query(username, query_params.include_stats(true))
+            .await?;
+
+        collection.items.retain(|item| {
+            item.get_stats().is_some_and(|s| {
+                player_count <= s.max_players
+                && player_count >= s.min_players
+            })
+        });
+        Ok(collection)
+    }
+
     /// Makes a request from a [CollectionQueryParams].
     pub async fn get_from_query(
         &self,
@@ -1255,6 +1277,157 @@ mod tests {
         let collection = api
             .collection()
             .get_by_player_counts("someone", 17..=17, CollectionQueryParams::new())
+            .await;
+        mock.assert();
+    
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+    
+        assert_eq!(collection.items.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn get_by_player_count() {
+        let mut server = mockito::Server::new_async().await;
+        let url = server.url();
+        let api = BoardGameGeekApi {
+            base_url: &url,
+            client: reqwest::Client::new(),
+        };
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "someone".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let collection = api
+            .collection()
+            .get_by_player_count("someone", 16, CollectionQueryParams::new())
+            .await;
+        mock.assert();
+
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+
+        assert_eq!(collection.items.len(), 1);
+        assert_eq!(
+            collection.items[0],
+            CollectionItem {
+                id: 2281,
+                collection_id: 118280658,
+                item_type: ItemType::BoardGame,
+                name: "Pictionary".to_string(),
+                year_published: 1985,
+                image: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__original/img/YRJAlLzkxMuJHVPsdnBLNFpoODA=/0x0/filters:format(png)/pic5147022.png".to_string(),
+                thumbnail: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__thumb/img/7ls1a8ak5oT7BaKM-rVHpOVrP14=/fit-in/200x150/filters:strip_icc()/pic5147022.png".to_string(),
+                status: CollectionItemStatus {
+                    own: true,
+                    previously_owned: false,
+                    for_trade: false,
+                    want_in_trade: false,
+                    want_to_play: false,
+                    want_to_buy: false,
+                    wishlist: false,
+                    wishlist_priority: None,
+                    pre_ordered: false,
+                    last_modified: Utc.with_ymd_and_hms(2024, 4, 14, 9, 47, 38).unwrap(),
+                },
+                number_of_plays: 0,
+                stats: Some(CollectionItemStats {
+                    min_players: 3,
+                    max_players: 16,
+                    min_playtime: Duration::minutes(90),
+                    max_playtime: Duration::minutes(90),
+                    playing_time: Duration::minutes(90),
+                    owned_by: 14400,
+                    rating: CollectionItemRating {
+                        value: Some(7.0),
+                        users_rated: 8097,
+                        average: 5.84098,
+                        bayesian_average: 5.71005,
+                        standard_deviation: 1.58457,
+                        median: 0.0,
+                        ranks: vec![
+                            GameTypeRank {
+                                game_type: "subtype".into(),
+                                id: 1,
+                                name: "boardgame".into(),
+                                friendly_name: "Board Game Rank".into(),
+                                value: RankValue::Ranked(5587),
+                                bayesian_average: 5.71005,
+                            },
+                            GameTypeRank {
+                                game_type: "family".into(),
+                                id: 5498,
+                                name: "partygames".into(),
+                                friendly_name: "Party Game Rank".into(),
+                                value: RankValue::Ranked(563),
+                                bayesian_average: 5.65053,
+                            }
+                        ],
+                    }
+                }),
+            },
+            "returned collection game doesn't match expected",
+        );
+
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "someone".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+    
+        let collection = api
+            .collection()
+            .get_by_player_count("someone", 2, CollectionQueryParams::new())
+            .await;
+        mock.assert();
+    
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+    
+        assert_eq!(collection.items.len(), 30);
+        for item in collection.items {
+            assert!(
+                item.stats.as_ref().unwrap().min_players <= 2
+                && item.stats.unwrap().max_players >= 2
+            )
+        }
+
+        // Looking for a game that supports 17 players, not in the collection. Nothing should be returned.
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "someone".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+    
+        let collection = api
+            .collection()
+            .get_by_player_count("someone", 17, CollectionQueryParams::new())
             .await;
         mock.assert();
     
