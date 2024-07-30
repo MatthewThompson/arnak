@@ -13,13 +13,11 @@
 //! let rt = tokio::runtime::Runtime::new().unwrap();
 //! rt.block_on(async {
 //!     let api = BoardGameGeekApi::new();
-//!     let collection = api.collection().get_owned("bluebearbgg").await.expect("Failed to get owned games.");
+//!     let collection = api.collection().get_owned("bluebearbgg").await;
 //!
-//!     for game in collection.items {
-//!         match game.item_type {
-//!             ItemType::BoardGame => println!("{}", game.name),
-//!             ItemType::BoardGameExpansion => println!("{} [expansion]", game.name),
-//!         }
+//!     match collection {
+//!         Ok(collection) => println!("bluebearbgg owns {} games.", collection.items.len()),
+//!         Err(e) => println!("Error: {e}"),
 //!     }
 //! })
 //! ```
@@ -32,5 +30,7 @@ pub use endpoints::*;
 
 mod error;
 pub use error::*;
+
+mod escape_xml;
 
 mod utils;

@@ -1,40 +1,67 @@
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{DateTime, Duration, NaiveDate, Utc};
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
-use std::future::Future;
+use std::ops::RangeInclusive;
 
 use crate::api::BoardGameGeekApi;
-use crate::utils::{date_deserializer, deserialize_1_0_bool, deserialize_wishlist_priority};
+use crate::utils::{
+    date_deserializer, deserialize_1_0_bool, deserialize_game_ratings,
+    deserialize_game_ratings_brief, deserialize_minutes, deserialize_rank_value_enum,
+    deserialize_wishlist_priority,
+};
 use crate::Result;
 
-pub trait CollectionType<'q>: DeserializeOwned {
-    fn base_query(username: &'q str) -> BaseCollectionQuery<'q>;
+pub trait CollectionItemType<'a>: DeserializeOwned {
+    fn base_query(username: &'a str) -> BaseCollectionQuery<'a>;
+
+    fn get_stats(&self) -> Option<CollectionItemStatsBrief>;
 }
 
-impl<'q> CollectionType<'q> for CollectionBrief {
-    fn base_query(username: &'q str) -> BaseCollectionQuery<'q> {
+impl<'a> CollectionItemType<'a> for CollectionItemBrief {
+    fn base_query(username: &'a str) -> BaseCollectionQuery<'a> {
         BaseCollectionQuery {
             username,
             brief: true,
         }
     }
+
+    fn get_stats(&self) -> Option<CollectionItemStatsBrief> {
+        self.stats.clone()
+    }
 }
-impl<'q> CollectionType<'q> for Collection {
-    fn base_query(username: &'q str) -> BaseCollectionQuery<'q> {
+
+impl<'a> CollectionItemType<'a> for CollectionItem {
+    fn base_query(username: &'a str) -> BaseCollectionQuery<'a> {
         BaseCollectionQuery {
             username,
             brief: false,
         }
     }
+
+    fn get_stats(&self) -> Option<CollectionItemStatsBrief> {
+        self.stats.as_ref().map(|stats| CollectionItemStatsBrief {
+            min_players: stats.min_players,
+            max_players: stats.max_players,
+            min_playtime: stats.min_playtime,
+            max_playtime: stats.max_playtime,
+            playing_time: stats.playing_time,
+            owned_by: stats.owned_by,
+            rating: CollectionItemRatingBrief {
+                value: stats.rating.value,
+                average: stats.rating.average,
+                bayesian_average: stats.rating.bayesian_average,
+            },
+        })
+    }
 }
 
-/// A user's collection on boardgamegeek, with only the name and statuses returned.
+/// A user's collection on boardgamegeek.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct CollectionBrief {
+pub struct Collection<T> {
     /// List of games and expansions in the user's collection. Each item
     /// is not necessarily owned but can be preowned, wishlisted etc.
     #[serde(rename = "$value")]
-    pub items: Vec<CollectionItemBrief>,
+    pub items: Vec<T>,
 }
 
 /// An item in a collection, in brief form. With only the name, status, type, and IDs.
@@ -53,15 +80,8 @@ pub struct CollectionItemBrief {
     pub name: String,
     /// Status of the game in this collection, such as own, preowned, wishlist.
     pub status: CollectionItemStatus,
-}
-
-/// A user's collection on boardgamegeek.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct Collection {
-    /// List of games and expansions in the user's collection. Each item
-    /// is not necessarily owned but can be preowned, wishlisted etc.
-    #[serde(rename = "$value")]
-    pub items: Vec<CollectionItem>,
+    /// Game stats such as number of players, can sometimes be omitted from the result.
+    pub stats: Option<CollectionItemStatsBrief>,
 }
 
 /// A game or game expansion in a collection.
@@ -159,7 +179,7 @@ pub struct CollectionItemStatus {
 
 /// The status of the game in the user's collection, such as preowned or wishlist.
 /// Can be any or none of them.
-#[derive(Clone, Debug, Deserialize, PartialEq, PartialOrd)]
+#[derive(Copy, Clone, Debug, Deserialize, PartialEq, PartialOrd)]
 pub enum WishlistPriority {
     /// Lowest priority.
     DontBuyThis,
@@ -176,6 +196,33 @@ pub enum WishlistPriority {
 /// Stats of the game such as playercount and duration. Can be omitted from the response.
 /// More stats can be found from the specific game endpoint.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct CollectionItemStatsBrief {
+    /// Minimum players the game supports.
+    #[serde(rename = "minplayers")]
+    pub min_players: u32,
+    /// Maximum players the game supports.
+    #[serde(rename = "maxplayers")]
+    pub max_players: u32,
+    /// Minimum amount of time the game is suggested to take to play.
+    #[serde(rename = "minplaytime", deserialize_with = "deserialize_minutes")]
+    pub min_playtime: Duration,
+    /// Maximum amount of time the game is suggested to take to play.
+    #[serde(rename = "maxplaytime", deserialize_with = "deserialize_minutes")]
+    pub max_playtime: Duration,
+    /// The amount of time the game is suggested to take to play.
+    #[serde(rename = "playingtime", deserialize_with = "deserialize_minutes")]
+    pub playing_time: Duration,
+    /// The number of people that own this game.
+    #[serde(rename = "numowned")]
+    pub owned_by: u64,
+    /// Information about the rating that this user, as well as all users, have given this game.
+    #[serde(rename = "$value", deserialize_with = "deserialize_game_ratings_brief")]
+    pub rating: CollectionItemRatingBrief,
+}
+
+/// Stats of the game such as playercount and duration. Can be omitted from the response.
+/// More stats can be found from the specific game endpoint.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemStats {
     /// Minimum players the game supports.
     #[serde(rename = "minplayers")]
@@ -183,6 +230,100 @@ pub struct CollectionItemStats {
     /// Maximum players the game supports.
     #[serde(rename = "maxplayers")]
     pub max_players: u32,
+    /// Minimum amount of time the game is suggested to take to play.
+    #[serde(rename = "minplaytime", deserialize_with = "deserialize_minutes")]
+    pub min_playtime: Duration,
+    /// Maximum amount of time the game is suggested to take to play.
+    #[serde(rename = "maxplaytime", deserialize_with = "deserialize_minutes")]
+    pub max_playtime: Duration,
+    /// The amount of time the game is suggested to take to play.
+    #[serde(rename = "playingtime", deserialize_with = "deserialize_minutes")]
+    pub playing_time: Duration,
+    /// The number of people that own this game.
+    #[serde(rename = "numowned")]
+    pub owned_by: u64,
+    /// Information about the rating that this user, as well as all users, have given this game.
+    #[serde(rename = "$value", deserialize_with = "deserialize_game_ratings")]
+    pub rating: CollectionItemRating,
+}
+
+/// The 0-10 rating that the user gave to this game. Also includes the total
+/// number of users that have rated it, as well as the averages.
+#[derive(Clone, Debug, PartialEq)]
+pub struct CollectionItemRatingBrief {
+    /// The 0-10 rating that the user gave this game.
+    pub value: Option<f64>,
+    /// The mean average rating for this game.
+    pub average: f64,
+    /// The bayesian average rating for this game.
+    pub bayesian_average: f64,
+}
+
+/// The 0-10 rating that the user gave to this game. Also includes the total
+/// number of users that have rated it, as well as the averages, and standard deviation.
+#[derive(Clone, Debug, PartialEq)]
+pub struct CollectionItemRating {
+    /// The 0-10 rating that the user gave this game.
+    pub value: Option<f64>,
+    /// The total number of users who have given this game a rating.
+    pub users_rated: u64,
+    /// The mean average rating for this game.
+    pub average: f64,
+    /// The bayesian average rating for this game.
+    pub bayesian_average: f64,
+    /// The standard deviation of the average rating.
+    pub standard_deviation: f64,
+    // Kept private for now since the API always returns 0 for this seemingly.
+    pub(crate) median: f64,
+    /// The list of ranks the game is on the site within each of its game types.
+    pub ranks: Vec<GameTypeRank>,
+}
+
+// Intermediary struct needed due to the way the XML is strcutured
+// TODO move this into the deserialise file.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub(crate) struct Ranks {
+    #[serde(rename = "$value")]
+    pub(crate) ranks: Vec<GameTypeRank>,
+}
+
+/// A struct containing the game's rank within a particular type of game.
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+pub struct GameTypeRank {
+    // The type of game, TODO change to an enum.
+    #[serde(rename = "type")]
+    pub game_type: String,
+    /// ID game type.
+    pub id: u64,
+    /// Name of the game type. "boardgame" used as the generic subtype that includes all baord games.
+    pub name: String,
+    /// User friendly name in the foramt "GENRE game rank" e.g. "Party Game Rank"
+    #[serde(rename = "friendlyname")]
+    pub friendly_name: String,
+    /// The overall rank on the site within this type of game.
+    #[serde(deserialize_with = "deserialize_rank_value_enum")]
+    pub value: RankValue,
+    // The score out of 10, as a bayseian average.
+    #[serde(rename = "bayesaverage")]
+    pub bayesian_average: f64,
+}
+
+/// A rank a particular board game has on the site, within a subtype. Can be either
+/// Ranked with a u64 for the rank, Or NotRanked.
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum RankValue {
+    Ranked(u64),
+    NotRanked,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct XmlIntValue {
+    pub value: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct XmlFloatValue {
+    pub value: f64,
 }
 
 /// Required query paramters. Any type the collection query can implement
@@ -608,19 +749,27 @@ impl<'a> CollectionQueryBuilder<'a> {
         if let Some(max_plays) = self.params.max_plays {
             query_params.push(("maxplays", max_plays.to_string()));
         }
+        match self.params.show_private {
+            Some(true) => query_params.push(("showprivate", "1".to_string())),
+            Some(false) => query_params.push(("showprivate", "0".to_string())),
+            None => {}
+        }
+        if let Some(collection_id) = self.params.collection_id {
+            query_params.push(("collid", collection_id.to_string()));
+        }
         query_params
     }
 }
 
 /// Collection endpoint of the API. Used for returning user's collections
 /// of games by their username. Filtering by [CollectionGameStatus], rating, recorded plays.
-pub struct CollectionApi<'api, T: CollectionType<'api>> {
+pub struct CollectionApi<'api, T: CollectionItemType<'api>> {
     pub(crate) api: &'api BoardGameGeekApi<'api>,
     endpoint: &'api str,
     type_marker: std::marker::PhantomData<T>,
 }
 
-impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
+impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
     pub(crate) fn new(api: &'api BoardGameGeekApi) -> Self {
         Self {
             api,
@@ -630,33 +779,74 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
     }
 
     /// Get all items of all types in the user's collection.
-    pub fn get_all(&self, username: &'api str) -> impl Future<Output = Result<T>> + 'api {
+    pub async fn get_all(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::default();
-        self.get_from_query(username, query_params)
+        self.get_from_query(username, query_params).await
     }
 
     /// Gets all the games that a given user owns.
-    pub fn get_owned(&self, username: &'api str) -> impl Future<Output = Result<T>> + 'api {
+    pub async fn get_owned(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::new().include_owned(true);
-        self.get_from_query(username, query_params)
+        self.get_from_query(username, query_params).await
     }
 
     /// Gets all the games that a given user has on their wishlist.
-    pub fn get_wishlist(&self, username: &'api str) -> impl Future<Output = Result<T>> + 'api {
+    pub async fn get_wishlist(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::new().include_wishlist(true);
-        self.get_from_query(username, query_params)
+        self.get_from_query(username, query_params).await
+    }
+
+    /// Gets all the games that support any player counts in a given range.
+    /// The include_stats parameter is automatically set to true, as it is
+    /// needed to filter the results.
+    pub async fn get_by_player_counts(
+        &self,
+        username: &'api str,
+        player_counts: RangeInclusive<u32>,
+        query_params: CollectionQueryParams,
+    ) -> Result<Collection<T>> {
+        let mut collection = self
+            .get_from_query(username, query_params.include_stats(true))
+            .await?;
+
+        collection.items.retain(|item| {
+            item.get_stats().is_some_and(|s| {
+                *player_counts.start() <= s.max_players && *player_counts.end() >= s.min_players
+            })
+        });
+        Ok(collection)
+    }
+
+    /// Gets all the games that support the given player count.
+    /// The include_stats parameter is automatically set to true, as it is
+    /// needed to filter the results.
+    pub async fn get_by_player_count(
+        &self,
+        username: &'api str,
+        player_count: u32,
+        query_params: CollectionQueryParams,
+    ) -> Result<Collection<T>> {
+        let mut collection = self
+            .get_from_query(username, query_params.include_stats(true))
+            .await?;
+
+        collection.items.retain(|item| {
+            item.get_stats()
+                .is_some_and(|s| player_count <= s.max_players && player_count >= s.min_players)
+        });
+        Ok(collection)
     }
 
     /// Makes a request from a [CollectionQueryParams].
-    pub fn get_from_query(
+    pub async fn get_from_query(
         &self,
         username: &'api str,
         query_params: CollectionQueryParams,
-    ) -> impl Future<Output = Result<T>> + 'api {
+    ) -> Result<Collection<T>> {
         let query = CollectionQueryBuilder::new(T::base_query(username), query_params);
 
         let request = self.api.build_request(self.endpoint, &query.build());
-        self.api.execute_request::<T>(request)
+        self.api.execute_request::<Collection<T>>(request).await
     }
 }
 
@@ -686,16 +876,12 @@ mod tests {
                 Matcher::UrlEncoded("username".into(), "somename".into()),
                 Matcher::UrlEncoded("own".into(), "1".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
-              ]))
+            ]))
             .with_status(200)
-            .with_body(r#"
-<items>
-    <item objecttype="thing" objectid="131835" subtype="boardgame" collid="118278872">
-        <name sortindex="1">Boss Monster: The Dungeon Building Card Game</name>
-        <status own="1" prevowned="0" fortrade="0" want="0" wanttoplay="0" wanttobuy="0" wishlist="0" preordered="0" lastmodified="2024-04-13 18:29:01"/>
-    </item>
-</items>
-            "#)
+            .with_body(
+                std::fs::read_to_string("test_data/collection_brief_owned_single.xml")
+                    .expect("failed to load test data"),
+            )
             .create_async()
             .await;
 
@@ -726,9 +912,45 @@ mod tests {
                     pre_ordered: false,
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 13, 18, 29, 1).unwrap(),
                 },
+                stats: None,
             },
             "returned collection game doesn't match expected",
         );
+    }
+
+    #[tokio::test]
+    async fn get_owned_all() {
+        let mut server = mockito::Server::new_async().await;
+        let url = server.url();
+        let api = BoardGameGeekApi {
+            base_url: &url,
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "somename".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
+                Matcher::UrlEncoded("own".into(), "1".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/collection_multiple.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let collection = api.collection().get_owned("somename").await;
+        mock.assert();
+
+        println!("{:?}", collection);
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+
+        assert_eq!(collection.items.len(), 33);
     }
 
     #[tokio::test]
@@ -747,24 +969,12 @@ mod tests {
                 Matcher::UrlEncoded("brief".into(), "0".into()),
                 Matcher::UrlEncoded("own".into(), "1".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
-              ]))
+            ]))
             .with_status(200)
-            .with_body(r#"
-<items>
-    <item objecttype="thing" objectid="131835" subtype="boardgame" collid="118278872">
-        <name sortindex="1">Boss Monster: The Dungeon Building Card Game</name>
-        <yearpublished>2013</yearpublished>
-        <image>
-            https://domain/img.jpg
-        </image>
-        <thumbnail>
-            https://domain/thumbnail.jpg
-        </thumbnail>
-        <status own="1" prevowned="0" fortrade="0" want="0" wanttoplay="0" wanttobuy="0" wishlist="0" preordered="0" lastmodified="2024-04-13 18:29:01"/>
-        <numplays>2</numplays>
-    </item>
-</items>
-            "#)
+            .with_body(
+                std::fs::read_to_string("test_data/collection_owned_single.xml")
+                    .expect("failed to load test data"),
+            )
             .create_async()
             .await;
 
@@ -783,8 +993,8 @@ mod tests {
                 item_type: ItemType::BoardGame,
                 name: "Boss Monster: The Dungeon Building Card Game".to_string(),
                 year_published: 2013,
-                image: "https://domain/img.jpg".to_string(),
-                thumbnail: "https://domain/thumbnail.jpg".to_string(),
+                image: "https://cf.geekdo-images.com/VBwaHyx-NWL3VLcCWKRA0w__original/img/izAmJ81QELl5DoK3y2bzJw55lhA=/0x0/filters:format(jpeg)/pic1732644.jpg".to_string(),
+                thumbnail: "https://cf.geekdo-images.com/VBwaHyx-NWL3VLcCWKRA0w__thumb/img/wisLXxKXbo5-Ci-ZjEj8ryyoN2g=/fit-in/200x150/filters:strip_icc()/pic1732644.jpg".to_string(),
                 status: CollectionItemStatus {
                     own: true,
                     previously_owned: false,
@@ -798,7 +1008,40 @@ mod tests {
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 13, 18, 29, 1).unwrap(),
                 },
                 number_of_plays: 2,
-                stats: None,
+                stats: Some(CollectionItemStats {
+                    min_players: 2,
+                    max_players: 4,
+                    min_playtime: Duration::minutes(30),
+                    max_playtime: Duration::minutes(30),
+                    playing_time: Duration::minutes(30),
+                    owned_by: 36423,
+                    rating: CollectionItemRating {
+                        value: Some(3.0),
+                        users_rated: 17063,
+                        average: 6.27139,
+                        bayesian_average: 6.08972,
+                        standard_deviation: 1.45941,
+                        median: 0.0,
+                        ranks: vec![
+                            GameTypeRank {
+                                game_type: "subtype".into(),
+                                id: 1,
+                                name: "boardgame".into(),
+                                friendly_name: "Board Game Rank".into(),
+                                value: RankValue::Ranked(2486),
+                                bayesian_average: 6.08972
+                            },
+                            GameTypeRank {
+                                game_type: "family".into(),
+                                id: 5499,
+                                name: "familygames".into(),
+                                friendly_name: "Family Game Rank".into(),
+                                value: RankValue::Ranked(1006),
+                                bayesian_average: 6.05246
+                            },
+                        ],
+                    },
+                }),
             },
             "returned collection game doesn't match expected",
         );
@@ -820,24 +1063,12 @@ mod tests {
                 Matcher::UrlEncoded("brief".into(), "0".into()),
                 Matcher::UrlEncoded("wishlist".into(), "1".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
-              ]))
+            ]))
             .with_status(200)
-            .with_body(r#"
-<items>
-    <item objecttype="thing" objectid="177736" subtype="boardgame" collid="118332974">
-        <name sortindex="3">A Feast for Odin</name>
-        <yearpublished>2016</yearpublished>
-        <image>
-            https://domain/img.jpg
-        </image>
-        <thumbnail>
-            https://domain/thumbnail.jpg
-        </thumbnail>
-        <status own="0" prevowned="0" fortrade="0" want="1" wanttoplay="0" wanttobuy="0" wishlist="1" wishlistpriority="2" preordered="0" lastmodified="2024-04-18 19:28:17"/>
-        <numplays>0</numplays>
-    </item>
-</items>
-            "#)
+            .with_body(
+                std::fs::read_to_string("test_data/collection_wishlist_single.xml")
+                    .expect("failed to load test data"),
+            )
             .create_async()
             .await;
 
@@ -886,7 +1117,6 @@ mod tests {
             base_url: &url,
             client: reqwest::Client::new(),
         };
-
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
@@ -899,7 +1129,10 @@ mod tests {
                 Matcher::UrlEncoded("wishlistpriority".into(), "5".into()),
             ]))
             .with_status(200)
-            .with_body("todo")
+            .with_body(
+                std::fs::read_to_string("test_data/collection_owned_single.xml")
+                    .expect("failed to load test data"),
+            )
             .create_async()
             .await;
 
@@ -912,5 +1145,302 @@ mod tests {
 
         let _ = api.collection().get_from_query("someone", query).await;
         mock.assert();
+    }
+
+    #[tokio::test]
+    async fn get_by_player_counts() {
+        let mut server = mockito::Server::new_async().await;
+        let url = server.url();
+        let api = BoardGameGeekApi {
+            base_url: &url,
+            client: reqwest::Client::new(),
+        };
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "someone".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let collection = api
+            .collection()
+            .get_by_player_counts("someone", 16..=17, CollectionQueryParams::new())
+            .await;
+        mock.assert();
+
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+
+        assert_eq!(collection.items.len(), 1);
+        assert_eq!(
+            collection.items[0],
+            CollectionItem {
+                id: 2281,
+                collection_id: 118280658,
+                item_type: ItemType::BoardGame,
+                name: "Pictionary".to_string(),
+                year_published: 1985,
+                image: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__original/img/YRJAlLzkxMuJHVPsdnBLNFpoODA=/0x0/filters:format(png)/pic5147022.png".to_string(),
+                thumbnail: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__thumb/img/7ls1a8ak5oT7BaKM-rVHpOVrP14=/fit-in/200x150/filters:strip_icc()/pic5147022.png".to_string(),
+                status: CollectionItemStatus {
+                    own: true,
+                    previously_owned: false,
+                    for_trade: false,
+                    want_in_trade: false,
+                    want_to_play: false,
+                    want_to_buy: false,
+                    wishlist: false,
+                    wishlist_priority: None,
+                    pre_ordered: false,
+                    last_modified: Utc.with_ymd_and_hms(2024, 4, 14, 9, 47, 38).unwrap(),
+                },
+                number_of_plays: 0,
+                stats: Some(CollectionItemStats {
+                    min_players: 3,
+                    max_players: 16,
+                    min_playtime: Duration::minutes(90),
+                    max_playtime: Duration::minutes(90),
+                    playing_time: Duration::minutes(90),
+                    owned_by: 14400,
+                    rating: CollectionItemRating {
+                        value: Some(7.0),
+                        users_rated: 8097,
+                        average: 5.84098,
+                        bayesian_average: 5.71005,
+                        standard_deviation: 1.58457,
+                        median: 0.0,
+                        ranks: vec![
+                            GameTypeRank {
+                                game_type: "subtype".into(),
+                                id: 1,
+                                name: "boardgame".into(),
+                                friendly_name: "Board Game Rank".into(),
+                                value: RankValue::Ranked(5587),
+                                bayesian_average: 5.71005,
+                            },
+                            GameTypeRank {
+                                game_type: "family".into(),
+                                id: 5498,
+                                name: "partygames".into(),
+                                friendly_name: "Party Game Rank".into(),
+                                value: RankValue::Ranked(563),
+                                bayesian_average: 5.65053,
+                            }
+                        ],
+                    }
+                }),
+            },
+            "returned collection game doesn't match expected",
+        );
+
+        // Looking for a game that supports any number of players between 1 and 16. All 37 games in the collection should be returned.
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "someone".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let collection = api
+            .collection()
+            .get_by_player_counts("someone", 1..=16, CollectionQueryParams::new())
+            .await;
+        mock.assert();
+
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+
+        assert_eq!(collection.items.len(), 37);
+
+        // Looking for a game that supports 17 players, not in the collection. Nothing should be returned.
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "someone".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let collection = api
+            .collection()
+            .get_by_player_counts("someone", 17..=17, CollectionQueryParams::new())
+            .await;
+        mock.assert();
+
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+
+        assert_eq!(collection.items.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn get_by_player_count() {
+        let mut server = mockito::Server::new_async().await;
+        let url = server.url();
+        let api = BoardGameGeekApi {
+            base_url: &url,
+            client: reqwest::Client::new(),
+        };
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "someone".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let collection = api
+            .collection()
+            .get_by_player_count("someone", 16, CollectionQueryParams::new())
+            .await;
+        mock.assert();
+
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+
+        assert_eq!(collection.items.len(), 1);
+        assert_eq!(
+            collection.items[0],
+            CollectionItem {
+                id: 2281,
+                collection_id: 118280658,
+                item_type: ItemType::BoardGame,
+                name: "Pictionary".to_string(),
+                year_published: 1985,
+                image: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__original/img/YRJAlLzkxMuJHVPsdnBLNFpoODA=/0x0/filters:format(png)/pic5147022.png".to_string(),
+                thumbnail: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__thumb/img/7ls1a8ak5oT7BaKM-rVHpOVrP14=/fit-in/200x150/filters:strip_icc()/pic5147022.png".to_string(),
+                status: CollectionItemStatus {
+                    own: true,
+                    previously_owned: false,
+                    for_trade: false,
+                    want_in_trade: false,
+                    want_to_play: false,
+                    want_to_buy: false,
+                    wishlist: false,
+                    wishlist_priority: None,
+                    pre_ordered: false,
+                    last_modified: Utc.with_ymd_and_hms(2024, 4, 14, 9, 47, 38).unwrap(),
+                },
+                number_of_plays: 0,
+                stats: Some(CollectionItemStats {
+                    min_players: 3,
+                    max_players: 16,
+                    min_playtime: Duration::minutes(90),
+                    max_playtime: Duration::minutes(90),
+                    playing_time: Duration::minutes(90),
+                    owned_by: 14400,
+                    rating: CollectionItemRating {
+                        value: Some(7.0),
+                        users_rated: 8097,
+                        average: 5.84098,
+                        bayesian_average: 5.71005,
+                        standard_deviation: 1.58457,
+                        median: 0.0,
+                        ranks: vec![
+                            GameTypeRank {
+                                game_type: "subtype".into(),
+                                id: 1,
+                                name: "boardgame".into(),
+                                friendly_name: "Board Game Rank".into(),
+                                value: RankValue::Ranked(5587),
+                                bayesian_average: 5.71005,
+                            },
+                            GameTypeRank {
+                                game_type: "family".into(),
+                                id: 5498,
+                                name: "partygames".into(),
+                                friendly_name: "Party Game Rank".into(),
+                                value: RankValue::Ranked(563),
+                                bayesian_average: 5.65053,
+                            }
+                        ],
+                    }
+                }),
+            },
+            "returned collection game doesn't match expected",
+        );
+
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "someone".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let collection = api
+            .collection()
+            .get_by_player_count("someone", 2, CollectionQueryParams::new())
+            .await;
+        mock.assert();
+
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+
+        assert_eq!(collection.items.len(), 30);
+        for item in collection.items {
+            assert!(
+                item.stats.as_ref().unwrap().min_players <= 2
+                    && item.stats.unwrap().max_players >= 2
+            )
+        }
+
+        // Looking for a game that supports 17 players, not in the collection. Nothing should be returned.
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "someone".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let collection = api
+            .collection()
+            .get_by_player_count("someone", 17, CollectionQueryParams::new())
+            .await;
+        mock.assert();
+
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+
+        assert_eq!(collection.items.len(), 0);
     }
 }
