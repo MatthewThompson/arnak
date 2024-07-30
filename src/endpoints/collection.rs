@@ -747,6 +747,14 @@ impl<'a> CollectionQueryBuilder<'a> {
         if let Some(max_plays) = self.params.max_plays {
             query_params.push(("maxplays", max_plays.to_string()));
         }
+        match self.params.show_private {
+            Some(true) => query_params.push(("showprivate", "1".to_string())),
+            Some(false) => query_params.push(("showprivate", "0".to_string())),
+            None => {}
+        }
+        if let Some(collection_id) = self.params.collection_id {
+            query_params.push(("collid", collection_id.to_string()));
+        }
         query_params
     }
 }
