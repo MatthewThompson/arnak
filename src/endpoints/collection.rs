@@ -308,6 +308,8 @@ pub struct GameTypeRank {
     pub bayesian_average: f64,
 }
 
+/// A rank a particular board game has on the site, within a subtype. Can be either
+/// Ranked with a u64 for the rank, Or NotRanked.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum RankValue {
     Ranked(u64),
