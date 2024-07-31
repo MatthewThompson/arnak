@@ -316,16 +316,6 @@ pub enum RankValue {
     NotRanked,
 }
 
-#[derive(Debug, Deserialize)]
-pub(crate) struct XmlIntValue {
-    pub value: u64,
-}
-
-#[derive(Debug, Deserialize)]
-pub(crate) struct XmlFloatValue {
-    pub value: f64,
-}
-
 /// Required query paramters. Any type the collection query can implement
 /// must be able to return a base query, so valid queries can be constructed
 /// for both [Collection] and [CollectionBrief].
@@ -879,14 +869,13 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_brief_owned_single.xml")
+                std::fs::read_to_string("test_data/collection/collection_brief_owned_single.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
             .await;
 
         let collection = api.collection_brief().get_owned("somename").await;
-        println!("{collection:?}");
         mock.assert();
 
         assert!(collection.is_ok(), "error returned when okay expected");
@@ -937,7 +926,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_multiple.xml")
+                std::fs::read_to_string("test_data/collection/collection_multiple.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
@@ -946,7 +935,6 @@ mod tests {
         let collection = api.collection().get_owned("somename").await;
         mock.assert();
 
-        println!("{:?}", collection);
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
@@ -972,7 +960,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_owned_single.xml")
+                std::fs::read_to_string("test_data/collection/collection_owned_single.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
@@ -1066,14 +1054,13 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_wishlist_single.xml")
+                std::fs::read_to_string("test_data/collection/collection_wishlist_single.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
             .await;
 
         let collection = api.collection().get_wishlist("somename").await;
-        println!("{collection:?}");
         mock.assert();
 
         assert!(collection.is_ok(), "error returned when okay expected");
@@ -1130,7 +1117,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_owned_single.xml")
+                std::fs::read_to_string("test_data/collection/collection_owned_single.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
@@ -1163,7 +1150,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                std::fs::read_to_string("test_data/collection/collection_owned_with_stats.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
@@ -1249,7 +1236,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                std::fs::read_to_string("test_data/collection/collection_owned_with_stats.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
@@ -1275,7 +1262,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                std::fs::read_to_string("test_data/collection/collection_owned_with_stats.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
@@ -1309,7 +1296,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                std::fs::read_to_string("test_data/collection/collection_owned_with_stats.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
@@ -1394,7 +1381,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                std::fs::read_to_string("test_data/collection/collection_owned_with_stats.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
@@ -1426,7 +1413,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                std::fs::read_to_string("test_data/collection/collection_owned_with_stats.xml")
                     .expect("failed to load test data"),
             )
             .create_async()

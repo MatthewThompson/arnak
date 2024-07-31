@@ -7,3 +7,6 @@
 
 pub(crate) mod collection;
 pub use collection::*;
+
+pub(crate) mod hot_list;
+pub use hot_list::*;
