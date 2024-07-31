@@ -316,16 +316,6 @@ pub enum RankValue {
     NotRanked,
 }
 
-#[derive(Debug, Deserialize)]
-pub(crate) struct XmlIntValue {
-    pub value: u64,
-}
-
-#[derive(Debug, Deserialize)]
-pub(crate) struct XmlFloatValue {
-    pub value: f64,
-}
-
 /// Required query paramters. Any type the collection query can implement
 /// must be able to return a base query, so valid queries can be constructed
 /// for both [Collection] and [CollectionBrief].

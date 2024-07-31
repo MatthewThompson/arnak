@@ -4,9 +4,28 @@ use chrono::Duration;
 use serde::Deserialize;
 
 use crate::{
-    CollectionItemRating, CollectionItemRatingBrief, RankValue, Ranks, WishlistPriority,
-    XmlFloatValue, XmlIntValue,
+    CollectionItemRating, CollectionItemRatingBrief, HotItem, RankValue, Ranks, WishlistPriority,
 };
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct XmlIntValue {
+    pub value: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct XmlSignedValue {
+    pub value: i64,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct XmlFloatValue {
+    pub value: f64,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct XmlStringValue {
+    pub value: String,
+}
 
 pub(crate) fn deserialize_1_0_bool<'de, D>(deserializer: D) -> Result<bool, D::Error>
 where
@@ -37,6 +56,103 @@ where
             &s,
             &["u64", "Not Ranked"],
         )),
+    }
+}
+
+impl<'de> Deserialize<'de> for HotItem {
+    fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        #[serde(field_identifier, rename_all = "lowercase")]
+        enum Field {
+            ID,
+            Rank,
+            Thumbnail,
+            Name,
+            YearPublished,
+        }
+
+        struct HotItemVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for HotItemVisitor {
+            type Value = HotItem;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("a string containing the XML an item off the hot list.")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                let mut id = None;
+                let mut rank = None;
+                let mut thumbnail = None;
+                let mut name = None;
+                let mut year_published = None;
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::ID => {
+                            if id.is_some() {
+                                return Err(serde::de::Error::duplicate_field("id"));
+                            }
+                            let id_str: String = map.next_value()?;
+                            id = Some(id_str.parse::<u64>().map_err(|e| {
+                                serde::de::Error::custom(format!(
+                                    "failed to parse value a u64: {e}"
+                                ))
+                            })?);
+                        }
+                        Field::Rank => {
+                            if rank.is_some() {
+                                return Err(serde::de::Error::duplicate_field("rank"));
+                            }
+                            let rank_str: String = map.next_value()?;
+                            rank = Some(rank_str.parse::<u64>().map_err(|e| {
+                                serde::de::Error::custom(format!(
+                                    "failed to parse value a u64: {e}"
+                                ))
+                            })?);
+                        }
+                        Field::Thumbnail => {
+                            if thumbnail.is_some() {
+                                return Err(serde::de::Error::duplicate_field("thumbnail"));
+                            }
+                            let thumbnail_xml_tag: XmlStringValue = map.next_value()?;
+                            thumbnail = Some(thumbnail_xml_tag.value);
+                        }
+                        Field::Name => {
+                            if name.is_some() {
+                                return Err(serde::de::Error::duplicate_field("name"));
+                            }
+                            let name_xml_tag: XmlStringValue = map.next_value()?;
+                            name = Some(name_xml_tag.value);
+                        }
+                        Field::YearPublished => {
+                            if year_published.is_some() {
+                                return Err(serde::de::Error::duplicate_field("yearpublished"));
+                            }
+                            let year_published_xml_tag: XmlSignedValue = map.next_value()?;
+                            year_published = Some(year_published_xml_tag.value);
+                        }
+                    }
+                }
+                let id = id.ok_or_else(|| serde::de::Error::missing_field("id"))?;
+                let rank = rank.ok_or_else(|| serde::de::Error::missing_field("rank"))?;
+                let thumbnail =
+                    thumbnail.ok_or_else(|| serde::de::Error::missing_field("thumbnail"))?;
+                let name = name.ok_or_else(|| serde::de::Error::missing_field("name"))?;
+                let year_published = year_published
+                    .ok_or_else(|| serde::de::Error::missing_field("yearpublished"))?;
+                Ok(Self::Value {
+                    id,
+                    rank,
+                    thumbnail,
+                    name,
+                    year_published,
+                })
+            }
+        }
+        deserializer.deserialize_any(HotItemVisitor)
     }
 }
 
