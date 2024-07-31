@@ -876,7 +876,6 @@ mod tests {
             .await;
 
         let collection = api.collection_brief().get_owned("somename").await;
-        println!("{collection:?}");
         mock.assert();
 
         assert!(collection.is_ok(), "error returned when okay expected");
@@ -936,7 +935,6 @@ mod tests {
         let collection = api.collection().get_owned("somename").await;
         mock.assert();
 
-        println!("{:?}", collection);
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
@@ -1063,7 +1061,6 @@ mod tests {
             .await;
 
         let collection = api.collection().get_wishlist("somename").await;
-        println!("{collection:?}");
         mock.assert();
 
         assert!(collection.is_ok(), "error returned when okay expected");
