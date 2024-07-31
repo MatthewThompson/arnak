@@ -879,7 +879,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_brief_owned_single.xml")
+                std::fs::read_to_string("test_data/collection/collection_brief_owned_single.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
@@ -937,7 +937,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_multiple.xml")
+                std::fs::read_to_string("test_data/collection/collection_multiple.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
@@ -972,7 +972,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_owned_single.xml")
+                std::fs::read_to_string("test_data/collection/collection_owned_single.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
@@ -1066,7 +1066,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_wishlist_single.xml")
+                std::fs::read_to_string("test_data/collection/collection_wishlist_single.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
@@ -1130,7 +1130,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_owned_single.xml")
+                std::fs::read_to_string("test_data/collection/collection_owned_single.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
@@ -1163,7 +1163,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                std::fs::read_to_string("test_data/collection/collection_owned_with_stats.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
@@ -1249,7 +1249,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                std::fs::read_to_string("test_data/collection/collection_owned_with_stats.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
@@ -1275,7 +1275,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                std::fs::read_to_string("test_data/collection/collection_owned_with_stats.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
@@ -1309,7 +1309,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                std::fs::read_to_string("test_data/collection/collection_owned_with_stats.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
@@ -1394,7 +1394,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                std::fs::read_to_string("test_data/collection/collection_owned_with_stats.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
@@ -1426,7 +1426,7 @@ mod tests {
             ]))
             .with_status(200)
             .with_body(
-                std::fs::read_to_string("test_data/collection_owned_with_stats.xml")
+                std::fs::read_to_string("test_data/collection/collection_owned_with_stats.xml")
                     .expect("failed to load test data"),
             )
             .create_async()
