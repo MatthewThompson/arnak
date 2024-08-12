@@ -75,7 +75,7 @@ pub struct CollectionItemBrief {
     pub collection_id: u64,
     /// The type of game, which will either be boardgame or expansion.
     #[serde(rename = "subtype")]
-    pub item_type: ItemType,
+    pub item_type: GameType,
     /// The name of the game.
     pub name: String,
     /// Status of the game in this collection, such as own, preowned, wishlist.
@@ -95,7 +95,7 @@ pub struct CollectionItem {
     pub collection_id: u64,
     /// The type of game, which will either be boardgame or expansion.
     #[serde(rename = "subtype")]
-    pub item_type: ItemType,
+    pub item_type: GameType,
     /// The name of the game.
     pub name: String,
     /// The year the game was first published.
@@ -116,7 +116,7 @@ pub struct CollectionItem {
 
 /// The type of game, board game or expansion.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub enum ItemType {
+pub enum GameType {
     /// A board game, or expansion.
     ///
     /// Due to the way the API works, this type can include expansions too.
@@ -334,13 +334,13 @@ pub struct BaseCollectionQuery<'q> {
 pub struct CollectionQueryParams {
     /// Include only results for this item type.
     ///
-    /// Note, if this is set to [ItemType::BoardGame] then it will include both
+    /// Note, if this is set to [GameType::BoardGame] then it will include both
     /// board games and expansions, but set the type of all of them to be
-    /// [ItemType::BoardGame] in the results. Explicitly exclude [ItemType::BoardGameExpansion]
+    /// [GameType::BoardGame] in the results. Explicitly exclude [GameType::BoardGameExpansion]
     /// to avoid this.
-    item_type: Option<ItemType>,
+    item_type: Option<GameType>,
     /// Exclude results for this item type.
-    exclude_item_type: Option<ItemType>,
+    exclude_item_type: Option<GameType>,
     /// Include items the user owns if true, exclude if false.
     include_owned: Option<bool>,
     /// Include items the user previously owned if true, exclude if false.
@@ -398,14 +398,14 @@ impl CollectionQueryParams {
     }
 
     /// Sets the item_type field, so that only that type of item will be returned.
-    pub fn item_type(mut self, item_type: ItemType) -> Self {
+    pub fn item_type(mut self, item_type: GameType) -> Self {
         self.item_type = Some(item_type);
         self
     }
 
     /// Set the exclude_item_type field, so that that type of item will be excluded from.
     /// the results.
-    pub fn exclude_item_type(mut self, exclude_item_type: ItemType) -> Self {
+    pub fn exclude_item_type(mut self, exclude_item_type: GameType) -> Self {
         self.exclude_item_type = Some(exclude_item_type);
         self
     }
@@ -610,17 +610,17 @@ impl<'a> CollectionQueryBuilder<'a> {
             false => query_params.push(("brief", "0".to_string())),
         }
         match self.params.item_type {
-            Some(ItemType::BoardGame) => query_params.push(("subtype", "boardgame".to_string())),
-            Some(ItemType::BoardGameExpansion) => {
+            Some(GameType::BoardGame) => query_params.push(("subtype", "boardgame".to_string())),
+            Some(GameType::BoardGameExpansion) => {
                 query_params.push(("subtype", "boardgameexpansion".to_string()))
             }
             None => {}
         }
         match self.params.exclude_item_type {
-            Some(ItemType::BoardGame) => {
+            Some(GameType::BoardGame) => {
                 query_params.push(("excludesubtype", "boardgame".to_string()))
             }
-            Some(ItemType::BoardGameExpansion) => {
+            Some(GameType::BoardGameExpansion) => {
                 query_params.push(("excludesubtype", "boardgameexpansion".to_string()))
             }
             None => {}
@@ -887,7 +887,7 @@ mod tests {
             CollectionItemBrief {
                 id: 131835,
                 collection_id: 118278872,
-                item_type: ItemType::BoardGame,
+                item_type: GameType::BoardGame,
                 name: "Boss Monster: The Dungeon Building Card Game".to_string(),
                 status: CollectionItemStatus {
                     own: true,
@@ -978,7 +978,7 @@ mod tests {
             CollectionItem {
                 id: 131835,
                 collection_id: 118278872,
-                item_type: ItemType::BoardGame,
+                item_type: GameType::BoardGame,
                 name: "Boss Monster: The Dungeon Building Card Game".to_string(),
                 year_published: 2013,
                 image: "https://cf.geekdo-images.com/VBwaHyx-NWL3VLcCWKRA0w__original/img/izAmJ81QELl5DoK3y2bzJw55lhA=/0x0/filters:format(jpeg)/pic1732644.jpg".to_string(),
@@ -1072,7 +1072,7 @@ mod tests {
             CollectionItem {
                 id: 177736,
                 collection_id: 118332974,
-                item_type: ItemType::BoardGame,
+                item_type: GameType::BoardGame,
                 name: "A Feast for Odin".to_string(),
                 year_published: 2016,
                 image: "https://domain/img.jpg".to_string(),
@@ -1171,7 +1171,7 @@ mod tests {
             CollectionItem {
                 id: 2281,
                 collection_id: 118280658,
-                item_type: ItemType::BoardGame,
+                item_type: GameType::BoardGame,
                 name: "Pictionary".to_string(),
                 year_published: 1985,
                 image: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__original/img/YRJAlLzkxMuJHVPsdnBLNFpoODA=/0x0/filters:format(png)/pic5147022.png".to_string(),
@@ -1317,7 +1317,7 @@ mod tests {
             CollectionItem {
                 id: 2281,
                 collection_id: 118280658,
-                item_type: ItemType::BoardGame,
+                item_type: GameType::BoardGame,
                 name: "Pictionary".to_string(),
                 year_published: 1985,
                 image: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__original/img/YRJAlLzkxMuJHVPsdnBLNFpoODA=/0x0/filters:format(png)/pic5147022.png".to_string(),
