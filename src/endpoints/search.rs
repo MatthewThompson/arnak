@@ -219,7 +219,7 @@ impl<'api> SearchApi<'api> {
         self.api.execute_request::<SearchResults>(request).await
     }
 
-    /// Makes a request from a [CollectionQueryParams].
+    /// Makes a request from a [SearchQueryParams].
     pub async fn search_with_query_params(
         &self,
         query: &str,

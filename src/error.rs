@@ -22,7 +22,7 @@ pub enum Error {
     MaxRetryError(u32),
     /// The username requested was not found.
     UnknownUsernameError,
-    /// Invalid value supplied for subtype ([ItemType]) query parameter.
+    /// Invalid value supplied for subtype ([crate::GameType]) query parameter.
     InvalidCollectionItemType,
     /// The API returned a list of errors that we do not recognise.
     UnknownApiErrors(Vec<String>),

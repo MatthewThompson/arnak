@@ -318,7 +318,7 @@ pub enum RankValue {
 
 /// Required query paramters. Any type the collection query can implement
 /// must be able to return a base query, so valid queries can be constructed
-/// for both [Collection] and [CollectionBrief].
+/// for both [CollectionItem] and [CollectionItemBrief].
 #[derive(Clone, Debug)]
 pub struct BaseCollectionQuery<'q> {
     pub(crate) username: &'q str,
@@ -752,7 +752,7 @@ impl<'a> CollectionQueryBuilder<'a> {
 }
 
 /// Collection endpoint of the API. Used for returning user's collections
-/// of games by their username. Filtering by [CollectionGameStatus], rating, recorded plays.
+/// of games by their username. Filtering by [CollectionItemStatus], rating, recorded plays.
 pub struct CollectionApi<'api, T: CollectionItemType<'api>> {
     pub(crate) api: &'api BoardGameGeekApi<'api>,
     endpoint: &'api str,
