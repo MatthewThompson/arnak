@@ -7,7 +7,9 @@ use tokio::time::sleep;
 
 use crate::endpoints::collection::CollectionApi;
 use crate::escape_xml::escape_xml;
-use crate::{ApiXmlErrors, CollectionItem, CollectionItemBrief, Error, HotListApi, Result};
+use crate::{
+    ApiXmlErrors, CollectionItem, CollectionItemBrief, Error, HotListApi, Result, SearchApi,
+};
 
 /// API for making requests to the [Board Game Geek API](https://boardgamegeek.com/wiki/page/BGG_XML_API2).
 pub struct BoardGameGeekApi<'api> {
@@ -50,6 +52,12 @@ impl<'api> BoardGameGeekApi<'api> {
     /// trending board games.
     pub fn hot_list(&self) -> HotListApi {
         HotListApi::new(self)
+    }
+
+    /// Returns the search endpoint of the API, which is used for searching for board games
+    /// by name.
+    pub fn search(&self) -> SearchApi {
+        SearchApi::new(self)
     }
 
     // Creates a reqwest::RequestBuilder from the base url and the provided

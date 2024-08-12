@@ -336,7 +336,7 @@ pub struct CollectionQueryParams {
     ///
     /// Note, if this is set to [ItemType::BoardGame] then it will include both
     /// board games and expansions, but set the type of all of them to be
-    /// [ItemType::BoardGame] in the results. Explicitly exclude expansions
+    /// [ItemType::BoardGame] in the results. Explicitly exclude [ItemType::BoardGameExpansion]
     /// to avoid this.
     item_type: Option<ItemType>,
     /// Exclude results for this item type.
@@ -392,7 +392,7 @@ pub struct CollectionQueryParams {
 }
 
 impl CollectionQueryParams {
-    /// Constructs a new query builder from a base query, and the rest of the parameters.
+    /// Constructs a collection query with parameters set to None.
     fn new() -> Self {
         Self::default()
     }

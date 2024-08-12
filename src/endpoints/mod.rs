@@ -10,3 +10,6 @@ pub use collection::*;
 
 pub(crate) mod hot_list;
 pub use hot_list::*;
+
+pub(crate) mod search;
+pub use search::*;
