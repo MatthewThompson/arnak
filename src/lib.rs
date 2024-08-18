@@ -4,10 +4,7 @@
 //!
 //! ## Example:
 //! ```rust
-//! use arnak::{
-//!     BoardGameGeekApi,
-//!     ItemType,
-//! };
+//! use arnak::BoardGameGeekApi;
 //!
 //! // Enter tokio async runtime.
 //! let rt = tokio::runtime::Runtime::new().unwrap();
