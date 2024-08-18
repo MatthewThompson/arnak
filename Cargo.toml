@@ -2,10 +2,13 @@
 name = "arnak"
 version = "0.1.0"
 authors = ["Matthew Thompson <mat@matthewjthompson.co.uk>"]
-description = "A Rust library for the BoardGameGeek XML API"
+description = "A Rust library for the BoardGameGeek XML API."
 edition = "2021"
 license = "MIT"
+readme = "README.md"
 repository = "https://github.com/MatthewThompson/arnak"
+keywords = ["boardgames"]
+categories = ["api-bindings"]
 
 [dependencies]
 chrono = { version = "0.4", features = ["serde"] }
