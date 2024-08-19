@@ -8,7 +8,7 @@ license = "MIT"
 readme = "README.md"
 repository = "https://github.com/MatthewThompson/arnak"
 documentation = "https://docs.rs/arnak"
-keywords = ["boardgames"]
+keywords = ["boardgames", "boardgame", "bgg", "boardgamegeek", "api", "api-bindings", "bgg-api", "boardgamegeek-api"]
 categories = ["api-bindings"]
 
 [dependencies]
