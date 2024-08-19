@@ -2,12 +2,9 @@ use core::fmt;
 
 use serde::Deserialize;
 
-use crate::utils::XmlSignedValue;
-use crate::utils::XmlStringValue;
-use crate::BoardGameGeekApi;
-use crate::Result;
-
 use super::GameType;
+use crate::utils::{XmlSignedValue, XmlStringValue};
+use crate::{BoardGameGeekApi, Result};
 
 /// The returned struct containing a list of search results.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
@@ -234,8 +231,9 @@ impl<'api> SearchApi<'api> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use mockito::Matcher;
+
+    use super::*;
 
     #[tokio::test]
     async fn search() {
