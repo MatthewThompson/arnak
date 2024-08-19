@@ -393,7 +393,7 @@ pub struct CollectionQueryParams {
 
 impl CollectionQueryParams {
     /// Constructs a collection query with parameters set to None.
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self::default()
     }
 

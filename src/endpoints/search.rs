@@ -136,7 +136,7 @@ pub struct SearchQueryParams {
 
 impl SearchQueryParams {
     /// Constructs a new search query with parameters set to None.
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self::default()
     }
 
