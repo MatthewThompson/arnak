@@ -1,7 +1,6 @@
 use serde::Deserialize;
 
-use crate::BoardGameGeekApi;
-use crate::Result;
+use crate::{BoardGameGeekApi, Result};
 
 /// The returned struct containing a list of hot board games.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
@@ -48,8 +47,9 @@ impl<'api> HotListApi<'api> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use mockito::Matcher;
+
+    use super::*;
 
     #[tokio::test]
     async fn get() {

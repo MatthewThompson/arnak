@@ -1,7 +1,8 @@
+use std::ops::RangeInclusive;
+
 use chrono::{DateTime, Duration, NaiveDate, Utc};
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
-use std::ops::RangeInclusive;
 
 use crate::api::BoardGameGeekApi;
 use crate::utils::{
@@ -842,9 +843,10 @@ impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use chrono::TimeZone;
     use mockito::Matcher;
+
+    use super::*;
 
     #[test]
     fn sort_wishlist_priority() {

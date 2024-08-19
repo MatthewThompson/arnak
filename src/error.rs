@@ -1,6 +1,7 @@
-use serde::Deserialize;
 use std::error::Error as StdError;
 use std::fmt;
+
+use serde::Deserialize;
 
 /// A `Result` alias where the `Err` case is `arnak::Error`.
 pub type Result<T> = std::result::Result<T, Error>;
