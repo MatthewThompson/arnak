@@ -26,8 +26,8 @@ pub struct HotItem {
 
 /// Hot list endpoint of the API. Used for returning the current trending board games.
 pub struct HotListApi<'api> {
-    pub(crate) api: &'api BoardGameGeekApi<'api>,
-    endpoint: &'api str,
+    pub(crate) api: &'api BoardGameGeekApi,
+    endpoint: &'static str,
 }
 
 impl<'api> HotListApi<'api> {
@@ -54,9 +54,8 @@ mod tests {
     #[tokio::test]
     async fn get() {
         let mut server = mockito::Server::new_async().await;
-        let url = server.url();
         let api = BoardGameGeekApi {
-            base_url: &url,
+            base_url: server.url(),
             client: reqwest::Client::new(),
         };
 
@@ -72,7 +71,7 @@ mod tests {
             .await;
 
         let hot_list = api.hot_list().get().await;
-        mock.assert();
+        mock.assert_async().await;
 
         assert!(hot_list.is_ok(), "error returned when okay expected");
         let hot_list = hot_list.unwrap();

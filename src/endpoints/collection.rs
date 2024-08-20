@@ -755,8 +755,8 @@ impl<'a> CollectionQueryBuilder<'a> {
 /// Collection endpoint of the API. Used for returning user's collections
 /// of games by their username. Filtering by [CollectionItemStatus], rating, recorded plays.
 pub struct CollectionApi<'api, T: CollectionItemType<'api>> {
-    pub(crate) api: &'api BoardGameGeekApi<'api>,
-    endpoint: &'api str,
+    pub(crate) api: &'api BoardGameGeekApi,
+    endpoint: &'static str,
     type_marker: std::marker::PhantomData<T>,
 }
 
@@ -856,9 +856,8 @@ mod tests {
     #[tokio::test]
     async fn get_owned_brief() {
         let mut server = mockito::Server::new_async().await;
-        let url = server.url();
         let api = BoardGameGeekApi {
-            base_url: &url,
+            base_url: server.url(),
             client: reqwest::Client::new(),
         };
 
@@ -878,7 +877,7 @@ mod tests {
             .await;
 
         let collection = api.collection_brief().get_owned("somename").await;
-        mock.assert();
+        mock.assert_async().await;
 
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
@@ -912,9 +911,8 @@ mod tests {
     #[tokio::test]
     async fn get_owned_all() {
         let mut server = mockito::Server::new_async().await;
-        let url = server.url();
         let api = BoardGameGeekApi {
-            base_url: &url,
+            base_url: server.url(),
             client: reqwest::Client::new(),
         };
 
@@ -935,7 +933,7 @@ mod tests {
             .await;
 
         let collection = api.collection().get_owned("somename").await;
-        mock.assert();
+        mock.assert_async().await;
 
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
@@ -946,9 +944,8 @@ mod tests {
     #[tokio::test]
     async fn get_owned() {
         let mut server = mockito::Server::new_async().await;
-        let url = server.url();
         let api = BoardGameGeekApi {
-            base_url: &url,
+            base_url: server.url(),
             client: reqwest::Client::new(),
         };
 
@@ -969,7 +966,7 @@ mod tests {
             .await;
 
         let collection = api.collection().get_owned("somename").await;
-        mock.assert();
+        mock.assert_async().await;
 
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
@@ -1040,9 +1037,8 @@ mod tests {
     #[tokio::test]
     async fn get_wishlist() {
         let mut server = mockito::Server::new_async().await;
-        let url = server.url();
         let api = BoardGameGeekApi {
-            base_url: &url,
+            base_url: server.url(),
             client: reqwest::Client::new(),
         };
 
@@ -1063,7 +1059,7 @@ mod tests {
             .await;
 
         let collection = api.collection().get_wishlist("somename").await;
-        mock.assert();
+        mock.assert_async().await;
 
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
@@ -1101,11 +1097,11 @@ mod tests {
     #[tokio::test]
     async fn get_from_query() {
         let mut server = mockito::Server::new_async().await;
-        let url = server.url();
         let api = BoardGameGeekApi {
-            base_url: &url,
+            base_url: server.url(),
             client: reqwest::Client::new(),
         };
+
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
@@ -1133,17 +1129,17 @@ mod tests {
             .wishlist_priority(WishlistPriority::DontBuyThis);
 
         let _ = api.collection().get_from_query("someone", query).await;
-        mock.assert();
+        mock.assert_async().await;
     }
 
     #[tokio::test]
     async fn get_by_player_counts() {
         let mut server = mockito::Server::new_async().await;
-        let url = server.url();
         let api = BoardGameGeekApi {
-            base_url: &url,
+            base_url: server.url(),
             client: reqwest::Client::new(),
         };
+
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
@@ -1162,7 +1158,7 @@ mod tests {
             .collection()
             .get_by_player_counts("someone", 16..=17, CollectionQueryParams::new())
             .await;
-        mock.assert();
+        mock.assert_async().await;
 
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
@@ -1248,7 +1244,7 @@ mod tests {
             .collection()
             .get_by_player_counts("someone", 1..=16, CollectionQueryParams::new())
             .await;
-        mock.assert();
+        mock.assert_async().await;
 
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
@@ -1274,7 +1270,7 @@ mod tests {
             .collection()
             .get_by_player_counts("someone", 17..=17, CollectionQueryParams::new())
             .await;
-        mock.assert();
+        mock.assert_async().await;
 
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
@@ -1285,11 +1281,11 @@ mod tests {
     #[tokio::test]
     async fn get_by_player_count() {
         let mut server = mockito::Server::new_async().await;
-        let url = server.url();
         let api = BoardGameGeekApi {
-            base_url: &url,
+            base_url: server.url(),
             client: reqwest::Client::new(),
         };
+
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
@@ -1308,7 +1304,7 @@ mod tests {
             .collection()
             .get_by_player_count("someone", 16, CollectionQueryParams::new())
             .await;
-        mock.assert();
+        mock.assert_async().await;
 
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
@@ -1393,7 +1389,7 @@ mod tests {
             .collection()
             .get_by_player_count("someone", 2, CollectionQueryParams::new())
             .await;
-        mock.assert();
+        mock.assert_async().await;
 
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
@@ -1425,7 +1421,7 @@ mod tests {
             .collection()
             .get_by_player_count("someone", 17, CollectionQueryParams::new())
             .await;
-        mock.assert();
+        mock.assert_async().await;
 
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();

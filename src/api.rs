@@ -12,26 +12,27 @@ use crate::{
 };
 
 /// API for making requests to the [Board Game Geek API](https://boardgamegeek.com/wiki/page/BGG_XML_API2).
-pub struct BoardGameGeekApi<'api> {
+pub struct BoardGameGeekApi {
     // URL for the board game geek API.
-    pub(crate) base_url: &'api str,
+    // Note this is a String instead of a 'static &str for unit test purposes.
+    pub(crate) base_url: String,
     // Http client for making requests.
     pub(crate) client: reqwest::Client,
 }
 
-impl<'api> Default for BoardGameGeekApi<'api> {
+impl Default for BoardGameGeekApi {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'api> BoardGameGeekApi<'api> {
+impl BoardGameGeekApi {
     const BASE_URL: &'static str = "https://boardgamegeek.com/xmlapi2";
 
     /// Creates a new API.
     pub fn new() -> Self {
         Self {
-            base_url: BoardGameGeekApi::BASE_URL,
+            base_url: String::from(BoardGameGeekApi::BASE_URL),
             client: reqwest::Client::new(),
         }
     }
@@ -74,8 +75,8 @@ impl<'api> BoardGameGeekApi<'api> {
 
     // Handles a HTTP request by calling execute_request_raw, then parses the response
     // to the expected type.
-    pub(crate) async fn execute_request<'a, T: serde::de::DeserializeOwned + 'a>(
-        &'a self,
+    pub(crate) async fn execute_request<T: serde::de::DeserializeOwned>(
+        &self,
         request: RequestBuilder,
     ) -> Result<T> {
         let response = self.send_request(request).await?;
@@ -108,10 +109,7 @@ impl<'api> BoardGameGeekApi<'api> {
     // sends it and awaits. If the response is Accepted (202), it will wait for the data to
     // be ready and try again. Any errors are wrapped in the local BoardGameGeekApiError
     // enum before being returned.
-    fn send_request<'a>(
-        &self,
-        request: RequestBuilder,
-    ) -> impl Future<Output = Result<Response>> + 'a {
+    fn send_request(&self, request: RequestBuilder) -> impl Future<Output = Result<Response>> {
         let mut retries: u32 = 0;
         async move {
             loop {
@@ -149,9 +147,8 @@ mod tests {
     #[tokio::test]
     async fn send_request() {
         let mut server = mockito::Server::new_async().await;
-        let url = server.url();
         let api = BoardGameGeekApi {
-            base_url: &url,
+            base_url: server.url(),
             client: reqwest::Client::new(),
         };
 
@@ -165,7 +162,7 @@ mod tests {
         let req = api.build_request("some_endpoint", &[]);
         let res = api.send_request(req).await;
 
-        mock.assert();
+        mock.assert_async().await;
         assert!(res.is_ok());
         assert!(res.unwrap().text().await.unwrap() == "hello there");
     }
@@ -173,9 +170,8 @@ mod tests {
     #[tokio::test]
     async fn send_failed_request() {
         let mut server = mockito::Server::new_async().await;
-        let url = server.url();
         let api = BoardGameGeekApi {
-            base_url: &url,
+            base_url: server.url(),
             client: reqwest::Client::new(),
         };
 
@@ -188,16 +184,15 @@ mod tests {
         let req = api.build_request("some_endpoint", &[]);
         let res = api.send_request(req).await;
 
-        mock.assert();
+        mock.assert_async().await;
         assert!(res.is_err());
     }
 
     #[tokio::test(start_paused = true)]
     async fn send_request_202_retries() {
         let mut server = mockito::Server::new_async().await;
-        let url = server.url();
         let api = BoardGameGeekApi {
-            base_url: &url,
+            base_url: server.url(),
             client: reqwest::Client::new(),
         };
 
