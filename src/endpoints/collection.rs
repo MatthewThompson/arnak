@@ -12,9 +12,16 @@ use crate::utils::{
 };
 use crate::Result;
 
+/// Trait for a type that the collection endpoint can return. Allows us to get
+/// values for the mandatory query params for the different types.
 pub trait CollectionItemType<'a>: DeserializeOwned {
+    /// Returns the values for the mandatory query params. This ensures that
+    /// for the brief type, the `brief` query param is always set to true, and
+    /// vice versa.
     fn base_query(username: &'a str) -> BaseCollectionQuery<'a>;
 
+    /// Get the stats of the type, so post processing helper functions
+    /// can be written.
     fn get_stats(&self) -> CollectionItemStatsBrief;
 }
 
@@ -281,7 +288,7 @@ pub struct CollectionItemRating {
     // Kept private for now since the API always returns 0 for this seemingly.
     pub(crate) median: f64,
     /// The list of ranks the game is on the site within each of its game types.
-    pub ranks: Vec<GameTypeRank>,
+    pub ranks: Vec<GameFamilyRank>,
 }
 
 // Intermediary struct needed due to the way the XML is strcutured
@@ -289,19 +296,21 @@ pub struct CollectionItemRating {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub(crate) struct Ranks {
     #[serde(rename = "$value")]
-    pub(crate) ranks: Vec<GameTypeRank>,
+    pub(crate) ranks: Vec<GameFamilyRank>,
 }
 
 /// A struct containing the game's rank within a particular type of game.
 #[derive(Clone, Debug, PartialEq, Deserialize)]
-pub struct GameTypeRank {
-    // The type of game, TODO change to an enum.
+pub struct GameFamilyRank {
+    /// The type of this group of games. Can be `subtype` for rank within all
+    /// board games. Or it can be `family` if it is the rank within a family of games
+    /// such as party games or strategy games.
     #[serde(rename = "type")]
-    pub game_type: String,
-    /// ID game type.
+    pub game_family_type: GameFamilyType,
+    /// ID of the game family.
     pub id: u64,
     /// Name of the game type. "boardgame" used as the generic subtype that
-    /// includes all baord games.
+    /// includes all board games.
     pub name: String,
     /// User friendly name in the foramt "GENRE game rank" e.g. "Party Game
     /// Rank"
@@ -310,16 +319,35 @@ pub struct GameTypeRank {
     /// The overall rank on the site within this type of game.
     #[serde(deserialize_with = "deserialize_rank_value_enum")]
     pub value: RankValue,
-    // The score out of 10, as a bayseian average.
+    /// The score out of 10, as a bayseian average.
+    ///
+    /// This is what boardgamegeek calls a Geek Rating. It is the average rating
+    /// that the users have given it along with a few thousand 5.5 ratings added
+    /// in too.
     #[serde(rename = "bayesaverage")]
     pub bayesian_average: f64,
+}
+
+/// Type of game family,  [GameFamilyType::Subtype] is used for the `boardgame` family that includes
+/// all games. [GameFamilyType::Family] is used for everything else. Such as party games
+/// or strategy games.
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+pub enum GameFamilyType {
+    /// Used only for the generic `boardgame` family that includes all games.
+    Subtype,
+    /// Used for all families of games such as party games and strategy games.
+    Family,
 }
 
 /// A rank a particular board game has on the site, within a subtype. Can be
 /// either Ranked with a u64 for the rank, Or NotRanked.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum RankValue {
+    /// The rank of a game within a particular family of games, or all games. Where
+    /// 1 means that it has the highest overall rank of every game in that category.
     Ranked(u64),
+    /// The game does not have a rank in a given category, possibly due to not having
+    /// enough ratings.
     NotRanked,
 }
 
@@ -1018,16 +1046,16 @@ mod tests {
                         standard_deviation: 1.45941,
                         median: 0.0,
                         ranks: vec![
-                            GameTypeRank {
-                                game_type: "subtype".into(),
+                            GameFamilyRank {
+                                game_family_type: GameFamilyType::Subtype,
                                 id: 1,
                                 name: "boardgame".into(),
                                 friendly_name: "Board Game Rank".into(),
                                 value: RankValue::Ranked(2486),
                                 bayesian_average: 6.08972,
                             },
-                            GameTypeRank {
-                                game_type: "family".into(),
+                            GameFamilyRank {
+                                game_family_type: GameFamilyType::Family,
                                 id: 5499,
                                 name: "familygames".into(),
                                 friendly_name: "Family Game Rank".into(),
@@ -1111,16 +1139,16 @@ mod tests {
                         standard_deviation: 1.37019,
                         median: 0.0,
                         ranks: vec![
-                            GameTypeRank {
-                                game_type: "subtype".into(),
+                            GameFamilyRank {
+                                game_family_type: GameFamilyType::Subtype,
                                 id: 1,
                                 name: "boardgame".into(),
                                 friendly_name: "Board Game Rank".into(),
                                 value: RankValue::Ranked(23),
                                 bayesian_average: 7.94347,
                             },
-                            GameTypeRank {
-                                game_type: "family".into(),
+                            GameFamilyRank {
+                                game_family_type: GameFamilyType::Family,
                                 id: 5497,
                                 name: "strategygames".into(),
                                 friendly_name: "Strategy Game Rank".into(),
@@ -1245,16 +1273,16 @@ mod tests {
                         standard_deviation: 1.58457,
                         median: 0.0,
                         ranks: vec![
-                            GameTypeRank {
-                                game_type: "subtype".into(),
+                            GameFamilyRank {
+                                game_family_type: GameFamilyType::Subtype,
                                 id: 1,
                                 name: "boardgame".into(),
                                 friendly_name: "Board Game Rank".into(),
                                 value: RankValue::Ranked(5587),
                                 bayesian_average: 5.71005,
                             },
-                            GameTypeRank {
-                                game_type: "family".into(),
+                            GameFamilyRank {
+                                game_family_type: GameFamilyType::Family,
                                 id: 5498,
                                 name: "partygames".into(),
                                 friendly_name: "Party Game Rank".into(),
@@ -1396,16 +1424,16 @@ mod tests {
                         standard_deviation: 1.58457,
                         median: 0.0,
                         ranks: vec![
-                            GameTypeRank {
-                                game_type: "subtype".into(),
+                            GameFamilyRank {
+                                game_family_type: GameFamilyType::Subtype,
                                 id: 1,
                                 name: "boardgame".into(),
                                 friendly_name: "Board Game Rank".into(),
                                 value: RankValue::Ranked(5587),
                                 bayesian_average: 5.71005,
                             },
-                            GameTypeRank {
-                                game_type: "family".into(),
+                            GameFamilyRank {
+                                game_family_type: GameFamilyType::Family,
                                 id: 5498,
                                 name: "partygames".into(),
                                 friendly_name: "Party Game Rank".into(),
