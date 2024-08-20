@@ -1,6 +1,14 @@
 <items>
     <item objecttype="thing" objectid="131835" subtype="boardgame" collid="118278872">
         <name sortindex="1">Boss Monster: The Dungeon Building Card Game</name>
-        <status own="1" prevowned="0" fortrade="0" want="0" wanttoplay="0" wanttobuy="0" wishlist="0" preordered="0" lastmodified="2024-04-13 18:29:01"/>
+        <stats minplayers="2" maxplayers="4" minplaytime="30" maxplaytime="30" playingtime="30"
+            numowned="36423">
+            <rating value="3">
+                <average value="6.27139" />
+                <bayesaverage value="6.08972" />
+            </rating>
+        </stats>
+        <status own="1" prevowned="0" fortrade="0" want="0" wanttoplay="0" wanttobuy="0"
+            wishlist="0" preordered="0" lastmodified="2024-04-13 18:29:01" />
     </item>
 </items>

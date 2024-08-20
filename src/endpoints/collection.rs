@@ -15,7 +15,7 @@ use crate::Result;
 pub trait CollectionItemType<'a>: DeserializeOwned {
     fn base_query(username: &'a str) -> BaseCollectionQuery<'a>;
 
-    fn get_stats(&self) -> Option<CollectionItemStatsBrief>;
+    fn get_stats(&self) -> CollectionItemStatsBrief;
 }
 
 impl<'a> CollectionItemType<'a> for CollectionItemBrief {
@@ -26,7 +26,7 @@ impl<'a> CollectionItemType<'a> for CollectionItemBrief {
         }
     }
 
-    fn get_stats(&self) -> Option<CollectionItemStatsBrief> {
+    fn get_stats(&self) -> CollectionItemStatsBrief {
         self.stats.clone()
     }
 }
@@ -39,20 +39,20 @@ impl<'a> CollectionItemType<'a> for CollectionItem {
         }
     }
 
-    fn get_stats(&self) -> Option<CollectionItemStatsBrief> {
-        self.stats.as_ref().map(|stats| CollectionItemStatsBrief {
-            min_players: stats.min_players,
-            max_players: stats.max_players,
-            min_playtime: stats.min_playtime,
-            max_playtime: stats.max_playtime,
-            playing_time: stats.playing_time,
-            owned_by: stats.owned_by,
+    fn get_stats(&self) -> CollectionItemStatsBrief {
+        CollectionItemStatsBrief {
+            min_players: self.stats.min_players,
+            max_players: self.stats.max_players,
+            min_playtime: self.stats.min_playtime,
+            max_playtime: self.stats.max_playtime,
+            playing_time: self.stats.playing_time,
+            owned_by: self.stats.owned_by,
             rating: CollectionItemRatingBrief {
-                value: stats.rating.value,
-                average: stats.rating.average,
-                bayesian_average: stats.rating.bayesian_average,
+                user_rating: self.stats.rating.user_rating,
+                average: self.stats.rating.average,
+                bayesian_average: self.stats.rating.bayesian_average,
             },
-        })
+        }
     }
 }
 
@@ -62,7 +62,7 @@ pub struct Collection<T> {
     /// List of games and expansions in the user's collection. Each item
     /// is not necessarily owned but can be preowned, wishlisted etc.
     #[serde(rename = "$value")]
-    pub items: Vec<T>,
+    pub games: Vec<T>,
 }
 
 /// An item in a collection, in brief form. With only the name, status, type, and IDs.
@@ -81,8 +81,8 @@ pub struct CollectionItemBrief {
     pub name: String,
     /// Status of the game in this collection, such as own, preowned, wishlist.
     pub status: CollectionItemStatus,
-    /// Game stats such as number of players, can sometimes be omitted from the result.
-    pub stats: Option<CollectionItemStatsBrief>,
+    /// Game stats such as number of players.
+    pub stats: CollectionItemStatsBrief,
 }
 
 /// A game or game expansion in a collection.
@@ -111,8 +111,8 @@ pub struct CollectionItem {
     /// The number of times the user has played the game.
     #[serde(rename = "numplays")]
     pub number_of_plays: u64,
-    /// Game stats such as number of players, can sometimes be omitted from the result.
-    pub stats: Option<CollectionItemStats>,
+    /// Game stats such as number of players.
+    pub stats: CollectionItemStats,
 }
 
 /// The type of game, board game or expansion.
@@ -122,10 +122,10 @@ pub enum GameType {
     ///
     /// Due to the way the API works, this type can include expansions too.
     /// If a request is made for just board games, or the game type is not
-    /// filtered, then both items with a type of [GameType::BoardGame] and
+    /// filtered, then both games with a type of [GameType::BoardGame] and
     /// those with a type of [GameType::BoardGameExpansion] will be returned,
     /// and they will ALL have the type of [GameType::BoardGame]. However when
-    /// requesting just expansions, the returned items will correctly have the
+    /// requesting just expansions, the returned games will correctly have the
     /// type [GameType::BoardGameExpansion].
     ///
     /// A workaround to this can be to make 2 requests, one to include
@@ -253,7 +253,7 @@ pub struct CollectionItemStats {
 #[derive(Clone, Debug, PartialEq)]
 pub struct CollectionItemRatingBrief {
     /// The 0-10 rating that the user gave this game.
-    pub value: Option<f64>,
+    pub user_rating: Option<f64>,
     /// The mean average rating for this game.
     pub average: f64,
     /// The bayesian average rating for this game.
@@ -265,7 +265,7 @@ pub struct CollectionItemRatingBrief {
 #[derive(Clone, Debug, PartialEq)]
 pub struct CollectionItemRating {
     /// The 0-10 rating that the user gave this game.
-    pub value: Option<f64>,
+    pub user_rating: Option<f64>,
     /// The total number of users who have given this game a rating.
     pub users_rated: u64,
     /// The mean average rating for this game.
@@ -342,49 +342,47 @@ pub struct CollectionQueryParams {
     item_type: Option<GameType>,
     /// Exclude results for this item type.
     exclude_item_type: Option<GameType>,
-    /// Include items the user owns if true, exclude if false.
+    /// Include games the user owns if true, exclude if false.
     include_owned: Option<bool>,
-    /// Include items the user previously owned if true, exclude if false.
+    /// Include games the user previously owned if true, exclude if false.
     include_previously_owned: Option<bool>,
-    /// Include items the user wants to trade away if true, exclude if false.
+    /// Include games the user wants to trade away if true, exclude if false.
     include_for_trade: Option<bool>,
-    /// Include items the user wants in a trade if true, exclude if false.
+    /// Include games the user wants in a trade if true, exclude if false.
     include_want_in_trade: Option<bool>,
-    /// Include items the user wants to play if true, exclude if false.
+    /// Include games the user wants to play if true, exclude if false.
     include_want_to_play: Option<bool>,
-    /// Include items the user wants to buy if true, exclude if false.
+    /// Include games the user wants to buy if true, exclude if false.
     include_want_to_buy: Option<bool>,
-    /// Include items the user has preordered if true, exclude if false.
+    /// Include games the user has preordered if true, exclude if false.
     include_preordered: Option<bool>,
-    /// Include items the user has on their wishlist if true, exclude if false.
+    /// Include games the user has on their wishlist if true, exclude if false.
     include_wishlist: Option<bool>,
-    /// Only include items for this wishlist priority.
+    /// Only include games for this wishlist priority.
     wishlist_priority: Option<WishlistPriority>,
-    /// Only include items modified since this date time.
+    /// Only include games modified since this date time.
     modified_since: Option<NaiveDate>,
-    // Include extra stats about the game if true, false otherwise. By default they are included.
-    include_stats: Option<bool>,
-    /// Include only items that have been rated by the user.
+    /// Include only games that have been rated by the user.
     include_rated_by_user: Option<bool>,
-    /// Include only items that have been played by the user.
+    /// Include only games that have been played by the user.
     include_played_by_user: Option<bool>,
-    /// Include only items that have been commented on by the user.
+    /// Include only games that have been commented on by the user.
     include_commented: Option<bool>,
-    /// Include only items that have a comment in the `Has Parts` field.
+    /// Include only games that have a comment in the `Has Parts` field.
     has_parts: Option<bool>,
-    /// Include only items that have a comment in the `Want Parts` field.
+    /// Include only games that have a comment in the `Want Parts` field.
     want_parts: Option<bool>,
-    /// Include only items that the user has rated at least this value.
+    /// Include only games that the user has rated at least this value.
     min_rating: Option<f32>,
-    /// Include only items that the user has rated at most this value.
+    /// Include only games that the user has rated at most this value.
     max_rating: Option<f32>,
-    /// Include only items that have a Geek rating of at least this value.
+    /// Include only games that have a Geek rating of at least this value.
     min_bgg_rating: Option<f32>,
-    /// Include only items that have a Geek rating of at most this value.
+    /// Include only games that have a Geek rating of at most this value.
     max_bgg_rating: Option<f32>,
-    /// Include only items that the user has played at least this many times.
+    /// Include only games that the user has played at least this many times.
     min_plays: Option<u64>,
-    /// Include only items that the user has played at most this many times.
+    /// Include only games that the user has played at most this many times.
     max_plays: Option<u64>,
     /// Show private collection info. Only works when viewing your own collection and you are logged in.
     show_private: Option<bool>,
@@ -411,21 +409,21 @@ impl CollectionQueryParams {
         self
     }
 
-    /// Sets the include_owned field. If true the result will include items that
+    /// Sets the include_owned field. If true the result will include games that
     /// the user owns. Unless all status fields are kept at None, then they are all included.
     pub fn include_owned(mut self, include_owned: bool) -> Self {
         self.include_owned = Some(include_owned);
         self
     }
 
-    /// Sets the include_previously_owned field. If true the result will include items that
+    /// Sets the include_previously_owned field. If true the result will include games that
     /// the user owns. Unless all status fields are kept at None, then they are all included.
     pub fn include_previously_owned(mut self, include_previously_owned: bool) -> Self {
         self.include_previously_owned = Some(include_previously_owned);
         self
     }
 
-    /// Sets the include_for_trade field. If true the result will include items that
+    /// Sets the include_for_trade field. If true the result will include games that
     /// the user wants to trade away. Unless all status fields are kept at None,
     /// then they are all included.
     pub fn include_for_trade(mut self, include_for_trade: bool) -> Self {
@@ -433,7 +431,7 @@ impl CollectionQueryParams {
         self
     }
 
-    /// Sets the include_want_in_trade field. If true the result will include items that
+    /// Sets the include_want_in_trade field. If true the result will include games that
     /// the user wants to receive in a trade. Unless all status fields are kept at None,
     /// then they are all included.
     pub fn include_want_in_trade(mut self, include_want_in_trade: bool) -> Self {
@@ -441,7 +439,7 @@ impl CollectionQueryParams {
         self
     }
 
-    /// Sets the include_want_to_play field. If true the result will include items that
+    /// Sets the include_want_to_play field. If true the result will include games that
     /// the user wants to play. Unless all status fields are kept at None,
     /// then they are all included.
     pub fn include_want_to_play(mut self, include_want_to_play: bool) -> Self {
@@ -449,7 +447,7 @@ impl CollectionQueryParams {
         self
     }
 
-    /// Sets the include_want_to_buy field. If true the result will include items that
+    /// Sets the include_want_to_buy field. If true the result will include games that
     /// the user wants to buy. Unless all status fields are kept at None,
     /// then they are all included.
     pub fn include_want_to_buy(mut self, include_want_to_buy: bool) -> Self {
@@ -457,7 +455,7 @@ impl CollectionQueryParams {
         self
     }
 
-    /// Sets the include_preordered field. If true the result will include items that
+    /// Sets the include_preordered field. If true the result will include games that
     /// the user wants to buy. Unless all status fields are kept at None,
     /// then they are all included.
     pub fn include_preordered(mut self, include_preordered: bool) -> Self {
@@ -465,7 +463,7 @@ impl CollectionQueryParams {
         self
     }
 
-    /// Sets the include_wishlist field. If true the result will include the items
+    /// Sets the include_wishlist field. If true the result will include the games
     /// that the user has on their wishlist. Unless all status fields are kept at None, then they are all included.
     pub fn include_wishlist(mut self, include_wishlist: bool) -> Self {
         self.include_wishlist = Some(include_wishlist);
@@ -483,14 +481,6 @@ impl CollectionQueryParams {
     /// since that datetime will be returned.
     pub fn modified_since(mut self, modified_since: NaiveDate) -> Self {
         self.modified_since = Some(modified_since);
-        self
-    }
-
-    /// Sets the include_stats field. If false the stats are omitted.
-    /// Since the default behaviour is inconsistent. Keeping this at None will
-    /// be treated as true at build time.
-    pub fn include_stats(mut self, include_stats: bool) -> Self {
-        self.include_stats = Some(include_stats);
         self
     }
 
@@ -605,6 +595,10 @@ impl<'a> CollectionQueryBuilder<'a> {
     pub fn build(self) -> Vec<(&'a str, String)> {
         let mut query_params: Vec<_> = vec![];
         query_params.push(("username", self.base.username.to_string()));
+        // The API is inconsistent with whether stats are returned or not when this is omitted.
+        // Set it to always true to avoid any problems with this and avoid the need for the type to
+        // be an optional.
+        query_params.push(("stats", "1".to_string()));
 
         match self.base.brief {
             true => query_params.push(("brief", "1".to_string())),
@@ -690,13 +684,6 @@ impl<'a> CollectionQueryBuilder<'a> {
                 modified_since.format("YY-MM-DD").to_string(),
             ));
         }
-        match self.params.include_stats {
-            Some(true) => query_params.push(("stats", "1".to_string())),
-            Some(false) => query_params.push(("stats", "0".to_string())),
-            // When omitted, the API has inconsistent behaviour, and will include the stats usually
-            // but not when specific game types are requested, so we set it to true for consistency.
-            None => query_params.push(("stats", "1".to_string())),
-        }
         match self.params.include_rated_by_user {
             Some(true) => query_params.push(("rated", "1".to_string())),
             Some(false) => query_params.push(("rated", "0".to_string())),
@@ -769,7 +756,7 @@ impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
         }
     }
 
-    /// Get all items of all types in the user's collection.
+    /// Get all games of all types in the user's collection.
     pub async fn get_all(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::default();
         self.get_from_query(username, query_params).await
@@ -796,14 +783,11 @@ impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
         player_counts: RangeInclusive<u32>,
         query_params: CollectionQueryParams,
     ) -> Result<Collection<T>> {
-        let mut collection = self
-            .get_from_query(username, query_params.include_stats(true))
-            .await?;
+        let mut collection = self.get_from_query(username, query_params).await?;
 
-        collection.items.retain(|item| {
-            item.get_stats().is_some_and(|s| {
-                *player_counts.start() <= s.max_players && *player_counts.end() >= s.min_players
-            })
+        collection.games.retain(|item| {
+            let stats = item.get_stats();
+            *player_counts.start() <= stats.max_players && *player_counts.end() >= stats.min_players
         });
         Ok(collection)
     }
@@ -817,13 +801,11 @@ impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
         player_count: u32,
         query_params: CollectionQueryParams,
     ) -> Result<Collection<T>> {
-        let mut collection = self
-            .get_from_query(username, query_params.include_stats(true))
-            .await?;
+        let mut collection = self.get_from_query(username, query_params).await?;
 
-        collection.items.retain(|item| {
-            item.get_stats()
-                .is_some_and(|s| player_count <= s.max_players && player_count >= s.min_players)
+        collection.games.retain(|item| {
+            let stats = item.get_stats();
+            player_count <= stats.max_players && player_count >= stats.min_players
         });
         Ok(collection)
     }
@@ -865,8 +847,9 @@ mod tests {
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "somename".into()),
-                Matcher::UrlEncoded("own".into(), "1".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("brief".into(), "1".into()),
+                Matcher::UrlEncoded("own".into(), "1".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -882,9 +865,9 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.items.len(), 1);
+        assert_eq!(collection.games.len(), 1);
         assert_eq!(
-            collection.items[0],
+            collection.games[0],
             CollectionItemBrief {
                 id: 131835,
                 collection_id: 118278872,
@@ -902,7 +885,19 @@ mod tests {
                     pre_ordered: false,
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 13, 18, 29, 1).unwrap(),
                 },
-                stats: None,
+                stats: CollectionItemStatsBrief {
+                    min_players: 2,
+                    max_players: 4,
+                    min_playtime: Duration::minutes(30),
+                    max_playtime: Duration::minutes(30),
+                    playing_time: Duration::minutes(30),
+                    owned_by: 36423,
+                    rating: CollectionItemRatingBrief {
+                        user_rating: Some(3.0),
+                        average: 6.27139,
+                        bayesian_average: 6.08972,
+                    },
+                },
             },
             "returned collection game doesn't match expected",
         );
@@ -920,9 +915,9 @@ mod tests {
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "somename".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
                 Matcher::UrlEncoded("brief".into(), "0".into()),
                 Matcher::UrlEncoded("own".into(), "1".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -938,7 +933,7 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.items.len(), 33);
+        assert_eq!(collection.games.len(), 39);
     }
 
     #[tokio::test]
@@ -953,9 +948,9 @@ mod tests {
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "somename".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
                 Matcher::UrlEncoded("brief".into(), "0".into()),
                 Matcher::UrlEncoded("own".into(), "1".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -971,9 +966,9 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.items.len(), 1);
+        assert_eq!(collection.games.len(), 1);
         assert_eq!(
-            collection.items[0],
+            collection.games[0],
             CollectionItem {
                 id: 131835,
                 collection_id: 118278872,
@@ -995,7 +990,7 @@ mod tests {
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 13, 18, 29, 1).unwrap(),
                 },
                 number_of_plays: 2,
-                stats: Some(CollectionItemStats {
+                stats: CollectionItemStats {
                     min_players: 2,
                     max_players: 4,
                     min_playtime: Duration::minutes(30),
@@ -1003,7 +998,7 @@ mod tests {
                     playing_time: Duration::minutes(30),
                     owned_by: 36423,
                     rating: CollectionItemRating {
-                        value: Some(3.0),
+                        user_rating: Some(3.0),
                         users_rated: 17063,
                         average: 6.27139,
                         bayesian_average: 6.08972,
@@ -1016,7 +1011,7 @@ mod tests {
                                 name: "boardgame".into(),
                                 friendly_name: "Board Game Rank".into(),
                                 value: RankValue::Ranked(2486),
-                                bayesian_average: 6.08972
+                                bayesian_average: 6.08972,
                             },
                             GameTypeRank {
                                 game_type: "family".into(),
@@ -1024,11 +1019,11 @@ mod tests {
                                 name: "familygames".into(),
                                 friendly_name: "Family Game Rank".into(),
                                 value: RankValue::Ranked(1006),
-                                bayesian_average: 6.05246
+                                bayesian_average: 6.05246,
                             },
                         ],
                     },
-                }),
+                },
             },
             "returned collection game doesn't match expected",
         );
@@ -1046,9 +1041,9 @@ mod tests {
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "somename".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
                 Matcher::UrlEncoded("brief".into(), "0".into()),
                 Matcher::UrlEncoded("wishlist".into(), "1".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -1064,9 +1059,9 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.items.len(), 1);
+        assert_eq!(collection.games.len(), 1);
         assert_eq!(
-            collection.items[0],
+            collection.games[0],
             CollectionItem {
                 id: 177736,
                 collection_id: 118332974,
@@ -1088,7 +1083,40 @@ mod tests {
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 18, 19, 28, 17).unwrap(),
                 },
                 number_of_plays: 0,
-                stats: None,
+                stats: CollectionItemStats {
+                    min_players: 1,
+                    max_players: 4,
+                    min_playtime: Duration::minutes(30),
+                    max_playtime: Duration::minutes(120),
+                    playing_time: Duration::minutes(120),
+                    owned_by: 37542,
+                    rating: CollectionItemRating {
+                        user_rating: None,
+                        users_rated: 28890,
+                        average: 8.17156,
+                        bayesian_average: 7.94347,
+                        standard_deviation: 1.37019,
+                        median: 0.0,
+                        ranks: vec![
+                            GameTypeRank {
+                                game_type: "subtype".into(),
+                                id: 1,
+                                name: "boardgame".into(),
+                                friendly_name: "Board Game Rank".into(),
+                                value: RankValue::Ranked(23),
+                                bayesian_average: 7.94347,
+                            },
+                            GameTypeRank {
+                                game_type: "family".into(),
+                                id: 5497,
+                                name: "strategygames".into(),
+                                friendly_name: "Strategy Game Rank".into(),
+                                value: RankValue::Ranked(19),
+                                bayesian_average: 7.97338,
+                            },
+                        ],
+                    },
+                },
             },
             "returned collection game doesn't match expected",
         );
@@ -1106,6 +1134,7 @@ mod tests {
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "someone".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
                 Matcher::UrlEncoded("brief".into(), "0".into()),
                 Matcher::UrlEncoded("hasparts".into(), "0".into()),
                 Matcher::UrlEncoded("own".into(), "1".into()),
@@ -1145,6 +1174,7 @@ mod tests {
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "someone".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -1163,9 +1193,9 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.items.len(), 1);
+        assert_eq!(collection.games.len(), 1);
         assert_eq!(
-            collection.items[0],
+            collection.games[0],
             CollectionItem {
                 id: 2281,
                 collection_id: 118280658,
@@ -1187,7 +1217,7 @@ mod tests {
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 14, 9, 47, 38).unwrap(),
                 },
                 number_of_plays: 0,
-                stats: Some(CollectionItemStats {
+                stats: CollectionItemStats {
                     min_players: 3,
                     max_players: 16,
                     min_playtime: Duration::minutes(90),
@@ -1195,7 +1225,7 @@ mod tests {
                     playing_time: Duration::minutes(90),
                     owned_by: 14400,
                     rating: CollectionItemRating {
-                        value: Some(7.0),
+                        user_rating: Some(7.0),
                         users_rated: 8097,
                         average: 5.84098,
                         bayesian_average: 5.71005,
@@ -1220,7 +1250,7 @@ mod tests {
                             }
                         ],
                     }
-                }),
+                },
             },
             "returned collection game doesn't match expected",
         );
@@ -1231,6 +1261,7 @@ mod tests {
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "someone".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -1249,7 +1280,7 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.items.len(), 37);
+        assert_eq!(collection.games.len(), 37);
 
         // Looking for a game that supports 17 players, not in the collection. Nothing should be returned.
         let mock = server
@@ -1257,6 +1288,7 @@ mod tests {
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "someone".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -1275,7 +1307,7 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.items.len(), 0);
+        assert_eq!(collection.games.len(), 0);
     }
 
     #[tokio::test]
@@ -1291,6 +1323,7 @@ mod tests {
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "someone".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -1309,9 +1342,9 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.items.len(), 1);
+        assert_eq!(collection.games.len(), 1);
         assert_eq!(
-            collection.items[0],
+            collection.games[0],
             CollectionItem {
                 id: 2281,
                 collection_id: 118280658,
@@ -1333,7 +1366,7 @@ mod tests {
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 14, 9, 47, 38).unwrap(),
                 },
                 number_of_plays: 0,
-                stats: Some(CollectionItemStats {
+                stats: CollectionItemStats {
                     min_players: 3,
                     max_players: 16,
                     min_playtime: Duration::minutes(90),
@@ -1341,7 +1374,7 @@ mod tests {
                     playing_time: Duration::minutes(90),
                     owned_by: 14400,
                     rating: CollectionItemRating {
-                        value: Some(7.0),
+                        user_rating: Some(7.0),
                         users_rated: 8097,
                         average: 5.84098,
                         bayesian_average: 5.71005,
@@ -1366,7 +1399,7 @@ mod tests {
                             }
                         ],
                     }
-                }),
+                },
             },
             "returned collection game doesn't match expected",
         );
@@ -1376,6 +1409,7 @@ mod tests {
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "someone".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -1394,12 +1428,9 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.items.len(), 30);
-        for item in collection.items {
-            assert!(
-                item.stats.as_ref().unwrap().min_players <= 2
-                    && item.stats.unwrap().max_players >= 2
-            )
+        assert_eq!(collection.games.len(), 30);
+        for item in collection.games {
+            assert!(item.stats.min_players <= 2 && item.stats.max_players >= 2)
         }
 
         // Looking for a game that supports 17 players, not in the collection. Nothing should be returned.
@@ -1408,6 +1439,7 @@ mod tests {
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "someone".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -1426,6 +1458,6 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.items.len(), 0);
+        assert_eq!(collection.games.len(), 0);
     }
 }
