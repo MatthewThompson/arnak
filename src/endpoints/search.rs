@@ -14,7 +14,8 @@ pub struct SearchResults {
     pub results: Vec<SearchResult>,
 }
 
-/// A result when searching for a name. Includes the game's name, type, and year published.
+/// A result when searching for a name. Includes the game's name, type, and year
+/// published.
 #[derive(Clone, Debug, PartialEq)]
 pub struct SearchResult {
     /// The ID of the game.
@@ -69,27 +70,27 @@ impl<'de> Deserialize<'de> for SearchResult {
                                     "failed to parse value a u64: {e}"
                                 ))
                             })?);
-                        }
+                        },
                         Field::Type => {
                             if item_type.is_some() {
                                 return Err(serde::de::Error::duplicate_field("type"));
                             }
                             item_type = Some(map.next_value()?);
-                        }
+                        },
                         Field::Name => {
                             if name.is_some() {
                                 return Err(serde::de::Error::duplicate_field("name"));
                             }
                             let name_xml_tag: XmlStringValue = map.next_value()?;
                             name = Some(name_xml_tag.value);
-                        }
+                        },
                         Field::YearPublished => {
                             if year_published.is_some() {
                                 return Err(serde::de::Error::duplicate_field("yearpublished"));
                             }
                             let year_published_xml_tag: XmlSignedValue = map.next_value()?;
                             year_published = Some(year_published_xml_tag.value);
-                        }
+                        },
                     }
                 }
                 let id = id.ok_or_else(|| serde::de::Error::missing_field("id"))?;
@@ -124,8 +125,8 @@ pub struct SearchQueryParams {
     ///
     /// Note, if this is set to [GameType::BoardGame] then it will include both
     /// board games and expansions, but set the type of all of them to be
-    /// [GameType::BoardGame] in the results. There does not seem to be a way around
-    /// this.
+    /// [GameType::BoardGame] in the results. There does not seem to be a way
+    /// around this.
     game_type: Option<GameType>,
     /// Limit results to only exact matches of the search query.
     exact: Option<bool>,
@@ -137,13 +138,15 @@ impl SearchQueryParams {
         Self::default()
     }
 
-    /// Sets the game_type query param, so that only expansions or board games can be filtered when searching.
+    /// Sets the game_type query param, so that only expansions or board games
+    /// can be filtered when searching.
     pub fn game_type(mut self, game_type: GameType) -> Self {
         self.game_type = Some(game_type);
         self
     }
 
-    /// Sets the exact query param, so that exact matches will be returned if set to true.
+    /// Sets the exact query param, so that exact matches will be returned if
+    /// set to true.
     pub fn exact(mut self, exact: bool) -> Self {
         self.exact = Some(exact);
         self
@@ -158,7 +161,8 @@ struct SearchQueryBuilder<'q> {
 }
 
 impl<'builder> SearchQueryBuilder<'builder> {
-    /// Constructs a new query builder from a base query, and the rest of the parameters.
+    /// Constructs a new query builder from a base query, and the rest of the
+    /// parameters.
     fn new(base: BaseSearchQuery<'builder>, params: SearchQueryParams) -> Self {
         Self { base, params }
     }
@@ -170,14 +174,14 @@ impl<'builder> SearchQueryBuilder<'builder> {
         match self.params.exact {
             Some(true) => query_params.push(("exact", "1".to_string())),
             Some(false) => query_params.push(("exact", "0".to_string())),
-            None => {}
+            None => {},
         }
         match self.params.game_type {
             Some(GameType::BoardGame) => query_params.push(("type", "boardgame".to_string())),
             Some(GameType::BoardGameExpansion) => {
                 query_params.push(("type", "boardgameexpansion".to_string()))
-            }
-            None => {}
+            },
+            None => {},
         }
         query_params
     }

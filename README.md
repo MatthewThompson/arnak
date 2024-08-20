@@ -48,3 +48,7 @@ Search for a game, returning everything that matches the search. Also includes a
 ### Hot list
 
 Returns the top 10 currently trending games.
+
+## Formatting
+
+Some rustfmt options used are nightly only. So to format run `cargo +nightly fmt`

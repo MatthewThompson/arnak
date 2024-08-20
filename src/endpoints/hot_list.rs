@@ -24,7 +24,8 @@ pub struct HotItem {
     pub year_published: i64,
 }
 
-/// Hot list endpoint of the API. Used for returning the current trending board games.
+/// Hot list endpoint of the API. Used for returning the current trending board
+/// games.
 pub struct HotListApi<'api> {
     pub(crate) api: &'api BoardGameGeekApi,
     endpoint: &'static str,

@@ -65,7 +65,8 @@ pub struct Collection<T> {
     pub games: Vec<T>,
 }
 
-/// An item in a collection, in brief form. With only the name, status, type, and IDs.
+/// An item in a collection, in brief form. With only the name, status, type,
+/// and IDs.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemBrief {
     /// The ID of the game.
@@ -138,8 +139,8 @@ pub enum GameType {
     BoardGameExpansion,
 }
 
-/// The status of the game in the user's collection, such as preowned or wishlist.
-/// Can be any or none of them.
+/// The status of the game in the user's collection, such as preowned or
+/// wishlist. Can be any or none of them.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemStatus {
     /// User owns the game.
@@ -178,8 +179,8 @@ pub struct CollectionItemStatus {
     pub last_modified: DateTime<Utc>,
 }
 
-/// The status of the game in the user's collection, such as preowned or wishlist.
-/// Can be any or none of them.
+/// The status of the game in the user's collection, such as preowned or
+/// wishlist. Can be any or none of them.
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq, PartialOrd)]
 pub enum WishlistPriority {
     /// Lowest priority.
@@ -194,8 +195,8 @@ pub enum WishlistPriority {
     MustHave,
 }
 
-/// Stats of the game such as playercount and duration. Can be omitted from the response.
-/// More stats can be found from the specific game endpoint.
+/// Stats of the game such as playercount and duration. Can be omitted from the
+/// response. More stats can be found from the specific game endpoint.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemStatsBrief {
     /// Minimum players the game supports.
@@ -216,13 +217,14 @@ pub struct CollectionItemStatsBrief {
     /// The number of people that own this game.
     #[serde(rename = "numowned")]
     pub owned_by: u64,
-    /// Information about the rating that this user, as well as all users, have given this game.
+    /// Information about the rating that this user, as well as all users, have
+    /// given this game.
     #[serde(rename = "$value", deserialize_with = "deserialize_game_ratings_brief")]
     pub rating: CollectionItemRatingBrief,
 }
 
-/// Stats of the game such as playercount and duration. Can be omitted from the response.
-/// More stats can be found from the specific game endpoint.
+/// Stats of the game such as playercount and duration. Can be omitted from the
+/// response. More stats can be found from the specific game endpoint.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemStats {
     /// Minimum players the game supports.
@@ -243,7 +245,8 @@ pub struct CollectionItemStats {
     /// The number of people that own this game.
     #[serde(rename = "numowned")]
     pub owned_by: u64,
-    /// Information about the rating that this user, as well as all users, have given this game.
+    /// Information about the rating that this user, as well as all users, have
+    /// given this game.
     #[serde(rename = "$value", deserialize_with = "deserialize_game_ratings")]
     pub rating: CollectionItemRating,
 }
@@ -261,7 +264,8 @@ pub struct CollectionItemRatingBrief {
 }
 
 /// The 0-10 rating that the user gave to this game. Also includes the total
-/// number of users that have rated it, as well as the averages, and standard deviation.
+/// number of users that have rated it, as well as the averages, and standard
+/// deviation.
 #[derive(Clone, Debug, PartialEq)]
 pub struct CollectionItemRating {
     /// The 0-10 rating that the user gave this game.
@@ -296,9 +300,11 @@ pub struct GameTypeRank {
     pub game_type: String,
     /// ID game type.
     pub id: u64,
-    /// Name of the game type. "boardgame" used as the generic subtype that includes all baord games.
+    /// Name of the game type. "boardgame" used as the generic subtype that
+    /// includes all baord games.
     pub name: String,
-    /// User friendly name in the foramt "GENRE game rank" e.g. "Party Game Rank"
+    /// User friendly name in the foramt "GENRE game rank" e.g. "Party Game
+    /// Rank"
     #[serde(rename = "friendlyname")]
     pub friendly_name: String,
     /// The overall rank on the site within this type of game.
@@ -309,8 +315,8 @@ pub struct GameTypeRank {
     pub bayesian_average: f64,
 }
 
-/// A rank a particular board game has on the site, within a subtype. Can be either
-/// Ranked with a u64 for the rank, Or NotRanked.
+/// A rank a particular board game has on the site, within a subtype. Can be
+/// either Ranked with a u64 for the rank, Or NotRanked.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum RankValue {
     Ranked(u64),
@@ -337,8 +343,8 @@ pub struct CollectionQueryParams {
     ///
     /// Note, if this is set to [GameType::BoardGame] then it will include both
     /// board games and expansions, but set the type of all of them to be
-    /// [GameType::BoardGame] in the results. Explicitly exclude [GameType::BoardGameExpansion]
-    /// to avoid this.
+    /// [GameType::BoardGame] in the results. Explicitly exclude
+    /// [GameType::BoardGameExpansion] to avoid this.
     item_type: Option<GameType>,
     /// Exclude results for this item type.
     exclude_item_type: Option<GameType>,
@@ -384,7 +390,8 @@ pub struct CollectionQueryParams {
     min_plays: Option<u64>,
     /// Include only games that the user has played at most this many times.
     max_plays: Option<u64>,
-    /// Show private collection info. Only works when viewing your own collection and you are logged in.
+    /// Show private collection info. Only works when viewing your own
+    /// collection and you are logged in.
     show_private: Option<bool>,
     /// ID of a particular item in a collection.
     collection_id: Option<u64>,
@@ -396,89 +403,93 @@ impl CollectionQueryParams {
         Self::default()
     }
 
-    /// Sets the item_type field, so that only that type of item will be returned.
+    /// Sets the item_type field, so that only that type of item will be
+    /// returned.
     pub fn item_type(mut self, item_type: GameType) -> Self {
         self.item_type = Some(item_type);
         self
     }
 
-    /// Set the exclude_item_type field, so that that type of item will be excluded from.
-    /// the results.
+    /// Set the exclude_item_type field, so that that type of item will be
+    /// excluded from. the results.
     pub fn exclude_item_type(mut self, exclude_item_type: GameType) -> Self {
         self.exclude_item_type = Some(exclude_item_type);
         self
     }
 
     /// Sets the include_owned field. If true the result will include games that
-    /// the user owns. Unless all status fields are kept at None, then they are all included.
+    /// the user owns. Unless all status fields are kept at None, then they are
+    /// all included.
     pub fn include_owned(mut self, include_owned: bool) -> Self {
         self.include_owned = Some(include_owned);
         self
     }
 
-    /// Sets the include_previously_owned field. If true the result will include games that
-    /// the user owns. Unless all status fields are kept at None, then they are all included.
+    /// Sets the include_previously_owned field. If true the result will include
+    /// games that the user owns. Unless all status fields are kept at None,
+    /// then they are all included.
     pub fn include_previously_owned(mut self, include_previously_owned: bool) -> Self {
         self.include_previously_owned = Some(include_previously_owned);
         self
     }
 
-    /// Sets the include_for_trade field. If true the result will include games that
-    /// the user wants to trade away. Unless all status fields are kept at None,
-    /// then they are all included.
+    /// Sets the include_for_trade field. If true the result will include games
+    /// that the user wants to trade away. Unless all status fields are kept
+    /// at None, then they are all included.
     pub fn include_for_trade(mut self, include_for_trade: bool) -> Self {
         self.include_for_trade = Some(include_for_trade);
         self
     }
 
-    /// Sets the include_want_in_trade field. If true the result will include games that
-    /// the user wants to receive in a trade. Unless all status fields are kept at None,
-    /// then they are all included.
+    /// Sets the include_want_in_trade field. If true the result will include
+    /// games that the user wants to receive in a trade. Unless all status
+    /// fields are kept at None, then they are all included.
     pub fn include_want_in_trade(mut self, include_want_in_trade: bool) -> Self {
         self.include_want_in_trade = Some(include_want_in_trade);
         self
     }
 
-    /// Sets the include_want_to_play field. If true the result will include games that
-    /// the user wants to play. Unless all status fields are kept at None,
-    /// then they are all included.
+    /// Sets the include_want_to_play field. If true the result will include
+    /// games that the user wants to play. Unless all status fields are kept
+    /// at None, then they are all included.
     pub fn include_want_to_play(mut self, include_want_to_play: bool) -> Self {
         self.include_want_to_play = Some(include_want_to_play);
         self
     }
 
-    /// Sets the include_want_to_buy field. If true the result will include games that
-    /// the user wants to buy. Unless all status fields are kept at None,
-    /// then they are all included.
+    /// Sets the include_want_to_buy field. If true the result will include
+    /// games that the user wants to buy. Unless all status fields are kept
+    /// at None, then they are all included.
     pub fn include_want_to_buy(mut self, include_want_to_buy: bool) -> Self {
         self.include_want_to_buy = Some(include_want_to_buy);
         self
     }
 
-    /// Sets the include_preordered field. If true the result will include games that
-    /// the user wants to buy. Unless all status fields are kept at None,
-    /// then they are all included.
+    /// Sets the include_preordered field. If true the result will include games
+    /// that the user wants to buy. Unless all status fields are kept at
+    /// None, then they are all included.
     pub fn include_preordered(mut self, include_preordered: bool) -> Self {
         self.include_preordered = Some(include_preordered);
         self
     }
 
-    /// Sets the include_wishlist field. If true the result will include the games
-    /// that the user has on their wishlist. Unless all status fields are kept at None, then they are all included.
+    /// Sets the include_wishlist field. If true the result will include the
+    /// games that the user has on their wishlist. Unless all status fields
+    /// are kept at None, then they are all included.
     pub fn include_wishlist(mut self, include_wishlist: bool) -> Self {
         self.include_wishlist = Some(include_wishlist);
         self
     }
 
-    /// Sets the wishlist_priority field. If set then only results with that wishlist
-    /// priority will be returned.
+    /// Sets the wishlist_priority field. If set then only results with that
+    /// wishlist priority will be returned.
     pub fn wishlist_priority(mut self, wishlist_priority: WishlistPriority) -> Self {
         self.wishlist_priority = Some(wishlist_priority);
         self
     }
 
-    /// Sets the modified_since field. If set then only results that have been modified
-    /// since that datetime will be returned.
+    /// Sets the modified_since field. If set then only results that have been
+    /// modified since that datetime will be returned.
     pub fn modified_since(mut self, modified_since: NaiveDate) -> Self {
         self.modified_since = Some(modified_since);
         self
@@ -585,7 +596,8 @@ struct CollectionQueryBuilder<'q> {
 }
 
 impl<'a> CollectionQueryBuilder<'a> {
-    /// Constructs a new query builder from a base query, and the rest of the parameters.
+    /// Constructs a new query builder from a base query, and the rest of the
+    /// parameters.
     fn new(base: BaseCollectionQuery<'a>, params: CollectionQueryParams) -> Self {
         Self { base, params }
     }
@@ -595,9 +607,9 @@ impl<'a> CollectionQueryBuilder<'a> {
     pub fn build(self) -> Vec<(&'a str, String)> {
         let mut query_params: Vec<_> = vec![];
         query_params.push(("username", self.base.username.to_string()));
-        // The API is inconsistent with whether stats are returned or not when this is omitted.
-        // Set it to always true to avoid any problems with this and avoid the need for the type to
-        // be an optional.
+        // The API is inconsistent with whether stats are returned or not when this is
+        // omitted. Set it to always true to avoid any problems with this and
+        // avoid the need for the type to be an optional.
         query_params.push(("stats", "1".to_string()));
 
         match self.base.brief {
@@ -608,75 +620,75 @@ impl<'a> CollectionQueryBuilder<'a> {
             Some(GameType::BoardGame) => query_params.push(("subtype", "boardgame".to_string())),
             Some(GameType::BoardGameExpansion) => {
                 query_params.push(("subtype", "boardgameexpansion".to_string()))
-            }
-            None => {}
+            },
+            None => {},
         }
         match self.params.exclude_item_type {
             Some(GameType::BoardGame) => {
                 query_params.push(("excludesubtype", "boardgame".to_string()))
-            }
+            },
             Some(GameType::BoardGameExpansion) => {
                 query_params.push(("excludesubtype", "boardgameexpansion".to_string()))
-            }
-            None => {}
+            },
+            None => {},
         }
         match self.params.include_owned {
             Some(true) => query_params.push(("own", "1".to_string())),
             Some(false) => query_params.push(("own", "0".to_string())),
-            None => {}
+            None => {},
         }
         match self.params.include_previously_owned {
             Some(true) => query_params.push(("prevowned", "1".to_string())),
             Some(false) => query_params.push(("prevowned", "0".to_string())),
-            None => {}
+            None => {},
         }
         match self.params.include_for_trade {
             Some(true) => query_params.push(("trade", "1".to_string())),
             Some(false) => query_params.push(("trade", "0".to_string())),
-            None => {}
+            None => {},
         }
         match self.params.include_want_in_trade {
             Some(true) => query_params.push(("want", "1".to_string())),
             Some(false) => query_params.push(("want", "0".to_string())),
-            None => {}
+            None => {},
         }
         match self.params.include_want_to_play {
             Some(true) => query_params.push(("wanttoplay", "1".to_string())),
             Some(false) => query_params.push(("wanttoplay", "0".to_string())),
-            None => {}
+            None => {},
         }
         match self.params.include_want_to_buy {
             Some(true) => query_params.push(("wanttobuy", "1".to_string())),
             Some(false) => query_params.push(("wanttobuy", "0".to_string())),
-            None => {}
+            None => {},
         }
         match self.params.include_preordered {
             Some(true) => query_params.push(("preordered", "1".to_string())),
             Some(false) => query_params.push(("preordered", "0".to_string())),
-            None => {}
+            None => {},
         }
         match self.params.include_wishlist {
             Some(true) => query_params.push(("wishlist", "1".to_string())),
             Some(false) => query_params.push(("wishlist", "0".to_string())),
-            None => {}
+            None => {},
         }
         match self.params.wishlist_priority {
             Some(WishlistPriority::DontBuyThis) => {
                 query_params.push(("wishlistpriority", "5".to_string()))
-            }
+            },
             Some(WishlistPriority::ThinkingAboutIt) => {
                 query_params.push(("wishlistpriority", "4".to_string()))
-            }
+            },
             Some(WishlistPriority::LikeToHave) => {
                 query_params.push(("wishlistpriority", "3".to_string()))
-            }
+            },
             Some(WishlistPriority::LoveToHave) => {
                 query_params.push(("wishlistpriority", "2".to_string()))
-            }
+            },
             Some(WishlistPriority::MustHave) => {
                 query_params.push(("wishlistpriority", "1".to_string()))
-            }
-            None => {}
+            },
+            None => {},
         }
         if let Some(modified_since) = self.params.modified_since {
             query_params.push((
@@ -687,27 +699,27 @@ impl<'a> CollectionQueryBuilder<'a> {
         match self.params.include_rated_by_user {
             Some(true) => query_params.push(("rated", "1".to_string())),
             Some(false) => query_params.push(("rated", "0".to_string())),
-            None => {}
+            None => {},
         }
         match self.params.include_played_by_user {
             Some(true) => query_params.push(("played", "1".to_string())),
             Some(false) => query_params.push(("played", "0".to_string())),
-            None => {}
+            None => {},
         }
         match self.params.include_commented {
             Some(true) => query_params.push(("comment", "1".to_string())),
             Some(false) => query_params.push(("comment", "0".to_string())),
-            None => {}
+            None => {},
         }
         match self.params.has_parts {
             Some(true) => query_params.push(("hasparts", "1".to_string())),
             Some(false) => query_params.push(("hasparts", "0".to_string())),
-            None => {}
+            None => {},
         }
         match self.params.want_parts {
             Some(true) => query_params.push(("wantparts", "1".to_string())),
             Some(false) => query_params.push(("wantparts", "0".to_string())),
-            None => {}
+            None => {},
         }
         if let Some(min_rating) = self.params.min_rating {
             query_params.push(("minrating", min_rating.to_string()));
@@ -730,7 +742,7 @@ impl<'a> CollectionQueryBuilder<'a> {
         match self.params.show_private {
             Some(true) => query_params.push(("showprivate", "1".to_string())),
             Some(false) => query_params.push(("showprivate", "0".to_string())),
-            None => {}
+            None => {},
         }
         if let Some(collection_id) = self.params.collection_id {
             query_params.push(("collid", collection_id.to_string()));
@@ -740,7 +752,8 @@ impl<'a> CollectionQueryBuilder<'a> {
 }
 
 /// Collection endpoint of the API. Used for returning user's collections
-/// of games by their username. Filtering by [CollectionItemStatus], rating, recorded plays.
+/// of games by their username. Filtering by [CollectionItemStatus], rating,
+/// recorded plays.
 pub struct CollectionApi<'api, T: CollectionItemType<'api>> {
     pub(crate) api: &'api BoardGameGeekApi,
     endpoint: &'static str,
@@ -1255,7 +1268,8 @@ mod tests {
             "returned collection game doesn't match expected",
         );
 
-        // Looking for a game that supports any number of players between 1 and 16. All 37 games in the collection should be returned.
+        // Looking for a game that supports any number of players between 1 and 16. All
+        // 37 games in the collection should be returned.
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
@@ -1282,7 +1296,8 @@ mod tests {
 
         assert_eq!(collection.games.len(), 37);
 
-        // Looking for a game that supports 17 players, not in the collection. Nothing should be returned.
+        // Looking for a game that supports 17 players, not in the collection. Nothing
+        // should be returned.
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
@@ -1433,7 +1448,8 @@ mod tests {
             assert!(item.stats.min_players <= 2 && item.stats.max_players >= 2)
         }
 
-        // Looking for a game that supports 17 players, not in the collection. Nothing should be returned.
+        // Looking for a game that supports 17 players, not in the collection. Nothing
+        // should be returned.
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![

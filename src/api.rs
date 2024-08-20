@@ -37,26 +37,26 @@ impl BoardGameGeekApi {
         }
     }
 
-    /// Returns the collection endpoint of the API, which is used for querying a specific
-    /// user's board game collection.
+    /// Returns the collection endpoint of the API, which is used for querying a
+    /// specific user's board game collection.
     pub fn collection(&self) -> CollectionApi<CollectionItem> {
         CollectionApi::new(self)
     }
 
-    /// Returns the collection endpoint of the API, which is used for querying a specific
-    /// user's board game collection.
+    /// Returns the collection endpoint of the API, which is used for querying a
+    /// specific user's board game collection.
     pub fn collection_brief(&self) -> CollectionApi<CollectionItemBrief> {
         CollectionApi::new(self)
     }
 
-    /// Returns the hot list endpoint of the API, which is used for querying the current
-    /// trending board games.
+    /// Returns the hot list endpoint of the API, which is used for querying the
+    /// current trending board games.
     pub fn hot_list(&self) -> HotListApi {
         HotListApi::new(self)
     }
 
-    /// Returns the search endpoint of the API, which is used for searching for board games
-    /// by name.
+    /// Returns the search endpoint of the API, which is used for searching for
+    /// board games by name.
     pub fn search(&self) -> SearchApi {
         SearchApi::new(self)
     }
@@ -73,8 +73,8 @@ impl BoardGameGeekApi {
             .query(query)
     }
 
-    // Handles a HTTP request by calling execute_request_raw, then parses the response
-    // to the expected type.
+    // Handles a HTTP request by calling execute_request_raw, then parses the
+    // response to the expected type.
     pub(crate) async fn execute_request<T: serde::de::DeserializeOwned>(
         &self,
         request: RequestBuilder,
@@ -101,14 +101,14 @@ impl BoardGameGeekApi {
                     // from failing to parse the output type.
                     Err(_) => Err(Error::UnexpectedResponseError(e)),
                 }
-            }
+            },
         }
     }
 
     // Handles an HTTP request. send_request accepts a reqwest::ReqwestBuilder,
-    // sends it and awaits. If the response is Accepted (202), it will wait for the data to
-    // be ready and try again. Any errors are wrapped in the local BoardGameGeekApiError
-    // enum before being returned.
+    // sends it and awaits. If the response is Accepted (202), it will wait for the
+    // data to be ready and try again. Any errors are wrapped in the local
+    // BoardGameGeekApiError enum before being returned.
     fn send_request(&self, request: RequestBuilder) -> impl Future<Output = Result<Response>> {
         let mut retries: u32 = 0;
         async move {
@@ -123,8 +123,9 @@ impl BoardGameGeekApi {
                     if retries >= 4 {
                         break Err(Error::MaxRetryError(retries));
                     }
-                    // Request has been accepted but the data isn't ready yet, we wait a short amount of time
-                    // before trying again, with exponential backoff.
+                    // Request has been accepted but the data isn't ready yet, we wait a short
+                    // amount of time before trying again, with exponential
+                    // backoff.
                     let backoff_multiplier = 2_u64.pow(retries);
                     retries += 1;
                     let delay = Duration::from_millis(200 * backoff_multiplier);
