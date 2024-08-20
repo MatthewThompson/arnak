@@ -848,6 +848,7 @@ mod tests {
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "somename".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("brief".into(), "1".into()),
                 Matcher::UrlEncoded("own".into(), "1".into()),
             ]))
             .with_status(200)
@@ -1133,6 +1134,7 @@ mod tests {
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "someone".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
                 Matcher::UrlEncoded("brief".into(), "0".into()),
                 Matcher::UrlEncoded("hasparts".into(), "0".into()),
                 Matcher::UrlEncoded("own".into(), "1".into()),
@@ -1172,6 +1174,7 @@ mod tests {
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "someone".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -1258,6 +1261,7 @@ mod tests {
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "someone".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -1284,6 +1288,7 @@ mod tests {
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "someone".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -1318,6 +1323,7 @@ mod tests {
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "someone".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -1403,6 +1409,7 @@ mod tests {
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "someone".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -1432,6 +1439,7 @@ mod tests {
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "someone".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
             ]))
             .with_status(200)
             .with_body(
