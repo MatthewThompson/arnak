@@ -8,7 +8,24 @@
         <thumbnail>
             https://domain/thumbnail.jpg
         </thumbnail>
-        <status own="0" prevowned="0" fortrade="0" want="1" wanttoplay="0" wanttobuy="0" wishlist="1" wishlistpriority="2" preordered="0" lastmodified="2024-04-18 19:28:17"/>
+        <stats minplayers="1" maxplayers="4" minplaytime="30" maxplaytime="120" playingtime="120"
+            numowned="37542">
+            <rating value="N/A">
+                <usersrated value="28890" />
+                <average value="8.17156" />
+                <bayesaverage value="7.94347" />
+                <stddev value="1.37019" />
+                <median value="0" />
+                <ranks>
+                    <rank type="subtype" id="1" name="boardgame" friendlyname="Board Game Rank"
+                        value="23" bayesaverage="7.94347" />
+                    <rank type="family" id="5497" name="strategygames"
+                        friendlyname="Strategy Game Rank" value="19" bayesaverage="7.97338" />
+                </ranks>
+            </rating>
+        </stats>
+        <status own="0" prevowned="0" fortrade="0" want="1" wanttoplay="0" wanttobuy="0"
+            wishlist="1" wishlistpriority="2" preordered="0" lastmodified="2024-04-18 19:28:17" />
         <numplays>0</numplays>
     </item>
 </items>

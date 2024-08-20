@@ -15,7 +15,7 @@ use crate::Result;
 pub trait CollectionItemType<'a>: DeserializeOwned {
     fn base_query(username: &'a str) -> BaseCollectionQuery<'a>;
 
-    fn get_stats(&self) -> Option<CollectionItemStatsBrief>;
+    fn get_stats(&self) -> CollectionItemStatsBrief;
 }
 
 impl<'a> CollectionItemType<'a> for CollectionItemBrief {
@@ -26,7 +26,7 @@ impl<'a> CollectionItemType<'a> for CollectionItemBrief {
         }
     }
 
-    fn get_stats(&self) -> Option<CollectionItemStatsBrief> {
+    fn get_stats(&self) -> CollectionItemStatsBrief {
         self.stats.clone()
     }
 }
@@ -39,20 +39,20 @@ impl<'a> CollectionItemType<'a> for CollectionItem {
         }
     }
 
-    fn get_stats(&self) -> Option<CollectionItemStatsBrief> {
-        self.stats.as_ref().map(|stats| CollectionItemStatsBrief {
-            min_players: stats.min_players,
-            max_players: stats.max_players,
-            min_playtime: stats.min_playtime,
-            max_playtime: stats.max_playtime,
-            playing_time: stats.playing_time,
-            owned_by: stats.owned_by,
+    fn get_stats(&self) -> CollectionItemStatsBrief {
+        CollectionItemStatsBrief {
+            min_players: self.stats.min_players,
+            max_players: self.stats.max_players,
+            min_playtime: self.stats.min_playtime,
+            max_playtime: self.stats.max_playtime,
+            playing_time: self.stats.playing_time,
+            owned_by: self.stats.owned_by,
             rating: CollectionItemRatingBrief {
-                value: stats.rating.value,
-                average: stats.rating.average,
-                bayesian_average: stats.rating.bayesian_average,
+                value: self.stats.rating.value,
+                average: self.stats.rating.average,
+                bayesian_average: self.stats.rating.bayesian_average,
             },
-        })
+        }
     }
 }
 
@@ -81,8 +81,8 @@ pub struct CollectionItemBrief {
     pub name: String,
     /// Status of the game in this collection, such as own, preowned, wishlist.
     pub status: CollectionItemStatus,
-    /// Game stats such as number of players, can sometimes be omitted from the result.
-    pub stats: Option<CollectionItemStatsBrief>,
+    /// Game stats such as number of players.
+    pub stats: CollectionItemStatsBrief,
 }
 
 /// A game or game expansion in a collection.
@@ -111,8 +111,8 @@ pub struct CollectionItem {
     /// The number of times the user has played the game.
     #[serde(rename = "numplays")]
     pub number_of_plays: u64,
-    /// Game stats such as number of players, can sometimes be omitted from the result.
-    pub stats: Option<CollectionItemStats>,
+    /// Game stats such as number of players.
+    pub stats: CollectionItemStats,
 }
 
 /// The type of game, board game or expansion.
@@ -362,8 +362,6 @@ pub struct CollectionQueryParams {
     wishlist_priority: Option<WishlistPriority>,
     /// Only include items modified since this date time.
     modified_since: Option<NaiveDate>,
-    // Include extra stats about the game if true, false otherwise. By default they are included.
-    include_stats: Option<bool>,
     /// Include only items that have been rated by the user.
     include_rated_by_user: Option<bool>,
     /// Include only items that have been played by the user.
@@ -486,14 +484,6 @@ impl CollectionQueryParams {
         self
     }
 
-    /// Sets the include_stats field. If false the stats are omitted.
-    /// Since the default behaviour is inconsistent. Keeping this at None will
-    /// be treated as true at build time.
-    pub fn include_stats(mut self, include_stats: bool) -> Self {
-        self.include_stats = Some(include_stats);
-        self
-    }
-
     /// Sets the include_rated_by_user field. If set then only results that
     /// the user has rated will be returned.
     pub fn include_rated_by_user(mut self, include_rated_by_user: bool) -> Self {
@@ -605,6 +595,10 @@ impl<'a> CollectionQueryBuilder<'a> {
     pub fn build(self) -> Vec<(&'a str, String)> {
         let mut query_params: Vec<_> = vec![];
         query_params.push(("username", self.base.username.to_string()));
+        // The API is inconsistent with whether stats are returned or not when this is omitted.
+        // Set it to always true to avoid any problems with this and avoid the need for the type to
+        // be an optional.
+        query_params.push(("stats", "1".to_string()));
 
         match self.base.brief {
             true => query_params.push(("brief", "1".to_string())),
@@ -689,13 +683,6 @@ impl<'a> CollectionQueryBuilder<'a> {
                 "modifiedsince",
                 modified_since.format("YY-MM-DD").to_string(),
             ));
-        }
-        match self.params.include_stats {
-            Some(true) => query_params.push(("stats", "1".to_string())),
-            Some(false) => query_params.push(("stats", "0".to_string())),
-            // When omitted, the API has inconsistent behaviour, and will include the stats usually
-            // but not when specific game types are requested, so we set it to true for consistency.
-            None => query_params.push(("stats", "1".to_string())),
         }
         match self.params.include_rated_by_user {
             Some(true) => query_params.push(("rated", "1".to_string())),
@@ -797,13 +784,13 @@ impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
         query_params: CollectionQueryParams,
     ) -> Result<Collection<T>> {
         let mut collection = self
-            .get_from_query(username, query_params.include_stats(true))
+            .get_from_query(username, query_params)
             .await?;
 
         collection.items.retain(|item| {
-            item.get_stats().is_some_and(|s| {
-                *player_counts.start() <= s.max_players && *player_counts.end() >= s.min_players
-            })
+            let stats = item.get_stats();
+            *player_counts.start() <= stats.max_players
+            && *player_counts.end() >= stats.min_players
         });
         Ok(collection)
     }
@@ -818,12 +805,12 @@ impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
         query_params: CollectionQueryParams,
     ) -> Result<Collection<T>> {
         let mut collection = self
-            .get_from_query(username, query_params.include_stats(true))
+            .get_from_query(username, query_params)
             .await?;
 
         collection.items.retain(|item| {
-            item.get_stats()
-                .is_some_and(|s| player_count <= s.max_players && player_count >= s.min_players)
+            let stats = item.get_stats();
+            player_count <= stats.max_players && player_count >= stats.min_players
         });
         Ok(collection)
     }
@@ -865,8 +852,8 @@ mod tests {
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "somename".into()),
-                Matcher::UrlEncoded("own".into(), "1".into()),
                 Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("own".into(), "1".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -902,7 +889,19 @@ mod tests {
                     pre_ordered: false,
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 13, 18, 29, 1).unwrap(),
                 },
-                stats: None,
+                stats: CollectionItemStatsBrief {
+                    min_players: 2,
+                    max_players: 4,
+                    min_playtime: Duration::minutes(30),
+                    max_playtime: Duration::minutes(30),
+                    playing_time: Duration::minutes(30),
+                    owned_by: 36423,
+                    rating: CollectionItemRatingBrief {
+                        value: Some(3.0),
+                        average: 6.27139,
+                        bayesian_average: 6.08972,
+                    },
+                },
             },
             "returned collection game doesn't match expected",
         );
@@ -920,9 +919,9 @@ mod tests {
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "somename".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
                 Matcher::UrlEncoded("brief".into(), "0".into()),
                 Matcher::UrlEncoded("own".into(), "1".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -938,7 +937,7 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.items.len(), 33);
+        assert_eq!(collection.items.len(), 39);
     }
 
     #[tokio::test]
@@ -953,9 +952,9 @@ mod tests {
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "somename".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
                 Matcher::UrlEncoded("brief".into(), "0".into()),
                 Matcher::UrlEncoded("own".into(), "1".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -995,7 +994,7 @@ mod tests {
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 13, 18, 29, 1).unwrap(),
                 },
                 number_of_plays: 2,
-                stats: Some(CollectionItemStats {
+                stats: CollectionItemStats {
                     min_players: 2,
                     max_players: 4,
                     min_playtime: Duration::minutes(30),
@@ -1016,7 +1015,7 @@ mod tests {
                                 name: "boardgame".into(),
                                 friendly_name: "Board Game Rank".into(),
                                 value: RankValue::Ranked(2486),
-                                bayesian_average: 6.08972
+                                bayesian_average: 6.08972,
                             },
                             GameTypeRank {
                                 game_type: "family".into(),
@@ -1024,11 +1023,11 @@ mod tests {
                                 name: "familygames".into(),
                                 friendly_name: "Family Game Rank".into(),
                                 value: RankValue::Ranked(1006),
-                                bayesian_average: 6.05246
+                                bayesian_average: 6.05246,
                             },
                         ],
                     },
-                }),
+                },
             },
             "returned collection game doesn't match expected",
         );
@@ -1046,9 +1045,9 @@ mod tests {
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("username".into(), "somename".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
                 Matcher::UrlEncoded("brief".into(), "0".into()),
                 Matcher::UrlEncoded("wishlist".into(), "1".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -1088,7 +1087,40 @@ mod tests {
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 18, 19, 28, 17).unwrap(),
                 },
                 number_of_plays: 0,
-                stats: None,
+                stats: CollectionItemStats {
+                    min_players: 1,
+                    max_players: 4,
+                    min_playtime: Duration::minutes(30),
+                    max_playtime: Duration::minutes(120),
+                    playing_time: Duration::minutes(120),
+                    owned_by: 37542,
+                    rating: CollectionItemRating {
+                        value: None,
+                        users_rated: 28890,
+                        average: 8.17156,
+                        bayesian_average: 7.94347,
+                        standard_deviation: 1.37019,
+                        median: 0.0,
+                        ranks: vec![
+                            GameTypeRank {
+                                game_type: "subtype".into(),
+                                id: 1,
+                                name: "boardgame".into(),
+                                friendly_name: "Board Game Rank".into(),
+                                value: RankValue::Ranked(23),
+                                bayesian_average: 7.94347,
+                            },
+                            GameTypeRank {
+                                game_type: "family".into(),
+                                id: 5497,
+                                name: "strategygames".into(),
+                                friendly_name: "Strategy Game Rank".into(),
+                                value: RankValue::Ranked(19),
+                                bayesian_average: 7.97338,
+                            },
+                        ],
+                    },
+                },
             },
             "returned collection game doesn't match expected",
         );
@@ -1187,7 +1219,7 @@ mod tests {
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 14, 9, 47, 38).unwrap(),
                 },
                 number_of_plays: 0,
-                stats: Some(CollectionItemStats {
+                stats: CollectionItemStats {
                     min_players: 3,
                     max_players: 16,
                     min_playtime: Duration::minutes(90),
@@ -1220,7 +1252,7 @@ mod tests {
                             }
                         ],
                     }
-                }),
+                },
             },
             "returned collection game doesn't match expected",
         );
@@ -1333,7 +1365,7 @@ mod tests {
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 14, 9, 47, 38).unwrap(),
                 },
                 number_of_plays: 0,
-                stats: Some(CollectionItemStats {
+                stats: CollectionItemStats {
                     min_players: 3,
                     max_players: 16,
                     min_playtime: Duration::minutes(90),
@@ -1366,7 +1398,7 @@ mod tests {
                             }
                         ],
                     }
-                }),
+                },
             },
             "returned collection game doesn't match expected",
         );
@@ -1397,8 +1429,8 @@ mod tests {
         assert_eq!(collection.items.len(), 30);
         for item in collection.items {
             assert!(
-                item.stats.as_ref().unwrap().min_players <= 2
-                    && item.stats.unwrap().max_players >= 2
+                item.stats.min_players <= 2
+                    && item.stats.max_players >= 2
             )
         }
 
