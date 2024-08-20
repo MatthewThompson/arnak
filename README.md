@@ -7,19 +7,42 @@
 # Arnak
 Rust library for [BoardGameGeek XML API](https://boardgamegeek.com/wiki/page/BGG_XML_API2) bindings.
 
-## Usage
+## Example
+
+This example uses [Tokio](https://tokio.rs), so it would also be needed as a dependency:
+```toml
+[dependencies]
+arnak = { version = "0.2.0" }
+tokio = { version = "1" }
+```
 
 ```rust
 use arnak::BoardGameGeekApi;
 
-// Enter tokio async runtime.
-let rt = tokio::runtime::Runtime::new().unwrap();
-rt.block_on(async {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api = BoardGameGeekApi::new();
     let collection = api.collection().get_owned("bluebearbgg").await;
     match collection {
         Ok(collection) => println!("bluebearbgg owns {} games.", collection.items.len()),
         Err(e) => println!("Error: {e}"),
     }
-})
+
+    Ok(())
+}
 ```
+
+## Endpoints
+
+### Collection
+
+For a given user, return their collection of board games. This does not just mean games owned by the user, but also ones on their wishlist,
+previously owned, etc...
+
+### Search
+
+Search for a game, returning everything that matches the search. Also includes a `search_exact` function that will only return exact name matches.
+
+### Hot list
+
+Returns the top 10 currently trending games.
