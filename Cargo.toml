@@ -1,6 +1,6 @@
 [package]
 name = "arnak"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Matthew Thompson <mat@matthewjthompson.co.uk>"]
 description = "A Rust library for the BoardGameGeek XML API."
 edition = "2021"
