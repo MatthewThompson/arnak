@@ -84,7 +84,7 @@ impl BoardGameGeekApi {
 
         // The API doesn't sanitise string values such as the names and descriptions.
         // So we must escape the & chars to stop this parsing from erroring on any
-        // names that inclue them.
+        // names that include them.
         let escaped = escape_xml(&response_text);
 
         let parse_result = from_str(&escaped);
