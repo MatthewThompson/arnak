@@ -48,7 +48,7 @@ impl<'a> CollectionItemType<'a> for CollectionItem {
             playing_time: self.stats.playing_time,
             owned_by: self.stats.owned_by,
             rating: CollectionItemRatingBrief {
-                value: self.stats.rating.value,
+                user_rating: self.stats.rating.user_rating,
                 average: self.stats.rating.average,
                 bayesian_average: self.stats.rating.bayesian_average,
             },
@@ -253,7 +253,7 @@ pub struct CollectionItemStats {
 #[derive(Clone, Debug, PartialEq)]
 pub struct CollectionItemRatingBrief {
     /// The 0-10 rating that the user gave this game.
-    pub value: Option<f64>,
+    pub user_rating: Option<f64>,
     /// The mean average rating for this game.
     pub average: f64,
     /// The bayesian average rating for this game.
@@ -265,7 +265,7 @@ pub struct CollectionItemRatingBrief {
 #[derive(Clone, Debug, PartialEq)]
 pub struct CollectionItemRating {
     /// The 0-10 rating that the user gave this game.
-    pub value: Option<f64>,
+    pub user_rating: Option<f64>,
     /// The total number of users who have given this game a rating.
     pub users_rated: u64,
     /// The mean average rating for this game.
@@ -897,7 +897,7 @@ mod tests {
                     playing_time: Duration::minutes(30),
                     owned_by: 36423,
                     rating: CollectionItemRatingBrief {
-                        value: Some(3.0),
+                        user_rating: Some(3.0),
                         average: 6.27139,
                         bayesian_average: 6.08972,
                     },
@@ -1002,7 +1002,7 @@ mod tests {
                     playing_time: Duration::minutes(30),
                     owned_by: 36423,
                     rating: CollectionItemRating {
-                        value: Some(3.0),
+                        user_rating: Some(3.0),
                         users_rated: 17063,
                         average: 6.27139,
                         bayesian_average: 6.08972,
@@ -1095,7 +1095,7 @@ mod tests {
                     playing_time: Duration::minutes(120),
                     owned_by: 37542,
                     rating: CollectionItemRating {
-                        value: None,
+                        user_rating: None,
                         users_rated: 28890,
                         average: 8.17156,
                         bayesian_average: 7.94347,
@@ -1227,7 +1227,7 @@ mod tests {
                     playing_time: Duration::minutes(90),
                     owned_by: 14400,
                     rating: CollectionItemRating {
-                        value: Some(7.0),
+                        user_rating: Some(7.0),
                         users_rated: 8097,
                         average: 5.84098,
                         bayesian_average: 5.71005,
@@ -1373,7 +1373,7 @@ mod tests {
                     playing_time: Duration::minutes(90),
                     owned_by: 14400,
                     rating: CollectionItemRating {
-                        value: Some(7.0),
+                        user_rating: Some(7.0),
                         users_rated: 8097,
                         average: 5.84098,
                         bayesian_average: 5.71005,

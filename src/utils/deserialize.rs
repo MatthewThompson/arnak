@@ -187,7 +187,7 @@ where
         where
             A: serde::de::MapAccess<'de>,
         {
-            let mut value = None;
+            let mut user_rating = None;
             let mut users_rated = None;
             let mut average = None;
             let mut bayesian_average = None;
@@ -197,11 +197,11 @@ where
             while let Some(key) = map.next_key()? {
                 match key {
                     Field::Value => {
-                        if value.is_some() {
+                        if user_rating.is_some() {
                             return Err(serde::de::Error::duplicate_field("value"));
                         }
-                        let value_str: String = map.next_value()?;
-                        value = match value_str.as_str() {
+                        let user_rating_str: String = map.next_value()?;
+                        user_rating = match user_rating_str.as_str() {
                             "N/A" => Some(None),
                             other => Some(Some(other.parse::<f64>().map_err(|e| {
                                 serde::de::Error::custom(format!(
@@ -256,7 +256,7 @@ where
                     }
                 }
             }
-            let value = value.ok_or_else(|| serde::de::Error::missing_field("value"))?;
+            let user_rating = user_rating.ok_or_else(|| serde::de::Error::missing_field("value"))?;
             let users_rated =
                 users_rated.ok_or_else(|| serde::de::Error::missing_field("usersrated"))?;
             let average = average.ok_or_else(|| serde::de::Error::missing_field("average"))?;
@@ -267,7 +267,7 @@ where
             let median = median.ok_or_else(|| serde::de::Error::missing_field("median"))?;
             let ranks = ranks.ok_or_else(|| serde::de::Error::missing_field("ranks"))?;
             Ok(Self::Value {
-                value,
+                user_rating,
                 users_rated,
                 average,
                 bayesian_average,
@@ -307,17 +307,17 @@ where
         where
             A: serde::de::MapAccess<'de>,
         {
-            let mut value = None;
+            let mut user_rating = None;
             let mut average = None;
             let mut bayesian_average = None;
             while let Some(key) = map.next_key()? {
                 match key {
                     Field::Value => {
-                        if value.is_some() {
+                        if user_rating.is_some() {
                             return Err(serde::de::Error::duplicate_field("value"));
                         }
-                        let value_str: String = map.next_value()?;
-                        value = match value_str.as_str() {
+                        let user_rating_str: String = map.next_value()?;
+                        user_rating = match user_rating_str.as_str() {
                             "N/A" => Some(None),
                             other => Some(Some(other.parse::<f64>().map_err(|e| {
                                 serde::de::Error::custom(format!(
@@ -342,12 +342,12 @@ where
                     }
                 }
             }
-            let value = value.ok_or_else(|| serde::de::Error::missing_field("value"))?;
+            let user_rating = user_rating.ok_or_else(|| serde::de::Error::missing_field("value"))?;
             let average = average.ok_or_else(|| serde::de::Error::missing_field("average"))?;
             let bayesian_average =
                 bayesian_average.ok_or_else(|| serde::de::Error::missing_field("bayesaverage"))?;
             Ok(Self::Value {
-                value,
+                user_rating,
                 average,
                 bayesian_average,
             })
