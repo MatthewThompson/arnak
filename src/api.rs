@@ -109,10 +109,7 @@ impl BoardGameGeekApi {
     // sends it and awaits. If the response is Accepted (202), it will wait for the data to
     // be ready and try again. Any errors are wrapped in the local BoardGameGeekApiError
     // enum before being returned.
-    fn send_request(
-        &self,
-        request: RequestBuilder,
-    ) -> impl Future<Output = Result<Response>> {
+    fn send_request(&self, request: RequestBuilder) -> impl Future<Output = Result<Response>> {
         let mut retries: u32 = 0;
         async move {
             loop {
