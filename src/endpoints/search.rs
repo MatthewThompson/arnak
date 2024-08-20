@@ -185,8 +185,8 @@ impl<'builder> SearchQueryBuilder<'builder> {
 
 /// Search endpoint of the API. Used for searching for games by name.
 pub struct SearchApi<'api> {
-    pub(crate) api: &'api BoardGameGeekApi<'api>,
-    endpoint: &'api str,
+    pub(crate) api: &'api BoardGameGeekApi,
+    endpoint: &'static str,
 }
 
 impl<'api> SearchApi<'api> {
@@ -238,9 +238,8 @@ mod tests {
     #[tokio::test]
     async fn search() {
         let mut server = mockito::Server::new_async().await;
-        let url = server.url();
         let api = BoardGameGeekApi {
-            base_url: &url,
+            base_url: server.url(),
             client: reqwest::Client::new(),
         };
 
@@ -259,7 +258,7 @@ mod tests {
             .await;
 
         let search_results = api.search().search("some search term").await;
-        mock.assert();
+        mock.assert_async().await;
 
         assert!(search_results.is_ok(), "error returned when okay expected");
         let search_results = search_results.unwrap();
@@ -288,9 +287,8 @@ mod tests {
     #[tokio::test]
     async fn search_exact() {
         let mut server = mockito::Server::new_async().await;
-        let url = server.url();
         let api = BoardGameGeekApi {
-            base_url: &url,
+            base_url: server.url(),
             client: reqwest::Client::new(),
         };
 
@@ -309,7 +307,7 @@ mod tests {
             .await;
 
         let search_results = api.search().search_exact("lost ruins of arnak").await;
-        mock.assert();
+        mock.assert_async().await;
 
         assert!(search_results.is_ok(), "error returned when okay expected");
         let search_results = search_results.unwrap();
@@ -329,9 +327,8 @@ mod tests {
     #[tokio::test]
     async fn search_with_query_params() {
         let mut server = mockito::Server::new_async().await;
-        let url = server.url();
         let api = BoardGameGeekApi {
-            base_url: &url,
+            base_url: server.url(),
             client: reqwest::Client::new(),
         };
 
@@ -359,7 +356,7 @@ mod tests {
                     .exact(false),
             )
             .await;
-        mock.assert();
+        mock.assert_async().await;
 
         assert!(search_results.is_ok(), "error returned when okay expected");
         let search_results = search_results.unwrap();
@@ -399,7 +396,7 @@ mod tests {
                     .game_type(GameType::BoardGame),
             )
             .await;
-        mock.assert();
+        mock.assert_async().await;
 
         assert!(search_results.is_ok(), "error returned when okay expected");
         let search_results = search_results.unwrap();
