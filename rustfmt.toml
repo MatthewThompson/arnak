@@ -1,5 +1,9 @@
+comment_width = 100
 group_imports = "StdExternalCrate"
 imports_granularity = "Module"
+match_block_trailing_comma = true
 newline_style = "Unix"
 normalize_comments = true
 normalize_doc_attributes = true
+trailing_comma = "Vertical"
+wrap_comments = true

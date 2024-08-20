@@ -101,7 +101,7 @@ impl<'de> Deserialize<'de> for HotItem {
                                     "failed to parse value a u64: {e}"
                                 ))
                             })?);
-                        }
+                        },
                         Field::Rank => {
                             if rank.is_some() {
                                 return Err(serde::de::Error::duplicate_field("rank"));
@@ -112,28 +112,28 @@ impl<'de> Deserialize<'de> for HotItem {
                                     "failed to parse value a u64: {e}"
                                 ))
                             })?);
-                        }
+                        },
                         Field::Thumbnail => {
                             if thumbnail.is_some() {
                                 return Err(serde::de::Error::duplicate_field("thumbnail"));
                             }
                             let thumbnail_xml_tag: XmlStringValue = map.next_value()?;
                             thumbnail = Some(thumbnail_xml_tag.value);
-                        }
+                        },
                         Field::Name => {
                             if name.is_some() {
                                 return Err(serde::de::Error::duplicate_field("name"));
                             }
                             let name_xml_tag: XmlStringValue = map.next_value()?;
                             name = Some(name_xml_tag.value);
-                        }
+                        },
                         Field::YearPublished => {
                             if year_published.is_some() {
                                 return Err(serde::de::Error::duplicate_field("yearpublished"));
                             }
                             let year_published_xml_tag: XmlSignedValue = map.next_value()?;
                             year_published = Some(year_published_xml_tag.value);
-                        }
+                        },
                     }
                 }
                 let id = id.ok_or_else(|| serde::de::Error::missing_field("id"))?;
@@ -209,51 +209,52 @@ where
                                 ))
                             })?)),
                         }
-                    }
+                    },
                     Field::UsersRated => {
                         if users_rated.is_some() {
                             return Err(serde::de::Error::duplicate_field("usersrated"));
                         }
                         let users_rated_xml_tag: XmlIntValue = map.next_value()?;
                         users_rated = Some(users_rated_xml_tag.value);
-                    }
+                    },
                     Field::Average => {
                         if average.is_some() {
                             return Err(serde::de::Error::duplicate_field("average"));
                         }
                         let average_xml_tag: XmlFloatValue = map.next_value()?;
                         average = Some(average_xml_tag.value);
-                    }
+                    },
                     Field::Bayesaverage => {
                         if bayesian_average.is_some() {
                             return Err(serde::de::Error::duplicate_field("bayesaverage"));
                         }
                         let bayesian_average_xml_tag: XmlFloatValue = map.next_value()?;
                         bayesian_average = Some(bayesian_average_xml_tag.value);
-                    }
+                    },
                     Field::Stddev => {
                         if standard_deviation.is_some() {
                             return Err(serde::de::Error::duplicate_field("stddev"));
                         }
                         let standard_deviation_xml_tag: XmlFloatValue = map.next_value()?;
                         standard_deviation = Some(standard_deviation_xml_tag.value);
-                    }
+                    },
                     Field::Median => {
                         if median.is_some() {
                             return Err(serde::de::Error::duplicate_field("median"));
                         }
                         let median_xml_tag: XmlFloatValue = map.next_value()?;
                         median = Some(median_xml_tag.value);
-                    }
+                    },
                     Field::Ranks => {
                         if ranks.is_some() {
                             return Err(serde::de::Error::duplicate_field("ranks"));
                         }
-                        // An extra layer of indirection is needed due to the way the XML is structured,
-                        // but should be removed for the final structure.
+                        // An extra layer of indirection is needed due to the way the XML is
+                        // structured, but should be removed for the final
+                        // structure.
                         let ranks_struct: Ranks = map.next_value()?;
                         ranks = Some(ranks_struct.ranks);
-                    }
+                    },
                 }
             }
             let user_rating =
@@ -326,21 +327,21 @@ where
                                 ))
                             })?)),
                         }
-                    }
+                    },
                     Field::Average => {
                         if average.is_some() {
                             return Err(serde::de::Error::duplicate_field("average"));
                         }
                         let average_xml_tag: XmlFloatValue = map.next_value()?;
                         average = Some(average_xml_tag.value);
-                    }
+                    },
                     Field::Bayesaverage => {
                         if bayesian_average.is_some() {
                             return Err(serde::de::Error::duplicate_field("bayesaverage"));
                         }
                         let bayesian_average_xml_tag: XmlFloatValue = map.next_value()?;
                         bayesian_average = Some(bayesian_average_xml_tag.value);
-                    }
+                    },
                 }
             }
             let user_rating =

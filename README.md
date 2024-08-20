@@ -7,6 +7,8 @@
 # Arnak
 Rust library for [BoardGameGeek XML API](https://boardgamegeek.com/wiki/page/BGG_XML_API2) bindings.
 
+NOTE: This library is currently in prerelease, not all endpoints have been added and breaking changes could happen often before 1.0.0.
+
 ## Example
 
 This example uses [Tokio](https://tokio.rs), so it would also be needed as a dependency:
@@ -46,3 +48,7 @@ Search for a game, returning everything that matches the search. Also includes a
 ### Hot list
 
 Returns the top 10 currently trending games.
+
+## Formatting
+
+Some rustfmt options used are nightly only. So to format run `cargo +nightly fmt`

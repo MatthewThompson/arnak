@@ -48,7 +48,7 @@ impl fmt::Display for Error {
             Error::UnexpectedResponseError(e) => write!(f, "error parsing output: {}", e),
             Error::MaxRetryError(retries) => {
                 write!(f, "data still not ready after {retries} retries, aborting")
-            }
+            },
             Error::UnknownUsernameError => write!(f, "username not found"),
             Error::InvalidCollectionItemType => write!(f, "invalid collection item type provided"),
             Error::UnknownApiErrors(messages) => match messages.len() {

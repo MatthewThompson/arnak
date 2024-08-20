@@ -10,6 +10,9 @@ pub struct HotList {
     pub items: Vec<HotItem>,
 }
 
+/// An item on the hot list, has the rank from 1 to 50 on the list,
+/// as well as some basic information about the game like the name
+/// and year published.
 #[derive(Clone, Debug, PartialEq)]
 pub struct HotItem {
     /// The ID of the game.
@@ -24,7 +27,8 @@ pub struct HotItem {
     pub year_published: i64,
 }
 
-/// Hot list endpoint of the API. Used for returning the current trending board games.
+/// Hot list endpoint of the API. Used for returning the current trending board
+/// games.
 pub struct HotListApi<'api> {
     pub(crate) api: &'api BoardGameGeekApi,
     endpoint: &'static str,

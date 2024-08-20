@@ -19,6 +19,8 @@
 //! })
 //! ```
 
+#![deny(missing_docs)]
+
 mod api;
 pub use api::*;
 
