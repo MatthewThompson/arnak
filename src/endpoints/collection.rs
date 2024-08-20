@@ -783,14 +783,11 @@ impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
         player_counts: RangeInclusive<u32>,
         query_params: CollectionQueryParams,
     ) -> Result<Collection<T>> {
-        let mut collection = self
-            .get_from_query(username, query_params)
-            .await?;
+        let mut collection = self.get_from_query(username, query_params).await?;
 
         collection.games.retain(|item| {
             let stats = item.get_stats();
-            *player_counts.start() <= stats.max_players
-            && *player_counts.end() >= stats.min_players
+            *player_counts.start() <= stats.max_players && *player_counts.end() >= stats.min_players
         });
         Ok(collection)
     }
@@ -804,9 +801,7 @@ impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
         player_count: u32,
         query_params: CollectionQueryParams,
     ) -> Result<Collection<T>> {
-        let mut collection = self
-            .get_from_query(username, query_params)
-            .await?;
+        let mut collection = self.get_from_query(username, query_params).await?;
 
         collection.games.retain(|item| {
             let stats = item.get_stats();
@@ -1428,10 +1423,7 @@ mod tests {
 
         assert_eq!(collection.games.len(), 30);
         for item in collection.games {
-            assert!(
-                item.stats.min_players <= 2
-                    && item.stats.max_players >= 2
-            )
+            assert!(item.stats.min_players <= 2 && item.stats.max_players >= 2)
         }
 
         // Looking for a game that supports 17 players, not in the collection. Nothing should be returned.

@@ -256,7 +256,8 @@ where
                     }
                 }
             }
-            let user_rating = user_rating.ok_or_else(|| serde::de::Error::missing_field("value"))?;
+            let user_rating =
+                user_rating.ok_or_else(|| serde::de::Error::missing_field("value"))?;
             let users_rated =
                 users_rated.ok_or_else(|| serde::de::Error::missing_field("usersrated"))?;
             let average = average.ok_or_else(|| serde::de::Error::missing_field("average"))?;
@@ -342,7 +343,8 @@ where
                     }
                 }
             }
-            let user_rating = user_rating.ok_or_else(|| serde::de::Error::missing_field("value"))?;
+            let user_rating =
+                user_rating.ok_or_else(|| serde::de::Error::missing_field("value"))?;
             let average = average.ok_or_else(|| serde::de::Error::missing_field("average"))?;
             let bayesian_average =
                 bayesian_average.ok_or_else(|| serde::de::Error::missing_field("bayesaverage"))?;
