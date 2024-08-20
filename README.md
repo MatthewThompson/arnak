@@ -7,6 +7,8 @@
 # Arnak
 Rust library for [BoardGameGeek XML API](https://boardgamegeek.com/wiki/page/BGG_XML_API2) bindings.
 
+NOTE: This library is currently in prerelease, not all endpoints have been added and breaking changes could happen often before 1.0.0.
+
 ## Example
 
 This example uses [Tokio](https://tokio.rs), so it would also be needed as a dependency:
