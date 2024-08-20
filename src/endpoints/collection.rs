@@ -334,8 +334,10 @@ pub struct GameFamilyRank {
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub enum GameFamilyType {
     /// Used only for the generic `boardgame` family that includes all games.
+    #[serde(rename = "subtype")]
     Subtype,
     /// Used for all families of games such as party games and strategy games.
+    #[serde(rename = "family")]
     Family,
 }
 
