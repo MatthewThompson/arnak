@@ -1,5 +1,5 @@
-use super::SearchResults;
-use crate::{BoardGameGeekApi, GameType, Result};
+use super::{ItemType, SearchResults};
+use crate::{BoardGameGeekApi, Result};
 
 /// Required query paramters.
 #[derive(Clone, Debug)]
@@ -11,13 +11,14 @@ pub struct BaseSearchQuery<'q> {
 /// search endpoint.
 #[derive(Clone, Debug, Default)]
 pub struct SearchQueryParams {
-    /// Include only results for this game type.
+    /// Include only results for this game type. All apart from
+    /// [ItemType::BoardGameAccessory] returned if the parameter is omitted.
     ///
-    /// Note, if this is set to [GameType::BoardGame] then it will include both
+    /// Note, if this is set to [ItemType::BoardGame] then it will include both
     /// board games and expansions, but set the type of all of them to be
-    /// [GameType::BoardGame] in the results. There does not seem to be a way
+    /// [ItemType::BoardGame] in the results. There does not seem to be a way
     /// around this.
-    game_type: Option<GameType>,
+    item_type: Option<ItemType>,
     /// Limit results to only exact matches of the search query.
     exact: Option<bool>,
 }
@@ -28,10 +29,19 @@ impl SearchQueryParams {
         Self::default()
     }
 
-    /// Sets the game_type query param, so that only expansions or board games
-    /// can be filtered when searching.
-    pub fn game_type(mut self, game_type: GameType) -> Self {
-        self.game_type = Some(game_type);
+    /// Sets the item_type query param, so that only a certain type of
+    /// item will be returned. It should be noted that if [ItemType::BoardGame]
+    /// is chosen then this will return both board games and board game expansions,
+    /// with the type set to board game for both.
+    ///
+    /// If the param is omitted then all types will be returned apart from board
+    /// game accessories. If these are to be searched the type must be set explicitly.
+    ///
+    /// Also, if the parameter is omitted, board game expansions will be returned twice,
+    /// once with the type [ItemType::BoardGame] and once with the type
+    /// [ItemType::BoardGameExpansion]
+    pub fn item_type(mut self, item_type: ItemType) -> Self {
+        self.item_type = Some(item_type);
         self
     }
 
@@ -66,10 +76,13 @@ impl<'builder> SearchQueryBuilder<'builder> {
             Some(false) => query_params.push(("exact", "0".to_string())),
             None => {},
         }
-        match self.params.game_type {
-            Some(GameType::BoardGame) => query_params.push(("type", "boardgame".to_string())),
-            Some(GameType::BoardGameExpansion) => {
+        match self.params.item_type {
+            Some(ItemType::BoardGame) => query_params.push(("type", "boardgame".to_string())),
+            Some(ItemType::BoardGameExpansion) => {
                 query_params.push(("type", "boardgameexpansion".to_string()))
+            },
+            Some(ItemType::BoardGameAccessory) => {
+                query_params.push(("type", "boardgameaccessory".to_string()))
             },
             None => {},
         }
@@ -128,7 +141,7 @@ mod tests {
     use mockito::Matcher;
 
     use super::*;
-    use crate::SearchResult;
+    use crate::{ItemType, SearchResult};
 
     #[tokio::test]
     async fn search() {
@@ -163,7 +176,7 @@ mod tests {
             search_results.results[0],
             SearchResult {
                 id: 312484,
-                item_type: GameType::BoardGame,
+                item_type: ItemType::BoardGame,
                 name: "Lost Ruins of Arnak".into(),
                 year_published: 2020,
             },
@@ -172,7 +185,7 @@ mod tests {
             search_results.results[1],
             SearchResult {
                 id: 341254,
-                item_type: GameType::BoardGameExpansion,
+                item_type: ItemType::BoardGameExpansion,
                 name: "Lost Ruins of Arnak: Expedition Leaders".into(),
                 year_published: 2021,
             },
@@ -212,7 +225,7 @@ mod tests {
             search_results.results[0],
             SearchResult {
                 id: 312484,
-                item_type: GameType::BoardGame,
+                item_type: ItemType::BoardGame,
                 name: "Lost Ruins of Arnak".into(),
                 year_published: 2020,
             },
@@ -247,7 +260,7 @@ mod tests {
             .search_with_query_params(
                 "arnak",
                 SearchQueryParams::new()
-                    .game_type(GameType::BoardGameExpansion)
+                    .item_type(ItemType::BoardGameExpansion)
                     .exact(false),
             )
             .await;
@@ -261,7 +274,7 @@ mod tests {
             search_results.results[0],
             SearchResult {
                 id: 341254,
-                item_type: GameType::BoardGameExpansion,
+                item_type: ItemType::BoardGameExpansion,
                 name: "Lost Ruins of Arnak: Expedition Leaders".into(),
                 year_published: 2021,
             },
@@ -288,7 +301,7 @@ mod tests {
                 "lost ruins of arnak",
                 SearchQueryParams::new()
                     .exact(true)
-                    .game_type(GameType::BoardGame),
+                    .item_type(ItemType::BoardGame),
             )
             .await;
         mock.assert_async().await;
@@ -301,7 +314,7 @@ mod tests {
             search_results.results[0],
             SearchResult {
                 id: 312484,
-                item_type: GameType::BoardGame,
+                item_type: ItemType::BoardGame,
                 name: "Lost Ruins of Arnak".into(),
                 year_published: 2020,
             },

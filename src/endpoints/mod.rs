@@ -5,6 +5,9 @@
 //! internally for the exposed convenience functions as well as being
 //! exposed so custom requests can be made.
 
+pub(crate) mod models;
+pub use models::*;
+
 pub(crate) mod collection_models;
 pub use collection_models::*;
 pub(crate) mod collection;

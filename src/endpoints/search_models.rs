@@ -3,7 +3,8 @@ use core::fmt;
 use serde::Deserialize;
 
 use crate::utils::{XmlSignedValue, XmlStringValue};
-use crate::GameType;
+
+use super::ItemType;
 
 /// The returned struct containing a list of search results.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
@@ -19,8 +20,8 @@ pub struct SearchResults {
 pub struct SearchResult {
     /// The ID of the game.
     pub id: u64,
-    /// The type of game, which will either be boardgame or expansion.
-    pub item_type: GameType,
+    /// The type of game, which will either be a board game, expansion or accessory for a board game.
+    pub item_type: ItemType,
     /// The name of the game.
     pub name: String,
     /// The year the game was first published.
