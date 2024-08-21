@@ -1,31 +1,5 @@
-use serde::Deserialize;
-
+use super::HotList;
 use crate::{BoardGameGeekApi, Result};
-
-/// The returned struct containing a list of hot board games.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct HotList {
-    /// The list of hot board games.
-    #[serde(rename = "$value")]
-    pub items: Vec<HotItem>,
-}
-
-/// An item on the hot list, has the rank from 1 to 50 on the list,
-/// as well as some basic information about the game like the name
-/// and year published.
-#[derive(Clone, Debug, PartialEq)]
-pub struct HotItem {
-    /// The ID of the game.
-    pub id: u64,
-    /// The rank within the hotlist, should be ordered from 1 to 50.
-    pub rank: u64,
-    /// A link to a jpg thumbnail image for the game.
-    pub thumbnail: String,
-    /// The name of the game.
-    pub name: String,
-    /// The year the game was first published.
-    pub year_published: i64,
-}
 
 /// Hot list endpoint of the API. Used for returning the current trending board
 /// games.
@@ -42,7 +16,7 @@ impl<'api> HotListApi<'api> {
         }
     }
 
-    /// Gets the hot list.
+    /// Gets the current list of hot board games.
     pub async fn get(&self) -> Result<HotList> {
         let request = self.api.build_request(self.endpoint, &[]);
         self.api.execute_request(request).await
@@ -54,6 +28,7 @@ mod tests {
     use mockito::Matcher;
 
     use super::*;
+    use crate::HotListGame;
 
     #[tokio::test]
     async fn get() {
@@ -80,10 +55,10 @@ mod tests {
         assert!(hot_list.is_ok(), "error returned when okay expected");
         let hot_list = hot_list.unwrap();
 
-        assert_eq!(hot_list.items.len(), 50);
+        assert_eq!(hot_list.games.len(), 50);
         assert_eq!(
-            hot_list.items[0],
-            HotItem {
+            hot_list.games[0],
+            HotListGame {
                 id: 359871,
                 rank: 1,
                 thumbnail: "https://cf.geekdo-images.com/XWImAu_3RK61wbzcKboVdA__thumb/img/Ry-6KHwNgERWadyxs1X1_P3dMvY=/fit-in/200x150/filters:strip_icc()/pic8145530.png".into(),

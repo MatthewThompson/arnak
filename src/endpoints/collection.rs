@@ -1,16 +1,13 @@
 use std::ops::RangeInclusive;
 
-use chrono::{DateTime, Duration, NaiveDate, Utc};
+use chrono::NaiveDate;
 use serde::de::DeserializeOwned;
-use serde::Deserialize;
 
 use crate::api::BoardGameGeekApi;
-use crate::utils::{
-    date_deserializer, deserialize_1_0_bool, deserialize_game_ratings,
-    deserialize_game_ratings_brief, deserialize_minutes, deserialize_rank_value_enum,
-    deserialize_wishlist_priority,
+use crate::{
+    Collection, CollectionItem, CollectionItemBrief, CollectionItemRatingBrief,
+    CollectionItemStatsBrief, GameType, Result, WishlistPriority,
 };
-use crate::Result;
 
 /// Trait for a type that the collection endpoint can return. Allows us to get
 /// values for the mandatory query params for the different types.
@@ -63,296 +60,6 @@ impl<'a> CollectionItemType<'a> for CollectionItem {
     }
 }
 
-/// A user's collection on boardgamegeek.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct Collection<T> {
-    /// List of games and expansions in the user's collection. Each item
-    /// is not necessarily owned but can be preowned, wishlisted etc.
-    #[serde(rename = "$value")]
-    pub games: Vec<T>,
-}
-
-/// An item in a collection, in brief form. With only the name, status, type,
-/// and IDs.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct CollectionItemBrief {
-    /// The ID of the game.
-    #[serde(rename = "objectid")]
-    pub id: u64,
-    /// The collection ID of the object.
-    #[serde(rename = "collid")]
-    pub collection_id: u64,
-    /// The type of game, which will either be boardgame or expansion.
-    #[serde(rename = "subtype")]
-    pub item_type: GameType,
-    /// The name of the game.
-    pub name: String,
-    /// Status of the game in this collection, such as own, preowned, wishlist.
-    pub status: CollectionItemStatus,
-    /// Game stats such as number of players.
-    pub stats: CollectionItemStatsBrief,
-}
-
-/// A game or game expansion in a collection.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct CollectionItem {
-    /// The ID of the game.
-    #[serde(rename = "objectid")]
-    pub id: u64,
-    /// The collection ID of the object.
-    #[serde(rename = "collid")]
-    pub collection_id: u64,
-    /// The type of game, which will either be boardgame or expansion.
-    #[serde(rename = "subtype")]
-    pub item_type: GameType,
-    /// The name of the game.
-    pub name: String,
-    /// The year the game was first published.
-    #[serde(rename = "yearpublished")]
-    pub year_published: i64,
-    /// A link to a jpg image for the game.
-    pub image: String,
-    /// A link to a jpg thumbnail image for the game.
-    pub thumbnail: String,
-    /// Status of the game in this collection, such as own, preowned, wishlist.
-    pub status: CollectionItemStatus,
-    /// The number of times the user has played the game.
-    #[serde(rename = "numplays")]
-    pub number_of_plays: u64,
-    /// Game stats such as number of players.
-    pub stats: CollectionItemStats,
-}
-
-/// The type of game, board game or expansion.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
-pub enum GameType {
-    /// A board game, or expansion.
-    ///
-    /// Due to the way the API works, this type can include expansions too.
-    /// If a request is made for just board games, or the game type is not
-    /// filtered, then both games with a type of [GameType::BoardGame] and
-    /// those with a type of [GameType::BoardGameExpansion] will be returned,
-    /// and they will ALL have the type of [GameType::BoardGame]. However when
-    /// requesting just expansions, the returned games will correctly have the
-    /// type [GameType::BoardGameExpansion].
-    ///
-    /// A workaround to this can be to make 2 requests, one to include
-    /// [GameType::BoardGame] and exclude [GameType::BoardGameExpansion],
-    /// followed by another to just include [GameType::BoardGameExpansion].
-    #[serde(rename = "boardgame")]
-    BoardGame,
-    /// A board game expansion.
-    #[serde(rename = "boardgameexpansion")]
-    BoardGameExpansion,
-}
-
-/// The status of the game in the user's collection, such as preowned or
-/// wishlist. Can be any or none of them.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct CollectionItemStatus {
-    /// User owns the game.
-    #[serde(deserialize_with = "deserialize_1_0_bool")]
-    pub own: bool,
-    /// User has previously owned the game.
-    #[serde(rename = "prevowned", deserialize_with = "deserialize_1_0_bool")]
-    pub previously_owned: bool,
-    /// User wants to trade away the game.
-    #[serde(rename = "fortrade", deserialize_with = "deserialize_1_0_bool")]
-    pub for_trade: bool,
-    /// User wants to receive the game in a trade.
-    #[serde(rename = "want", deserialize_with = "deserialize_1_0_bool")]
-    pub want_in_trade: bool,
-    /// User wants to play the game.
-    #[serde(rename = "wanttoplay", deserialize_with = "deserialize_1_0_bool")]
-    pub want_to_play: bool,
-    /// User wants to buy the game.
-    #[serde(rename = "wanttobuy", deserialize_with = "deserialize_1_0_bool")]
-    pub want_to_buy: bool,
-    /// User pre-ordered the game.
-    #[serde(rename = "preordered", deserialize_with = "deserialize_1_0_bool")]
-    pub pre_ordered: bool,
-    /// User has the game on their wishlist.
-    #[serde(deserialize_with = "deserialize_1_0_bool")]
-    pub wishlist: bool,
-    /// The priority of the wishlist.
-    #[serde(
-        default,
-        rename = "wishlistpriority",
-        deserialize_with = "deserialize_wishlist_priority"
-    )]
-    pub wishlist_priority: Option<WishlistPriority>,
-    /// When the collection status was last modified
-    #[serde(rename = "lastmodified", with = "date_deserializer")]
-    pub last_modified: DateTime<Utc>,
-}
-
-/// The status of the game in the user's collection, such as preowned or
-/// wishlist. Can be any or none of them.
-#[derive(Copy, Clone, Debug, Deserialize, PartialEq, PartialOrd)]
-pub enum WishlistPriority {
-    /// Lowest priority.
-    DontBuyThis,
-    /// Thinking about buying it.
-    ThinkingAboutIt,
-    /// The default value, would like to have it.
-    LikeToHave,
-    /// Would love to have it.
-    LoveToHave,
-    /// Highest wishlist priority, a must have.
-    MustHave,
-}
-
-/// Stats of the game such as playercount and duration. Can be omitted from the
-/// response. More stats can be found from the specific game endpoint.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct CollectionItemStatsBrief {
-    /// Minimum players the game supports.
-    #[serde(rename = "minplayers")]
-    pub min_players: u32,
-    /// Maximum players the game supports.
-    #[serde(rename = "maxplayers")]
-    pub max_players: u32,
-    /// Minimum amount of time the game is suggested to take to play.
-    #[serde(rename = "minplaytime", deserialize_with = "deserialize_minutes")]
-    pub min_playtime: Duration,
-    /// Maximum amount of time the game is suggested to take to play.
-    #[serde(rename = "maxplaytime", deserialize_with = "deserialize_minutes")]
-    pub max_playtime: Duration,
-    /// The amount of time the game is suggested to take to play.
-    #[serde(rename = "playingtime", deserialize_with = "deserialize_minutes")]
-    pub playing_time: Duration,
-    /// The number of people that own this game.
-    #[serde(rename = "numowned")]
-    pub owned_by: u64,
-    /// Information about the rating that this user, as well as all users, have
-    /// given this game.
-    #[serde(rename = "$value", deserialize_with = "deserialize_game_ratings_brief")]
-    pub rating: CollectionItemRatingBrief,
-}
-
-/// Stats of the game such as playercount and duration. Can be omitted from the
-/// response. More stats can be found from the specific game endpoint.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct CollectionItemStats {
-    /// Minimum players the game supports.
-    #[serde(rename = "minplayers")]
-    pub min_players: u32,
-    /// Maximum players the game supports.
-    #[serde(rename = "maxplayers")]
-    pub max_players: u32,
-    /// Minimum amount of time the game is suggested to take to play.
-    #[serde(rename = "minplaytime", deserialize_with = "deserialize_minutes")]
-    pub min_playtime: Duration,
-    /// Maximum amount of time the game is suggested to take to play.
-    #[serde(rename = "maxplaytime", deserialize_with = "deserialize_minutes")]
-    pub max_playtime: Duration,
-    /// The amount of time the game is suggested to take to play.
-    #[serde(rename = "playingtime", deserialize_with = "deserialize_minutes")]
-    pub playing_time: Duration,
-    /// The number of people that own this game.
-    #[serde(rename = "numowned")]
-    pub owned_by: u64,
-    /// Information about the rating that this user, as well as all users, have
-    /// given this game.
-    #[serde(rename = "$value", deserialize_with = "deserialize_game_ratings")]
-    pub rating: CollectionItemRating,
-}
-
-/// The 0-10 rating that the user gave to this game. Also includes the total
-/// number of users that have rated it, as well as the averages.
-#[derive(Clone, Debug, PartialEq)]
-pub struct CollectionItemRatingBrief {
-    /// The 0-10 rating that the user gave this game.
-    pub user_rating: Option<f64>,
-    /// The mean average rating for this game.
-    pub average: f64,
-    /// The bayesian average rating for this game.
-    pub bayesian_average: f64,
-}
-
-/// The 0-10 rating that the user gave to this game. Also includes the total
-/// number of users that have rated it, as well as the averages, and standard
-/// deviation.
-#[derive(Clone, Debug, PartialEq)]
-pub struct CollectionItemRating {
-    /// The 0-10 rating that the user gave this game.
-    pub user_rating: Option<f64>,
-    /// The total number of users who have given this game a rating.
-    pub users_rated: u64,
-    /// The mean average rating for this game.
-    pub average: f64,
-    /// The bayesian average rating for this game.
-    pub bayesian_average: f64,
-    /// The standard deviation of the average rating.
-    pub standard_deviation: f64,
-    // Kept private for now since the API always returns 0 for this seemingly.
-    pub(crate) median: f64,
-    /// The list of ranks the game is on the site within each of its game types.
-    pub ranks: Vec<GameFamilyRank>,
-}
-
-// Intermediary struct needed due to the way the XML is strcutured
-// TODO move this into the deserialise file.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
-pub(crate) struct Ranks {
-    #[serde(rename = "$value")]
-    pub(crate) ranks: Vec<GameFamilyRank>,
-}
-
-/// A struct containing the game's rank within a particular type of game.
-#[derive(Clone, Debug, PartialEq, Deserialize)]
-pub struct GameFamilyRank {
-    /// The type of this group of games. Can be `subtype` for rank within all
-    /// board games. Or it can be `family` if it is the rank within a family of games
-    /// such as party games or strategy games.
-    #[serde(rename = "type")]
-    pub game_family_type: GameFamilyType,
-    /// ID of the game family.
-    pub id: u64,
-    /// Name of the game type. "boardgame" used as the generic subtype that
-    /// includes all board games.
-    pub name: String,
-    /// User friendly name in the foramt "GENRE game rank" e.g. "Party Game
-    /// Rank"
-    #[serde(rename = "friendlyname")]
-    pub friendly_name: String,
-    /// The overall rank on the site within this type of game.
-    #[serde(deserialize_with = "deserialize_rank_value_enum")]
-    pub value: RankValue,
-    /// The score out of 10, as a bayseian average.
-    ///
-    /// This is what boardgamegeek calls a Geek Rating. It is the average rating
-    /// that the users have given it along with a few thousand 5.5 ratings added
-    /// in too.
-    #[serde(rename = "bayesaverage")]
-    pub bayesian_average: f64,
-}
-
-/// Type of game family,  [GameFamilyType::Subtype] is used for the `boardgame` family that includes
-/// all games. [GameFamilyType::Family] is used for everything else. Such as party games
-/// or strategy games.
-#[derive(Clone, Debug, PartialEq, Deserialize)]
-pub enum GameFamilyType {
-    /// Used only for the generic `boardgame` family that includes all games.
-    #[serde(rename = "subtype")]
-    Subtype,
-    /// Used for all families of games such as party games and strategy games.
-    #[serde(rename = "family")]
-    Family,
-}
-
-/// A rank a particular board game has on the site, within a subtype. Can be
-/// either Ranked with a u64 for the rank, Or NotRanked.
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub enum RankValue {
-    /// The rank of a game within a particular family of games, or all games. Where
-    /// 1 means that it has the highest overall rank of every game in that category.
-    Ranked(u64),
-    /// The game does not have a rank in a given category, possibly due to not having
-    /// enough ratings.
-    NotRanked,
-}
-
 /// Required query paramters. Any type the collection query can implement
 /// must be able to return a base query, so valid queries can be constructed
 /// for both [CollectionItem] and [CollectionItemBrief].
@@ -375,9 +82,9 @@ pub struct CollectionQueryParams {
     /// board games and expansions, but set the type of all of them to be
     /// [GameType::BoardGame] in the results. Explicitly exclude
     /// [GameType::BoardGameExpansion] to avoid this.
-    item_type: Option<GameType>,
+    game_type: Option<GameType>,
     /// Exclude results for this item type.
-    exclude_item_type: Option<GameType>,
+    exclude_game_type: Option<GameType>,
     /// Include games the user owns if true, exclude if false.
     include_owned: Option<bool>,
     /// Include games the user previously owned if true, exclude if false.
@@ -435,15 +142,15 @@ impl CollectionQueryParams {
 
     /// Sets the item_type field, so that only that type of item will be
     /// returned.
-    pub fn item_type(mut self, item_type: GameType) -> Self {
-        self.item_type = Some(item_type);
+    pub fn game_type(mut self, game_type: GameType) -> Self {
+        self.game_type = Some(game_type);
         self
     }
 
     /// Set the exclude_item_type field, so that that type of item will be
     /// excluded from. the results.
-    pub fn exclude_item_type(mut self, exclude_item_type: GameType) -> Self {
-        self.exclude_item_type = Some(exclude_item_type);
+    pub fn exclude_game_type(mut self, exclude_game_type: GameType) -> Self {
+        self.exclude_game_type = Some(exclude_game_type);
         self
     }
 
@@ -646,14 +353,14 @@ impl<'a> CollectionQueryBuilder<'a> {
             true => query_params.push(("brief", "1".to_string())),
             false => query_params.push(("brief", "0".to_string())),
         }
-        match self.params.item_type {
+        match self.params.game_type {
             Some(GameType::BoardGame) => query_params.push(("subtype", "boardgame".to_string())),
             Some(GameType::BoardGameExpansion) => {
                 query_params.push(("subtype", "boardgameexpansion".to_string()))
             },
             None => {},
         }
-        match self.params.exclude_item_type {
+        match self.params.exclude_game_type {
             Some(GameType::BoardGame) => {
                 query_params.push(("excludesubtype", "boardgame".to_string()))
             },
@@ -868,10 +575,14 @@ impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
 
 #[cfg(test)]
 mod tests {
-    use chrono::TimeZone;
+    use chrono::{Duration, TimeZone, Utc};
     use mockito::Matcher;
 
     use super::*;
+    use crate::{
+        CollectionItemRating, CollectionItemStats, CollectionItemStatus, GameFamilyRank,
+        GameFamilyType, RankValue,
+    };
 
     #[test]
     fn sort_wishlist_priority() {

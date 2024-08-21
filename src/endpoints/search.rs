@@ -1,115 +1,5 @@
-use core::fmt;
-
-use serde::Deserialize;
-
-use super::GameType;
-use crate::utils::{XmlSignedValue, XmlStringValue};
+use super::{ItemType, SearchResults};
 use crate::{BoardGameGeekApi, Result};
-
-/// The returned struct containing a list of search results.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct SearchResults {
-    /// The list of board games returned by the search.
-    #[serde(rename = "$value")]
-    pub results: Vec<SearchResult>,
-}
-
-/// A result when searching for a name. Includes the game's name, type, and year
-/// published.
-#[derive(Clone, Debug, PartialEq)]
-pub struct SearchResult {
-    /// The ID of the game.
-    pub id: u64,
-    /// The type of game, which will either be boardgame or expansion.
-    pub item_type: GameType,
-    /// The name of the game.
-    pub name: String,
-    /// The year the game was first published.
-    pub year_published: i64,
-}
-
-impl<'de> Deserialize<'de> for SearchResult {
-    fn deserialize<D: serde::de::Deserializer<'de>>(
-        deserializer: D,
-    ) -> core::result::Result<Self, D::Error> {
-        #[derive(Deserialize)]
-        #[serde(field_identifier, rename_all = "lowercase")]
-        enum Field {
-            ID,
-            Type,
-            Name,
-            YearPublished,
-        }
-
-        struct SearchResultVisitor;
-
-        impl<'de> serde::de::Visitor<'de> for SearchResultVisitor {
-            type Value = SearchResult;
-
-            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                formatter.write_str("a string containing the XML for a search result.")
-            }
-
-            fn visit_map<A>(self, mut map: A) -> core::result::Result<Self::Value, A::Error>
-            where
-                A: serde::de::MapAccess<'de>,
-            {
-                let mut id = None;
-                let mut item_type = None;
-                let mut name = None;
-                let mut year_published = None;
-                while let Some(key) = map.next_key()? {
-                    match key {
-                        Field::ID => {
-                            if id.is_some() {
-                                return Err(serde::de::Error::duplicate_field("id"));
-                            }
-                            let id_str: String = map.next_value()?;
-                            id = Some(id_str.parse::<u64>().map_err(|e| {
-                                serde::de::Error::custom(format!(
-                                    "failed to parse value a u64: {e}"
-                                ))
-                            })?);
-                        },
-                        Field::Type => {
-                            if item_type.is_some() {
-                                return Err(serde::de::Error::duplicate_field("type"));
-                            }
-                            item_type = Some(map.next_value()?);
-                        },
-                        Field::Name => {
-                            if name.is_some() {
-                                return Err(serde::de::Error::duplicate_field("name"));
-                            }
-                            let name_xml_tag: XmlStringValue = map.next_value()?;
-                            name = Some(name_xml_tag.value);
-                        },
-                        Field::YearPublished => {
-                            if year_published.is_some() {
-                                return Err(serde::de::Error::duplicate_field("yearpublished"));
-                            }
-                            let year_published_xml_tag: XmlSignedValue = map.next_value()?;
-                            year_published = Some(year_published_xml_tag.value);
-                        },
-                    }
-                }
-                let id = id.ok_or_else(|| serde::de::Error::missing_field("id"))?;
-                let item_type =
-                    item_type.ok_or_else(|| serde::de::Error::missing_field("item_type"))?;
-                let name = name.ok_or_else(|| serde::de::Error::missing_field("name"))?;
-                let year_published = year_published
-                    .ok_or_else(|| serde::de::Error::missing_field("yearpublished"))?;
-                Ok(Self::Value {
-                    id,
-                    item_type,
-                    name,
-                    year_published,
-                })
-            }
-        }
-        deserializer.deserialize_any(SearchResultVisitor)
-    }
-}
 
 /// Required query paramters.
 #[derive(Clone, Debug)]
@@ -121,13 +11,14 @@ pub struct BaseSearchQuery<'q> {
 /// search endpoint.
 #[derive(Clone, Debug, Default)]
 pub struct SearchQueryParams {
-    /// Include only results for this game type.
+    /// Include only results for this game type. All apart from
+    /// [ItemType::BoardGameAccessory] returned if the parameter is omitted.
     ///
-    /// Note, if this is set to [GameType::BoardGame] then it will include both
+    /// Note, if this is set to [ItemType::BoardGame] then it will include both
     /// board games and expansions, but set the type of all of them to be
-    /// [GameType::BoardGame] in the results. There does not seem to be a way
+    /// [ItemType::BoardGame] in the results. There does not seem to be a way
     /// around this.
-    game_type: Option<GameType>,
+    item_type: Option<ItemType>,
     /// Limit results to only exact matches of the search query.
     exact: Option<bool>,
 }
@@ -138,10 +29,19 @@ impl SearchQueryParams {
         Self::default()
     }
 
-    /// Sets the game_type query param, so that only expansions or board games
-    /// can be filtered when searching.
-    pub fn game_type(mut self, game_type: GameType) -> Self {
-        self.game_type = Some(game_type);
+    /// Sets the item_type query param, so that only a certain type of
+    /// item will be returned. It should be noted that if [ItemType::BoardGame]
+    /// is chosen then this will return both board games and board game expansions,
+    /// with the type set to board game for both.
+    ///
+    /// If the param is omitted then all types will be returned apart from board
+    /// game accessories. If these are to be searched the type must be set explicitly.
+    ///
+    /// Also, if the parameter is omitted, board game expansions will be returned twice,
+    /// once with the type [ItemType::BoardGame] and once with the type
+    /// [ItemType::BoardGameExpansion].
+    pub fn item_type(mut self, item_type: ItemType) -> Self {
+        self.item_type = Some(item_type);
         self
     }
 
@@ -176,10 +76,13 @@ impl<'builder> SearchQueryBuilder<'builder> {
             Some(false) => query_params.push(("exact", "0".to_string())),
             None => {},
         }
-        match self.params.game_type {
-            Some(GameType::BoardGame) => query_params.push(("type", "boardgame".to_string())),
-            Some(GameType::BoardGameExpansion) => {
+        match self.params.item_type {
+            Some(ItemType::BoardGame) => query_params.push(("type", "boardgame".to_string())),
+            Some(ItemType::BoardGameExpansion) => {
                 query_params.push(("type", "boardgameexpansion".to_string()))
+            },
+            Some(ItemType::BoardGameAccessory) => {
+                query_params.push(("type", "boardgameaccessory".to_string()))
             },
             None => {},
         }
@@ -238,6 +141,7 @@ mod tests {
     use mockito::Matcher;
 
     use super::*;
+    use crate::{ItemType, SearchResult};
 
     #[tokio::test]
     async fn search() {
@@ -272,7 +176,7 @@ mod tests {
             search_results.results[0],
             SearchResult {
                 id: 312484,
-                item_type: GameType::BoardGame,
+                item_type: ItemType::BoardGame,
                 name: "Lost Ruins of Arnak".into(),
                 year_published: 2020,
             },
@@ -281,7 +185,7 @@ mod tests {
             search_results.results[1],
             SearchResult {
                 id: 341254,
-                item_type: GameType::BoardGameExpansion,
+                item_type: ItemType::BoardGameExpansion,
                 name: "Lost Ruins of Arnak: Expedition Leaders".into(),
                 year_published: 2021,
             },
@@ -321,7 +225,7 @@ mod tests {
             search_results.results[0],
             SearchResult {
                 id: 312484,
-                item_type: GameType::BoardGame,
+                item_type: ItemType::BoardGame,
                 name: "Lost Ruins of Arnak".into(),
                 year_published: 2020,
             },
@@ -356,7 +260,7 @@ mod tests {
             .search_with_query_params(
                 "arnak",
                 SearchQueryParams::new()
-                    .game_type(GameType::BoardGameExpansion)
+                    .item_type(ItemType::BoardGameExpansion)
                     .exact(false),
             )
             .await;
@@ -370,7 +274,7 @@ mod tests {
             search_results.results[0],
             SearchResult {
                 id: 341254,
-                item_type: GameType::BoardGameExpansion,
+                item_type: ItemType::BoardGameExpansion,
                 name: "Lost Ruins of Arnak: Expedition Leaders".into(),
                 year_published: 2021,
             },
@@ -397,7 +301,7 @@ mod tests {
                 "lost ruins of arnak",
                 SearchQueryParams::new()
                     .exact(true)
-                    .game_type(GameType::BoardGame),
+                    .item_type(ItemType::BoardGame),
             )
             .await;
         mock.assert_async().await;
@@ -410,7 +314,7 @@ mod tests {
             search_results.results[0],
             SearchResult {
                 id: 312484,
-                item_type: GameType::BoardGame,
+                item_type: ItemType::BoardGame,
                 name: "Lost Ruins of Arnak".into(),
                 year_published: 2020,
             },
