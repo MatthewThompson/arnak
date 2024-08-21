@@ -28,7 +28,7 @@ mod tests {
     use mockito::Matcher;
 
     use super::*;
-    use crate::HotItem;
+    use crate::HotListGame;
 
     #[tokio::test]
     async fn get() {
@@ -55,10 +55,10 @@ mod tests {
         assert!(hot_list.is_ok(), "error returned when okay expected");
         let hot_list = hot_list.unwrap();
 
-        assert_eq!(hot_list.items.len(), 50);
+        assert_eq!(hot_list.games.len(), 50);
         assert_eq!(
-            hot_list.items[0],
-            HotItem {
+            hot_list.games[0],
+            HotListGame {
                 id: 359871,
                 rank: 1,
                 thumbnail: "https://cf.geekdo-images.com/XWImAu_3RK61wbzcKboVdA__thumb/img/Ry-6KHwNgERWadyxs1X1_P3dMvY=/fit-in/200x150/filters:strip_icc()/pic8145530.png".into(),

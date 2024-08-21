@@ -7,16 +7,16 @@ use crate::utils::{XmlSignedValue, XmlStringValue};
 /// The returned struct containing a list of hot board games.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct HotList {
-    /// The list of hot board games.
+    /// The list of trending board games currently on the hot list.
     #[serde(rename = "$value")]
-    pub items: Vec<HotItem>,
+    pub games: Vec<HotListGame>,
 }
 
-/// An item on the hot list, has the rank from 1 to 50 on the list,
+/// An game on the hot list, has the rank from 1 to 50 on the list,
 /// as well as some basic information about the game like the name
 /// and year published.
 #[derive(Clone, Debug, PartialEq)]
-pub struct HotItem {
+pub struct HotListGame {
     /// The ID of the game.
     pub id: u64,
     /// The rank within the hotlist, should be ordered from 1 to 50.
@@ -29,7 +29,7 @@ pub struct HotItem {
     pub year_published: i64,
 }
 
-impl<'de> Deserialize<'de> for HotItem {
+impl<'de> Deserialize<'de> for HotListGame {
     fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "lowercase")]
@@ -41,13 +41,13 @@ impl<'de> Deserialize<'de> for HotItem {
             YearPublished,
         }
 
-        struct HotItemVisitor;
+        struct HotListGameVisitor;
 
-        impl<'de> serde::de::Visitor<'de> for HotItemVisitor {
-            type Value = HotItem;
+        impl<'de> serde::de::Visitor<'de> for HotListGameVisitor {
+            type Value = HotListGame;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                formatter.write_str("a string containing the XML an item off the hot list.")
+                formatter.write_str("a string containing the XML a game off the hot list.")
             }
 
             fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
@@ -122,6 +122,6 @@ impl<'de> Deserialize<'de> for HotItem {
                 })
             }
         }
-        deserializer.deserialize_any(HotItemVisitor)
+        deserializer.deserialize_any(HotListGameVisitor)
     }
 }
