@@ -1,5 +1,8 @@
+use core::fmt;
+
 use serde::Deserialize;
 
+use crate::utils::{XmlSignedValue, XmlStringValue};
 use crate::{BoardGameGeekApi, Result};
 
 /// The returned struct containing a list of hot board games.
@@ -25,6 +28,105 @@ pub struct HotItem {
     pub name: String,
     /// The year the game was first published.
     pub year_published: i64,
+}
+
+impl<'de> Deserialize<'de> for HotItem {
+    fn deserialize<D: serde::de::Deserializer<'de>>(
+        deserializer: D,
+    ) -> core::result::Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        #[serde(field_identifier, rename_all = "lowercase")]
+        enum Field {
+            ID,
+            Rank,
+            Thumbnail,
+            Name,
+            YearPublished,
+        }
+
+        struct HotItemVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for HotItemVisitor {
+            type Value = HotItem;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("a string containing the XML an item off the hot list.")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> core::result::Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                let mut id = None;
+                let mut rank = None;
+                let mut thumbnail = None;
+                let mut name = None;
+                let mut year_published = None;
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::ID => {
+                            if id.is_some() {
+                                return Err(serde::de::Error::duplicate_field("id"));
+                            }
+                            let id_str: String = map.next_value()?;
+                            id = Some(id_str.parse::<u64>().map_err(|e| {
+                                serde::de::Error::custom(format!(
+                                    "failed to parse value a u64: {e}"
+                                ))
+                            })?);
+                        },
+                        Field::Rank => {
+                            if rank.is_some() {
+                                return Err(serde::de::Error::duplicate_field("rank"));
+                            }
+                            let rank_str: String = map.next_value()?;
+                            rank = Some(rank_str.parse::<u64>().map_err(|e| {
+                                serde::de::Error::custom(format!(
+                                    "failed to parse value a u64: {e}"
+                                ))
+                            })?);
+                        },
+                        Field::Thumbnail => {
+                            if thumbnail.is_some() {
+                                return Err(serde::de::Error::duplicate_field("thumbnail"));
+                            }
+                            let thumbnail_xml_tag: XmlStringValue = map.next_value()?;
+                            thumbnail = Some(thumbnail_xml_tag.value);
+                        },
+                        Field::Name => {
+                            if name.is_some() {
+                                return Err(serde::de::Error::duplicate_field("name"));
+                            }
+                            let name_xml_tag: XmlStringValue = map.next_value()?;
+                            name = Some(name_xml_tag.value);
+                        },
+                        Field::YearPublished => {
+                            if year_published.is_some() {
+                                return Err(serde::de::Error::duplicate_field("yearpublished"));
+                            }
+                            let year_published_xml_tag: XmlSignedValue = map.next_value()?;
+                            year_published = Some(year_published_xml_tag.value);
+                        },
+                    }
+                }
+                let id = id.ok_or_else(|| serde::de::Error::missing_field("id"))?;
+                let rank = rank.ok_or_else(|| serde::de::Error::missing_field("rank"))?;
+                let thumbnail =
+                    thumbnail.ok_or_else(|| serde::de::Error::missing_field("thumbnail"))?;
+                let name = name.ok_or_else(|| serde::de::Error::missing_field("name"))?;
+                let year_published = year_published
+                    .ok_or_else(|| serde::de::Error::missing_field("yearpublished"))?;
+                Ok(Self::Value {
+                    id,
+                    rank,
+                    thumbnail,
+                    name,
+                    year_published,
+                })
+            }
+        }
+        deserializer.deserialize_any(HotItemVisitor)
+    }
 }
 
 /// Hot list endpoint of the API. Used for returning the current trending board

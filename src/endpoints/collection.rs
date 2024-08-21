@@ -1,3 +1,4 @@
+use core::fmt;
 use std::ops::RangeInclusive;
 
 use chrono::{DateTime, Duration, NaiveDate, Utc};
@@ -6,9 +7,7 @@ use serde::Deserialize;
 
 use crate::api::BoardGameGeekApi;
 use crate::utils::{
-    date_deserializer, deserialize_1_0_bool, deserialize_game_ratings,
-    deserialize_game_ratings_brief, deserialize_minutes, deserialize_rank_value_enum,
-    deserialize_wishlist_priority,
+    date_deserializer, deserialize_1_0_bool, deserialize_minutes, XmlFloatValue, XmlIntValue,
 };
 use crate::Result;
 
@@ -175,11 +174,7 @@ pub struct CollectionItemStatus {
     #[serde(deserialize_with = "deserialize_1_0_bool")]
     pub wishlist: bool,
     /// The priority of the wishlist.
-    #[serde(
-        default,
-        rename = "wishlistpriority",
-        deserialize_with = "deserialize_wishlist_priority"
-    )]
+    #[serde(default, rename = "wishlistpriority")]
     pub wishlist_priority: Option<WishlistPriority>,
     /// When the collection status was last modified
     #[serde(rename = "lastmodified", with = "date_deserializer")]
@@ -188,7 +183,7 @@ pub struct CollectionItemStatus {
 
 /// The status of the game in the user's collection, such as preowned or
 /// wishlist. Can be any or none of them.
-#[derive(Copy, Clone, Debug, Deserialize, PartialEq, PartialOrd)]
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum WishlistPriority {
     /// Lowest priority.
     DontBuyThis,
@@ -200,6 +195,25 @@ pub enum WishlistPriority {
     LoveToHave,
     /// Highest wishlist priority, a must have.
     MustHave,
+}
+
+impl<'de> Deserialize<'de> for WishlistPriority {
+    fn deserialize<D: serde::de::Deserializer<'de>>(
+        deserializer: D,
+    ) -> core::result::Result<Self, D::Error> {
+        let s: String = serde::de::Deserialize::deserialize(deserializer)?;
+
+        match s.as_str() {
+            "5" => Ok(WishlistPriority::DontBuyThis),
+            "4" => Ok(WishlistPriority::ThinkingAboutIt),
+            "3" => Ok(WishlistPriority::LikeToHave),
+            "2" => Ok(WishlistPriority::LoveToHave),
+            "1" => Ok(WishlistPriority::MustHave),
+            s => Err(serde::de::Error::custom(format!(
+                "invalid value for wishlist priority, expected \"1\" - \"5\" but got {s}"
+            ))),
+        }
+    }
 }
 
 /// Stats of the game such as playercount and duration. Can be omitted from the
@@ -226,7 +240,7 @@ pub struct CollectionItemStatsBrief {
     pub owned_by: u64,
     /// Information about the rating that this user, as well as all users, have
     /// given this game.
-    #[serde(rename = "$value", deserialize_with = "deserialize_game_ratings_brief")]
+    #[serde(rename = "$value")]
     pub rating: CollectionItemRatingBrief,
 }
 
@@ -254,7 +268,7 @@ pub struct CollectionItemStats {
     pub owned_by: u64,
     /// Information about the rating that this user, as well as all users, have
     /// given this game.
-    #[serde(rename = "$value", deserialize_with = "deserialize_game_ratings")]
+    #[serde(rename = "$value")]
     pub rating: CollectionItemRating,
 }
 
@@ -268,6 +282,82 @@ pub struct CollectionItemRatingBrief {
     pub average: f64,
     /// The bayesian average rating for this game.
     pub bayesian_average: f64,
+}
+
+impl<'de> Deserialize<'de> for CollectionItemRatingBrief {
+    fn deserialize<D: serde::de::Deserializer<'de>>(
+        deserializer: D,
+    ) -> core::result::Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        #[serde(field_identifier, rename_all = "lowercase")]
+        enum Field {
+            Value,
+            Average,
+            Bayesaverage,
+        }
+
+        struct CollectionItemRatingBriefVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for CollectionItemRatingBriefVisitor {
+            type Value = CollectionItemRatingBrief;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("a string containing the XML for a user's rating of a board game, which includes the average rating on the site and the number of ratings.")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> core::result::Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                let mut user_rating = None;
+                let mut average = None;
+                let mut bayesian_average = None;
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::Value => {
+                            if user_rating.is_some() {
+                                return Err(serde::de::Error::duplicate_field("value"));
+                            }
+                            let user_rating_str: String = map.next_value()?;
+                            user_rating = match user_rating_str.as_str() {
+                                "N/A" => Some(None),
+                                other => Some(Some(other.parse::<f64>().map_err(|e| {
+                                    serde::de::Error::custom(format!(
+                                        "failed to parse value as N/A or float: {e}"
+                                    ))
+                                })?)),
+                            }
+                        },
+                        Field::Average => {
+                            if average.is_some() {
+                                return Err(serde::de::Error::duplicate_field("average"));
+                            }
+                            let average_xml_tag: XmlFloatValue = map.next_value()?;
+                            average = Some(average_xml_tag.value);
+                        },
+                        Field::Bayesaverage => {
+                            if bayesian_average.is_some() {
+                                return Err(serde::de::Error::duplicate_field("bayesaverage"));
+                            }
+                            let bayesian_average_xml_tag: XmlFloatValue = map.next_value()?;
+                            bayesian_average = Some(bayesian_average_xml_tag.value);
+                        },
+                    }
+                }
+                let user_rating =
+                    user_rating.ok_or_else(|| serde::de::Error::missing_field("value"))?;
+                let average = average.ok_or_else(|| serde::de::Error::missing_field("average"))?;
+                let bayesian_average = bayesian_average
+                    .ok_or_else(|| serde::de::Error::missing_field("bayesaverage"))?;
+                Ok(Self::Value {
+                    user_rating,
+                    average,
+                    bayesian_average,
+                })
+            }
+        }
+        deserializer.deserialize_any(CollectionItemRatingBriefVisitor)
+    }
 }
 
 /// The 0-10 rating that the user gave to this game. Also includes the total
@@ -291,8 +381,132 @@ pub struct CollectionItemRating {
     pub ranks: Vec<GameFamilyRank>,
 }
 
+impl<'de> Deserialize<'de> for CollectionItemRating {
+    fn deserialize<D: serde::de::Deserializer<'de>>(
+        deserializer: D,
+    ) -> core::result::Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        #[serde(field_identifier, rename_all = "lowercase")]
+        enum Field {
+            Value,
+            UsersRated,
+            Average,
+            Bayesaverage,
+            Stddev,
+            Median,
+            Ranks,
+        }
+
+        struct CollectionItemRatingVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for CollectionItemRatingVisitor {
+            type Value = CollectionItemRating;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("a string containing the XML for a user's rating of a board game, which includes the average rating on the site and the number of ratings.")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> core::result::Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                let mut user_rating = None;
+                let mut users_rated = None;
+                let mut average = None;
+                let mut bayesian_average = None;
+                let mut standard_deviation = None;
+                let mut median = None;
+                let mut ranks = None;
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::Value => {
+                            if user_rating.is_some() {
+                                return Err(serde::de::Error::duplicate_field("value"));
+                            }
+                            let user_rating_str: String = map.next_value()?;
+                            user_rating = match user_rating_str.as_str() {
+                                "N/A" => Some(None),
+                                other => Some(Some(other.parse::<f64>().map_err(|e| {
+                                    serde::de::Error::custom(format!(
+                                        "failed to parse value as N/A or float: {e}"
+                                    ))
+                                })?)),
+                            }
+                        },
+                        Field::UsersRated => {
+                            if users_rated.is_some() {
+                                return Err(serde::de::Error::duplicate_field("usersrated"));
+                            }
+                            let users_rated_xml_tag: XmlIntValue = map.next_value()?;
+                            users_rated = Some(users_rated_xml_tag.value);
+                        },
+                        Field::Average => {
+                            if average.is_some() {
+                                return Err(serde::de::Error::duplicate_field("average"));
+                            }
+                            let average_xml_tag: XmlFloatValue = map.next_value()?;
+                            average = Some(average_xml_tag.value);
+                        },
+                        Field::Bayesaverage => {
+                            if bayesian_average.is_some() {
+                                return Err(serde::de::Error::duplicate_field("bayesaverage"));
+                            }
+                            let bayesian_average_xml_tag: XmlFloatValue = map.next_value()?;
+                            bayesian_average = Some(bayesian_average_xml_tag.value);
+                        },
+                        Field::Stddev => {
+                            if standard_deviation.is_some() {
+                                return Err(serde::de::Error::duplicate_field("stddev"));
+                            }
+                            let standard_deviation_xml_tag: XmlFloatValue = map.next_value()?;
+                            standard_deviation = Some(standard_deviation_xml_tag.value);
+                        },
+                        Field::Median => {
+                            if median.is_some() {
+                                return Err(serde::de::Error::duplicate_field("median"));
+                            }
+                            let median_xml_tag: XmlFloatValue = map.next_value()?;
+                            median = Some(median_xml_tag.value);
+                        },
+                        Field::Ranks => {
+                            if ranks.is_some() {
+                                return Err(serde::de::Error::duplicate_field("ranks"));
+                            }
+                            // An extra layer of indirection is needed due to the way the XML is
+                            // structured, but should be removed for the final
+                            // structure.
+                            let ranks_struct: Ranks = map.next_value()?;
+                            ranks = Some(ranks_struct.ranks);
+                        },
+                    }
+                }
+                let user_rating =
+                    user_rating.ok_or_else(|| serde::de::Error::missing_field("value"))?;
+                let users_rated =
+                    users_rated.ok_or_else(|| serde::de::Error::missing_field("usersrated"))?;
+                let average = average.ok_or_else(|| serde::de::Error::missing_field("average"))?;
+                let bayesian_average = bayesian_average
+                    .ok_or_else(|| serde::de::Error::missing_field("bayesaverage"))?;
+                let standard_deviation =
+                    standard_deviation.ok_or_else(|| serde::de::Error::missing_field("stddev"))?;
+                let median = median.ok_or_else(|| serde::de::Error::missing_field("median"))?;
+                let ranks = ranks.ok_or_else(|| serde::de::Error::missing_field("ranks"))?;
+                Ok(Self::Value {
+                    user_rating,
+                    users_rated,
+                    average,
+                    bayesian_average,
+                    standard_deviation,
+                    median,
+                    ranks,
+                })
+            }
+        }
+        deserializer.deserialize_any(CollectionItemRatingVisitor)
+    }
+}
+
 // Intermediary struct needed due to the way the XML is strcutured
-// TODO move this into the deserialise file.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub(crate) struct Ranks {
     #[serde(rename = "$value")]
@@ -317,7 +531,6 @@ pub struct GameFamilyRank {
     #[serde(rename = "friendlyname")]
     pub friendly_name: String,
     /// The overall rank on the site within this type of game.
-    #[serde(deserialize_with = "deserialize_rank_value_enum")]
     pub value: RankValue,
     /// The score out of 10, as a bayseian average.
     ///
@@ -351,6 +564,26 @@ pub enum RankValue {
     /// The game does not have a rank in a given category, possibly due to not having
     /// enough ratings.
     NotRanked,
+}
+
+impl<'de> Deserialize<'de> for RankValue {
+    fn deserialize<D: serde::de::Deserializer<'de>>(
+        deserializer: D,
+    ) -> core::result::Result<Self, D::Error> {
+        let s: String = serde::de::Deserialize::deserialize(deserializer)?;
+        if s == "Not Ranked" {
+            return Ok(RankValue::NotRanked);
+        }
+
+        let rank: core::result::Result<u64, _> = s.parse();
+        match rank {
+            Ok(value) => Ok(RankValue::Ranked(value)),
+            _ => Err(serde::de::Error::unknown_variant(
+                &s,
+                &["u64", "Not Ranked"],
+            )),
+        }
+    }
 }
 
 /// Required query paramters. Any type the collection query can implement
