@@ -82,9 +82,9 @@ pub struct CollectionQueryParams {
     /// board games and expansions, but set the type of all of them to be
     /// [GameType::BoardGame] in the results. Explicitly exclude
     /// [GameType::BoardGameExpansion] to avoid this.
-    item_type: Option<GameType>,
+    game_type: Option<GameType>,
     /// Exclude results for this item type.
-    exclude_item_type: Option<GameType>,
+    exclude_game_type: Option<GameType>,
     /// Include games the user owns if true, exclude if false.
     include_owned: Option<bool>,
     /// Include games the user previously owned if true, exclude if false.
@@ -142,15 +142,15 @@ impl CollectionQueryParams {
 
     /// Sets the item_type field, so that only that type of item will be
     /// returned.
-    pub fn item_type(mut self, item_type: GameType) -> Self {
-        self.item_type = Some(item_type);
+    pub fn game_type(mut self, game_type: GameType) -> Self {
+        self.game_type = Some(game_type);
         self
     }
 
     /// Set the exclude_item_type field, so that that type of item will be
     /// excluded from. the results.
-    pub fn exclude_item_type(mut self, exclude_item_type: GameType) -> Self {
-        self.exclude_item_type = Some(exclude_item_type);
+    pub fn exclude_game_type(mut self, exclude_game_type: GameType) -> Self {
+        self.exclude_game_type = Some(exclude_game_type);
         self
     }
 
@@ -353,14 +353,14 @@ impl<'a> CollectionQueryBuilder<'a> {
             true => query_params.push(("brief", "1".to_string())),
             false => query_params.push(("brief", "0".to_string())),
         }
-        match self.params.item_type {
+        match self.params.game_type {
             Some(GameType::BoardGame) => query_params.push(("subtype", "boardgame".to_string())),
             Some(GameType::BoardGameExpansion) => {
                 query_params.push(("subtype", "boardgameexpansion".to_string()))
             },
             None => {},
         }
-        match self.params.exclude_item_type {
+        match self.params.exclude_game_type {
             Some(GameType::BoardGame) => {
                 query_params.push(("excludesubtype", "boardgame".to_string()))
             },

@@ -39,7 +39,7 @@ impl SearchQueryParams {
     ///
     /// Also, if the parameter is omitted, board game expansions will be returned twice,
     /// once with the type [ItemType::BoardGame] and once with the type
-    /// [ItemType::BoardGameExpansion]
+    /// [ItemType::BoardGameExpansion].
     pub fn item_type(mut self, item_type: ItemType) -> Self {
         self.item_type = Some(item_type);
         self

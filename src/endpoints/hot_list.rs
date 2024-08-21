@@ -16,7 +16,7 @@ impl<'api> HotListApi<'api> {
         }
     }
 
-    /// Gets the hot list.
+    /// Gets the current list of hot board games.
     pub async fn get(&self) -> Result<HotList> {
         let request = self.api.build_request(self.endpoint, &[]);
         self.api.execute_request(request).await

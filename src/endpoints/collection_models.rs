@@ -70,19 +70,7 @@ pub struct CollectionItem {
 /// The type of game, board game or expansion.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub enum GameType {
-    /// A board game, or expansion.
-    ///
-    /// Due to the way the API works, this type can include expansions too.
-    /// If a request is made for just board games, or the game type is not
-    /// filtered, then both games with a type of [GameType::BoardGame] and
-    /// those with a type of [GameType::BoardGameExpansion] will be returned,
-    /// and they will ALL have the type of [GameType::BoardGame]. However when
-    /// requesting just expansions, the returned games will correctly have the
-    /// type [GameType::BoardGameExpansion].
-    ///
-    /// A workaround to this can be to make 2 requests, one to include
-    /// [GameType::BoardGame] and exclude [GameType::BoardGameExpansion],
-    /// followed by another to just include [GameType::BoardGameExpansion].
+    /// A type of game in a collection, a board game, or an expansion.
     #[serde(rename = "boardgame")]
     BoardGame,
     /// A board game expansion.
