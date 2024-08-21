@@ -4,10 +4,14 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Unsafe](https://img.shields.io/badge/unsafe-forbidden-green.svg)](https://github.com/rust-secure-code/safety-dance)
 
+NOTE: This library is currently in prerelease, not all endpoints have been added and breaking changes could happen often before 1.0.0.
+
 # Arnak
 Rust library for [BoardGameGeek XML API](https://boardgamegeek.com/wiki/page/BGG_XML_API2) bindings.
 
-NOTE: This library is currently in prerelease, not all endpoints have been added and breaking changes could happen often before 1.0.0.
+It should be noted that the underlying API can return information from [RpgGeek](https://rpggeek.com) and [VideoGameGeek](https://videogamegeek.com) but these are purposely hidden
+for consistency, and to avoid confusion. For example, the collection endpoint only returns board games in the user's collection, and not RPG or video games that the same user has
+on the respective site collections.
 
 ## Example
 
