@@ -45,6 +45,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 For a given user, return their collection of board games. This does not just mean games owned by the user, but also ones on their wishlist,
 previously owned, etc...
 
+### Game Family
+
+Request a family or number of families by their IDs. A game family is a group of games and expansions that fall under a certain group or name. For example Catan and Carcassone both have game families containing all of their respective expansions and related games.
+
 ### Search
 
 Search for a game, returning everything that matches the search. Also includes a `search_exact` function that will only return exact name matches.
