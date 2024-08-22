@@ -1,12 +1,6 @@
 use super::{ItemType, SearchResults};
 use crate::{BoardGameGeekApi, Result};
 
-/// Required query paramters.
-#[derive(Clone, Debug)]
-pub struct BaseSearchQuery<'q> {
-    pub(crate) query: &'q str,
-}
-
 /// All optional query parameters for making a request to the
 /// search endpoint.
 #[derive(Clone, Debug, Default)]
@@ -56,20 +50,23 @@ impl SearchQueryParams {
 /// Struct for building a query for the request to the search endpoint.
 #[derive(Clone, Debug)]
 struct SearchQueryBuilder<'q> {
-    base: BaseSearchQuery<'q>,
+    search_query: &'q str,
     params: SearchQueryParams,
 }
 
 impl<'builder> SearchQueryBuilder<'builder> {
-    /// Constructs a new query builder from a base query, and the rest of the
+    /// Constructs a new query builder from a search query, and the rest of the
     /// parameters.
-    fn new(base: BaseSearchQuery<'builder>, params: SearchQueryParams) -> Self {
-        Self { base, params }
+    fn new(search_query: &'builder str, params: SearchQueryParams) -> Self {
+        Self {
+            search_query,
+            params,
+        }
     }
 
     pub fn build(self) -> Vec<(&'builder str, String)> {
         let mut query_params: Vec<_> = vec![];
-        query_params.push(("query", self.base.query.to_string()));
+        query_params.push(("query", self.search_query.to_string()));
 
         match self.params.exact {
             Some(true) => query_params.push(("exact", "1".to_string())),
@@ -106,7 +103,7 @@ impl<'api> SearchApi<'api> {
 
     /// Searches with a given query.
     pub async fn search(&self, query: &str) -> Result<SearchResults> {
-        let query = SearchQueryBuilder::new(BaseSearchQuery { query }, SearchQueryParams::new());
+        let query = SearchQueryBuilder::new(query, SearchQueryParams::new());
 
         let request = self.api.build_request(self.endpoint, &query.build());
         self.api.execute_request::<SearchResults>(request).await
@@ -114,10 +111,7 @@ impl<'api> SearchApi<'api> {
 
     /// Searches for exact matches to a given query.
     pub async fn search_exact(&self, query: &str) -> Result<SearchResults> {
-        let query = SearchQueryBuilder::new(
-            BaseSearchQuery { query },
-            SearchQueryParams::new().exact(true),
-        );
+        let query = SearchQueryBuilder::new(query, SearchQueryParams::new().exact(true));
 
         let request = self.api.build_request(self.endpoint, &query.build());
         self.api.execute_request::<SearchResults>(request).await
@@ -129,7 +123,7 @@ impl<'api> SearchApi<'api> {
         query: &str,
         query_params: SearchQueryParams,
     ) -> Result<SearchResults> {
-        let query = SearchQueryBuilder::new(BaseSearchQuery { query }, query_params);
+        let query = SearchQueryBuilder::new(query, query_params);
 
         let request = self.api.build_request(self.endpoint, &query.build());
         self.api.execute_request::<SearchResults>(request).await
