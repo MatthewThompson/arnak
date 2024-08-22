@@ -45,6 +45,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 For a given user, return their collection of board games. This does not just mean games owned by the user, but also ones on their wishlist,
 previously owned, etc...
 
+### Game Family
+
+Request a family or number of families by their IDs. A game family is a group of games and expansions that fall under a certain group or name. For example Catan and Carcassone both have game families containing all of their respective expansions and related games.
+
 ### Search
 
 Search for a game, returning everything that matches the search. Also includes a `search_exact` function that will only return exact name matches.
@@ -52,6 +56,10 @@ Search for a game, returning everything that matches the search. Also includes a
 ### Hot list
 
 Returns the top 10 currently trending games.
+
+## Known issues
+
+- In the fields that return HTML, such as descriptions, HTML escape sequences are used. However for some characters the wrong escape sequence is used. For example for ü has been encoded as `&#195;&#188;` but this decodes to Ã¼. Sorry Hans im GluÃ¼ck!
 
 ## Formatting
 

@@ -13,6 +13,11 @@ pub use collection_models::*;
 pub(crate) mod collection;
 pub use collection::*;
 
+pub(crate) mod game_family_models;
+pub use game_family_models::*;
+pub(crate) mod game_family;
+pub use game_family::*;
+
 pub(crate) mod hot_list_models;
 pub use hot_list_models::*;
 pub(crate) mod hot_list;
