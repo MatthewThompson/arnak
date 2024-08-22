@@ -1,24 +1,35 @@
 use chrono::Duration;
 use serde::Deserialize;
 
+use crate::NameType;
+
+// Types that only exist as intermediary values when deserialising more complex types.
+
 #[derive(Debug, Deserialize)]
 pub(crate) struct XmlIntValue {
-    pub value: u64,
+    pub(crate) value: u64,
 }
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct XmlSignedValue {
-    pub value: i64,
+    pub(crate) value: i64,
 }
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct XmlFloatValue {
-    pub value: f64,
+    pub(crate) value: f64,
 }
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct XmlStringValue {
-    pub value: String,
+    pub(crate) value: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct XmlName {
+    #[serde(rename = "type")]
+    pub(crate) name_type: NameType,
+    pub(crate) value: String,
 }
 
 pub(crate) fn deserialize_1_0_bool<'de, D>(deserializer: D) -> Result<bool, D::Error>
