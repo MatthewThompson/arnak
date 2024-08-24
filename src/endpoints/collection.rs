@@ -556,8 +556,21 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
 
     /// Get all games of all types in the user's collection.
     pub async fn get_all(&self, username: &'api str) -> Result<Collection<T>> {
-        let query_params = CollectionQueryParams::default();
+        let query_params = CollectionQueryParams::new();
         self.get_from_query(username, query_params).await
+    }
+
+    /// Get the user's board game accessory collection.
+    pub async fn get_accessory_collection(
+        &self,
+        username: &'api str,
+        query_params: CollectionQueryParams,
+    ) -> Result<Collection<T>> {
+        self.get_from_query(
+            username,
+            query_params.item_type(ItemType::BoardGameAccessory),
+        )
+        .await
     }
 
     /// Gets all the games that a given user owns.
@@ -1532,5 +1545,147 @@ mod tests {
         let collection = collection.unwrap();
 
         assert_eq!(collection.items.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn get_accessory_collection() {
+        let mut server = mockito::Server::new_async().await;
+        let api = BoardGameGeekApi {
+            base_url: server.url(),
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "somename".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
+                Matcher::UrlEncoded("subtype".into(), "boardgameaccessory".into()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/collection/collection_accessories.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let collection = api
+            .collection()
+            .get_accessory_collection("somename", CollectionQueryParams::new())
+            .await;
+        mock.assert_async().await;
+
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+
+        assert_eq!(collection.items.len(), 2);
+        assert_eq!(
+            collection.items[0],
+            CollectionItem {
+                id: 142974,
+                collection_id: 122439219,
+                item_type: ItemType::BoardGameAccessory,
+                name: "12 Realms: Buildings Pack".to_string(),
+                year_published: 2013,
+                image: "https://cf.geekdo-images.com/5fKeQe2FG2FR1W3maIj1Gw__original/img/vWskbRA9FmoLrFghnPi_5RGVMec=/0x0/filters:format(jpeg)/pic2522878.jpg".to_string(),
+                thumbnail: "https://cf.geekdo-images.com/5fKeQe2FG2FR1W3maIj1Gw__thumb/img/Fu2YriGdZVDzf8sJyvnWADloJPU=/fit-in/200x150/filters:strip_icc()/pic2522878.jpg".to_string(),
+                status: CollectionItemStatus {
+                    own: true,
+                    previously_owned: false,
+                    for_trade: false,
+                    want_in_trade: false,
+                    want_to_play: false,
+                    want_to_buy: false,
+                    wishlist: false,
+                    wishlist_priority: None,
+                    pre_ordered: false,
+                    last_modified: Utc.with_ymd_and_hms(2024, 8, 21, 16, 47, 5).unwrap(),
+                },
+                number_of_plays: 0,
+                stats: CollectionItemStats {
+                    min_players: 0,
+                    max_players: 0,
+                    min_playtime: Duration::minutes(0),
+                    max_playtime: Duration::minutes(0),
+                    playing_time: Duration::minutes(0),
+                    owned_by: 281,
+                    rating: CollectionItemRating {
+                        user_rating: None,
+                        users_rated: 38,
+                        average: 6.51053,
+                        bayesian_average: 6.10014,
+                        standard_deviation: 1.89983,
+                        median: 0.0,
+                        ranks: vec![
+                            GameFamilyRank {
+                                game_family_type: GameFamilyType::Subtype,
+                                id: 62,
+                                name: "boardgameaccessory".into(),
+                                friendly_name: "Accessory Rank".into(),
+                                value: RankValue::Ranked(749),
+                                bayesian_average: 6.10014,
+                            },
+                        ],
+                    },
+                },
+                version: None,
+            },
+            "returned collection game doesn't match expected",
+        );
+        assert_eq!(
+            collection.items[1],
+            CollectionItem {
+                id: 22510,
+                collection_id: 122524875,
+                item_type: ItemType::BoardGameAccessory,
+                name: "Wings of War: Miniatures".to_string(),
+                year_published: 2007,
+                image: "https://cf.geekdo-images.com/qGV1v8Ye0FKTxZNCF1ZINw__original/img/49pxPDdA4CHNFZOMQM1UTM8FNL4=/0x0/filters:format(jpeg)/pic830522.jpg".to_string(),
+                thumbnail: "https://cf.geekdo-images.com/qGV1v8Ye0FKTxZNCF1ZINw__thumb/img/vgAzbZuLXNSawia3yp4BAPT_2is=/fit-in/200x150/filters:strip_icc()/pic830522.jpg".to_string(),
+                status: CollectionItemStatus {
+                    own: false,
+                    previously_owned: false,
+                    for_trade: false,
+                    want_in_trade: false,
+                    want_to_play: true,
+                    want_to_buy: false,
+                    wishlist: false,
+                    wishlist_priority: None,
+                    pre_ordered: false,
+                    last_modified: Utc.with_ymd_and_hms(2024, 8, 24, 11, 9, 37).unwrap(),
+                },
+                number_of_plays: 0,
+                stats: CollectionItemStats {
+                    min_players: 0,
+                    max_players: 0,
+                    min_playtime: Duration::minutes(0),
+                    max_playtime: Duration::minutes(0),
+                    playing_time: Duration::minutes(0),
+                    owned_by: 1618,
+                    rating: CollectionItemRating {
+                        user_rating: None,
+                        users_rated: 893,
+                        average: 7.87269,
+                        bayesian_average: 7.55507,
+                        standard_deviation: 1.30371,
+                        median: 0.0,
+                        ranks: vec![
+                            GameFamilyRank {
+                                game_family_type: GameFamilyType::Subtype,
+                                id: 62,
+                                name: "boardgameaccessory".into(),
+                                friendly_name: "Accessory Rank".into(),
+                                value: RankValue::Ranked(22),
+                                bayesian_average: 7.55507,
+                            },
+                        ],
+                    },
+                },
+                version: None,
+            },
+            "returned collection game doesn't match expected",
+        );
     }
 }

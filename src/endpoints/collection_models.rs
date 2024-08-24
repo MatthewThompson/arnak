@@ -13,17 +13,23 @@ use crate::NameType;
 /// A user's collection on boardgamegeek.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Collection<T> {
-    /// List of games and expansions in the user's collection. Each game
+    /// List of games, expansions, and accessories in the user's collection. Each game
     /// is not necessarily owned but can be preowned, wishlisted etc.
+    ///
+    /// Note that accessories and games can never be returned together in one collection,
+    /// but games and game expansions can.
     #[serde(rename = "$value")]
     pub items: Vec<T>,
 }
 
-/// A game in a collection, in brief form. With only the name, status, type,
-/// and IDs.
+/// An item in a collection, in brief form. With the name, status, type,
+/// and IDs, also a brief version of the game stats.
+///
+/// If requested and applicable, version information is also included,
+/// this will be the same information as is included in the full version.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemBrief {
-    /// The ID of the game.
+    /// The ID of the item.
     #[serde(rename = "objectid")]
     pub id: u64,
     /// The collection ID of the object.
@@ -32,9 +38,9 @@ pub struct CollectionItemBrief {
     /// The type of collection item, which will either be boardgame, expansion, or accessory.
     #[serde(rename = "subtype")]
     pub item_type: ItemType,
-    /// The name of the game.
+    /// The name of the item.
     pub name: String,
-    /// Status of the game in this collection, such as own, preowned, wishlist.
+    /// Status of the item in this collection, such as own, preowned, wishlist.
     pub status: CollectionItemStatus,
     /// Game stats such as number of players.
     pub stats: CollectionItemStatsBrief,
@@ -45,10 +51,10 @@ pub struct CollectionItemBrief {
     pub version: Option<GameVersion>,
 }
 
-/// A game or game expansion in a collection.
+/// A game, game expansion, or game accessory in a collection.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItem {
-    /// The ID of the game.
+    /// The ID of the item.
     #[serde(rename = "objectid")]
     pub id: u64,
     /// The collection ID of the object.
@@ -57,16 +63,16 @@ pub struct CollectionItem {
     /// The type of collection item, which will either be boardgame, expansion, or accessory.
     #[serde(rename = "subtype")]
     pub item_type: ItemType,
-    /// The name of the game.
+    /// The name of the item.
     pub name: String,
-    /// The year the game was first published.
+    /// The year the item was first published.
     #[serde(rename = "yearpublished")]
     pub year_published: i64,
-    /// A link to a jpg image for the game.
+    /// A link to a jpg image for the item.
     pub image: String,
-    /// A link to a jpg thumbnail image for the game.
+    /// A link to a jpg thumbnail image for the item.
     pub thumbnail: String,
-    /// Status of the game in this collection, such as own, preowned, wishlist.
+    /// Status of the item in this collection, such as own, preowned, wishlist.
     pub status: CollectionItemStatus,
     /// The number of times the user has played the game.
     #[serde(rename = "numplays")]
@@ -80,32 +86,32 @@ pub struct CollectionItem {
     pub version: Option<GameVersion>,
 }
 
-/// The status of the game in the user's collection, such as preowned or
+/// The status of the item in the user's collection, such as preowned or
 /// wishlist. Can be any or none of them.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemStatus {
-    /// User owns the game.
+    /// User owns the item.
     #[serde(deserialize_with = "deserialize_1_0_bool")]
     pub own: bool,
-    /// User has previously owned the game.
+    /// User has previously owned the item.
     #[serde(rename = "prevowned", deserialize_with = "deserialize_1_0_bool")]
     pub previously_owned: bool,
-    /// User wants to trade away the game.
+    /// User wants to trade away the item.
     #[serde(rename = "fortrade", deserialize_with = "deserialize_1_0_bool")]
     pub for_trade: bool,
-    /// User wants to receive the game in a trade.
+    /// User wants to receive the item in a trade.
     #[serde(rename = "want", deserialize_with = "deserialize_1_0_bool")]
     pub want_in_trade: bool,
-    /// User wants to play the game.
+    /// User wants to play the item.
     #[serde(rename = "wanttoplay", deserialize_with = "deserialize_1_0_bool")]
     pub want_to_play: bool,
-    /// User wants to buy the game.
+    /// User wants to buy the item.
     #[serde(rename = "wanttobuy", deserialize_with = "deserialize_1_0_bool")]
     pub want_to_buy: bool,
-    /// User pre-ordered the game.
+    /// User pre-ordered the item.
     #[serde(rename = "preordered", deserialize_with = "deserialize_1_0_bool")]
     pub pre_ordered: bool,
-    /// User has the game on their wishlist.
+    /// User has the item on their wishlist.
     #[serde(deserialize_with = "deserialize_1_0_bool")]
     pub wishlist: bool,
     /// The priority of the wishlist.
@@ -116,7 +122,7 @@ pub struct CollectionItemStatus {
     pub last_modified: DateTime<Utc>,
 }
 
-/// The status of the game in the user's collection, such as preowned or
+/// The status of the item in the user's collection, such as preowned or
 /// wishlist. Can be any or none of them.
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum WishlistPriority {
@@ -242,7 +248,7 @@ impl<'de> Deserialize<'de> for GameVersion {
             type Value = GameVersion;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                formatter.write_str("a string containing the XML for a family of games.")
+                formatter.write_str("a string containing the XML for game version information.")
             }
 
             fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
@@ -467,19 +473,31 @@ impl<'de> Deserialize<'de> for GameVersion {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemStatsBrief {
     /// Minimum players the game supports.
-    #[serde(rename = "minplayers")]
+    #[serde(default, rename = "minplayers")]
     pub min_players: u32,
     /// Maximum players the game supports.
-    #[serde(rename = "maxplayers")]
+    #[serde(default, rename = "maxplayers")]
     pub max_players: u32,
     /// Minimum amount of time the game is suggested to take to play.
-    #[serde(rename = "minplaytime", deserialize_with = "deserialize_minutes")]
+    #[serde(
+        default,
+        rename = "minplaytime",
+        deserialize_with = "deserialize_minutes"
+    )]
     pub min_playtime: Duration,
     /// Maximum amount of time the game is suggested to take to play.
-    #[serde(rename = "maxplaytime", deserialize_with = "deserialize_minutes")]
+    #[serde(
+        default,
+        rename = "maxplaytime",
+        deserialize_with = "deserialize_minutes"
+    )]
     pub max_playtime: Duration,
     /// The amount of time the game is suggested to take to play.
-    #[serde(rename = "playingtime", deserialize_with = "deserialize_minutes")]
+    #[serde(
+        default,
+        rename = "playingtime",
+        deserialize_with = "deserialize_minutes"
+    )]
     pub playing_time: Duration,
     /// The number of people that own this game.
     #[serde(rename = "numowned")]
@@ -495,19 +513,31 @@ pub struct CollectionItemStatsBrief {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemStats {
     /// Minimum players the game supports.
-    #[serde(rename = "minplayers")]
+    #[serde(default, rename = "minplayers")]
     pub min_players: u32,
     /// Maximum players the game supports.
-    #[serde(rename = "maxplayers")]
+    #[serde(default, rename = "maxplayers")]
     pub max_players: u32,
     /// Minimum amount of time the game is suggested to take to play.
-    #[serde(rename = "minplaytime", deserialize_with = "deserialize_minutes")]
+    #[serde(
+        default,
+        rename = "minplaytime",
+        deserialize_with = "deserialize_minutes"
+    )]
     pub min_playtime: Duration,
     /// Maximum amount of time the game is suggested to take to play.
-    #[serde(rename = "maxplaytime", deserialize_with = "deserialize_minutes")]
+    #[serde(
+        default,
+        rename = "maxplaytime",
+        deserialize_with = "deserialize_minutes"
+    )]
     pub max_playtime: Duration,
     /// The amount of time the game is suggested to take to play.
-    #[serde(rename = "playingtime", deserialize_with = "deserialize_minutes")]
+    #[serde(
+        default,
+        rename = "playingtime",
+        deserialize_with = "deserialize_minutes"
+    )]
     pub playing_time: Duration,
     /// The number of people that own this game.
     #[serde(rename = "numowned")]
@@ -518,15 +548,15 @@ pub struct CollectionItemStats {
     pub rating: CollectionItemRating,
 }
 
-/// The 0-10 rating that the user gave to this game. Also includes the total
+/// The 0-10 rating that the user gave to this item. Also includes the total
 /// number of users that have rated it, as well as the averages.
 #[derive(Clone, Debug, PartialEq)]
 pub struct CollectionItemRatingBrief {
-    /// The 0-10 rating that the user gave this game.
+    /// The 0-10 rating that the user gave this item.
     pub user_rating: Option<f64>,
-    /// The mean average rating for this game.
+    /// The mean average rating for this item.
     pub average: f64,
-    /// The bayesian average rating for this game.
+    /// The bayesian average rating for this item.
     pub bayesian_average: f64,
 }
 
@@ -604,24 +634,24 @@ impl<'de> Deserialize<'de> for CollectionItemRatingBrief {
     }
 }
 
-/// The 0-10 rating that the user gave to this game. Also includes the total
+/// The 0-10 rating that the user gave to this item. Also includes the total
 /// number of users that have rated it, as well as the averages, and standard
 /// deviation.
 #[derive(Clone, Debug, PartialEq)]
 pub struct CollectionItemRating {
-    /// The 0-10 rating that the user gave this game.
+    /// The 0-10 rating that the user gave this item.
     pub user_rating: Option<f64>,
-    /// The total number of users who have given this game a rating.
+    /// The total number of users who have given this item a rating.
     pub users_rated: u64,
-    /// The mean average rating for this game.
+    /// The mean average rating for this item.
     pub average: f64,
-    /// The bayesian average rating for this game.
+    /// The bayesian average rating for this item.
     pub bayesian_average: f64,
     /// The standard deviation of the average rating.
     pub standard_deviation: f64,
     // Kept private for now since the API always returns 0 for this seemingly.
     pub(crate) median: f64,
-    /// The list of ranks the game is on the site within each of its game types.
+    /// The list of ranks the item is on the site within each of its item types.
     pub ranks: Vec<GameFamilyRank>,
 }
 
