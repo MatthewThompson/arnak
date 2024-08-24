@@ -100,7 +100,7 @@ mod tests {
     use mockito::Matcher;
 
     use super::*;
-    use crate::{GameFamily, GameFamilyGame};
+    use crate::{Game, GameFamily};
 
     #[tokio::test]
     async fn get_by_id() {
@@ -141,15 +141,15 @@ mod tests {
                 thumbnail: "https://cf.geekdo-images.com/c_pg0WfJKn7_P33AsDS5EA__thumb/img/8RgZmSChaxESGjIdhMeIg0C9OZk=/fit-in/200x150/filters:strip_icc()/pic453826.jpg".into(),
                 description: "Games (expansions, promos, etc.) in the \"Carcassonne\" family of games, published by Hans im GlÃ¼ck.\n\n\nSee this Carcassonne Series wiki for more details.\n\n".into(),
                 games: vec![
-                    GameFamilyGame {
+                    Game {
                         id: 822,
                         name: "Carcassonne".into(),
                     },
-                    GameFamilyGame {
+                    Game {
                         id: 142057,
                         name: "Carcassonne Big Box".into(),
                     },
-                    GameFamilyGame {
+                    Game {
                         id: 141008,
                         name: "Carcassonne Big Box 2".into(),
                     },
@@ -197,15 +197,15 @@ mod tests {
                 thumbnail: "https://cf.geekdo-images.com/c_pg0WfJKn7_P33AsDS5EA__thumb/img/8RgZmSChaxESGjIdhMeIg0C9OZk=/fit-in/200x150/filters:strip_icc()/pic453826.jpg".into(),
                 description: "Games (expansions, promos, etc.) in the \"Carcassonne\" family of games, published by Hans im GlÃ¼ck.\n\n\nSee this Carcassonne Series wiki for more details.\n\n".into(),
                 games: vec![
-                    GameFamilyGame {
+                    Game {
                         id: 822,
                         name: "Carcassonne".into(),
                     },
-                    GameFamilyGame {
+                    Game {
                         id: 142057,
                         name: "Carcassonne Big Box".into(),
                     },
-                    GameFamilyGame {
+                    Game {
                         id: 141008,
                         name: "Carcassonne Big Box 2".into(),
                     },
@@ -222,11 +222,11 @@ mod tests {
                 thumbnail: "https://cf.geekdo-images.com/FFUKDbZw6d9mAKaL9U3ymg__thumb/img/o06DBHHSC9Yck1WmSkp-rK360QI=/fit-in/200x150/filters:strip_icc()/pic1446957.jpg".into(),
                 description: "This is the family of Settlers of Catan games, meant to include any game in the Game: Catan universe.\n\nA detailed overview is given on the Catan Series wiki.\n\n".into(),
                 games: vec![
-                    GameFamilyGame {
+                    Game {
                         id: 13,
                         name: "CATAN".into(),
                     },
-                    GameFamilyGame {
+                    Game {
                         id: 27710,
                         name: "Catan Dice Game".into(),
                     },

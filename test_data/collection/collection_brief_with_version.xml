@@ -1,0 +1,82 @@
+<items totalitems="46" termsofuse="https://boardgamegeek.com/xmlapi/termsofuse"
+    pubdate="Sat, 24 Aug 2024 14:40:05 +0000">
+    <item objecttype="thing" objectid="356510" subtype="boardgame" collid="118278786">
+        <name sortindex="1">Spirit Island: Feather & Flame</name>
+        <stats minplayers="1" maxplayers="4" minplaytime="90" maxplaytime="120" playingtime="120"
+            numowned="5071">
+            <rating value="N/A">
+                <average value="8.98038" />
+                <bayesaverage value="6.55157" />
+            </rating>
+        </stats>
+        <status own="1" prevowned="0" fortrade="0" want="0" wanttoplay="0" wanttobuy="0"
+            wishlist="0" preordered="0" lastmodified="2024-04-13 17:56:44" />
+    </item>
+    <item objecttype="thing" objectid="13" subtype="boardgame" collid="122520827">
+        <name sortindex="1">Колонизаторы</name>
+        <stats minplayers="3" maxplayers="4" minplaytime="60" maxplaytime="120" playingtime="120"
+            numowned="210387">
+            <rating value="N/A">
+                <average value="7.09836" />
+                <bayesaverage value="6.91963" />
+            </rating>
+        </stats>
+        <status own="0" prevowned="0" fortrade="0" want="0" wanttoplay="0" wanttobuy="0"
+            wishlist="1" wishlistpriority="3" preordered="0" lastmodified="2024-08-24 08:21:52" />
+        <version>
+            <item type="boardgameversion" id="712636">
+                <thumbnail>
+                    https://cf.geekdo-images.com/IfUVNbebRWbtQ_SlGxG6ZQ__thumb/img/E4EX1sbROpEXxte6IMx7cRgSL2E=/fit-in/200x150/filters:strip_icc()/pic8177684.jpg
+                </thumbnail>
+                <image>
+                    https://cf.geekdo-images.com/IfUVNbebRWbtQ_SlGxG6ZQ__original/img/DNNED1WasGboaJH8OWMoGm6Zg1k=/0x0/filters:format(jpeg)/pic8177684.jpg
+                </image>
+                <link type="boardgameversion" id="13" value="CATAN" inbound="true" />
+                <name type="primary" sortindex="1" value="Russian edition 2024" />
+                <link type="boardgamepublisher" id="18852" value="Hobby World" />
+                <link type="boardgameartist" id="11825" value="Michael Menzel" />
+                <yearpublished value="2024" />
+                <productcode value="915853" />
+                <width value="11.7323" />
+                <length value="11.7323" />
+                <depth value="2.79528" />
+                <weight value="2.7205" />
+                <link type="language" id="2202" value="Russian" />
+            </item>
+        </version>
+    </item>
+    <item objecttype="thing" objectid="352515" subtype="boardgame" collid="118278970">
+        <name sortindex="1">ナナ</name>
+        <stats minplayers="3" maxplayers="6" minplaytime="15" maxplaytime="15" playingtime="15"
+            numowned="8301">
+            <rating value="5">
+                <average value="7.31486" />
+                <bayesaverage value="6.64921" />
+            </rating>
+        </stats>
+        <status own="1" prevowned="0" fortrade="0" want="0" wanttoplay="0" wanttobuy="0"
+            wishlist="0" preordered="0" lastmodified="2024-04-14 09:47:13" />
+        <version>
+            <item type="boardgameversion" id="590616">
+                <thumbnail>
+                    https://cf.geekdo-images.com/rt5qzjbrXq7PgI9IaRekNA__thumb/img/HGNVOyEKBxZVl0Ry7YDwIcQ5vVc=/fit-in/200x150/filters:strip_icc()/pic7227031.jpg
+                </thumbnail>
+                <image>
+                    https://cf.geekdo-images.com/rt5qzjbrXq7PgI9IaRekNA__original/img/rh02vSdTIvg-oPr4ymQETCLUEjU=/0x0/filters:format(jpeg)/pic7227031.jpg
+                </image>
+                <link type="boardgameversion" id="352515" value="Trio" inbound="true" />
+                <name type="primary" sortindex="1" value="English/Japanese edition" />
+                <link type="boardgamepublisher" id="50472" value="Mob+ (Mob Plus)" />
+                <link type="boardgameartist" id="108040" value="別府さい (Sai Beppu)" />
+                <yearpublished value="2021" />
+                <productcode value="" />
+                <width value="0" />
+                <length value="0" />
+                <depth value="0" />
+                <weight value="0" />
+                <link type="language" id="2184" value="English" />
+                <link type="language" id="2194" value="Japanese" />
+            </item>
+        </version>
+    </item>
+</items>

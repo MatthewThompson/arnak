@@ -6,12 +6,12 @@ use serde::de::DeserializeOwned;
 use crate::api::BoardGameGeekApi;
 use crate::{
     Collection, CollectionItem, CollectionItemBrief, CollectionItemRatingBrief,
-    CollectionItemStatsBrief, GameType, Result, WishlistPriority,
+    CollectionItemStatsBrief, ItemType, Result, WishlistPriority,
 };
 
 /// Trait for a type that the collection endpoint can return. Allows us to get
 /// values for the mandatory query params for the different types.
-pub trait CollectionItemType<'a>: DeserializeOwned {
+pub trait CollectionType<'a>: DeserializeOwned {
     /// Returns the values for the mandatory query params. This ensures that
     /// for the brief type, the `brief` query param is always set to true, and
     /// vice versa.
@@ -22,7 +22,7 @@ pub trait CollectionItemType<'a>: DeserializeOwned {
     fn get_stats(&self) -> CollectionItemStatsBrief;
 }
 
-impl<'a> CollectionItemType<'a> for CollectionItemBrief {
+impl<'a> CollectionType<'a> for CollectionItemBrief {
     fn base_query(username: &'a str) -> BaseCollectionQuery<'a> {
         BaseCollectionQuery {
             username,
@@ -35,7 +35,7 @@ impl<'a> CollectionItemType<'a> for CollectionItemBrief {
     }
 }
 
-impl<'a> CollectionItemType<'a> for CollectionItem {
+impl<'a> CollectionType<'a> for CollectionItem {
     fn base_query(username: &'a str) -> BaseCollectionQuery<'a> {
         BaseCollectionQuery {
             username,
@@ -76,15 +76,19 @@ pub struct BaseCollectionQuery<'q> {
 /// If any are set to true then any excluded will not be returned.
 #[derive(Clone, Debug, Default)]
 pub struct CollectionQueryParams {
+    /// Filter collection to only return items of particular IDs.
+    item_ids: Vec<u64>,
     /// Include only results for this item type.
     ///
-    /// Note, if this is set to [GameType::BoardGame] then it will include both
+    /// Note, if this is set to [ItemType::BoardGame] then it will include both
     /// board games and expansions, but set the type of all of them to be
-    /// [GameType::BoardGame] in the results. Explicitly exclude
-    /// [GameType::BoardGameExpansion] to avoid this.
-    game_type: Option<GameType>,
+    /// [ItemType::BoardGame] in the results. Explicitly exclude
+    /// [ItemType::BoardGameExpansion] to avoid this.
+    item_type: Option<ItemType>,
     /// Exclude results for this item type.
-    exclude_game_type: Option<GameType>,
+    exclude_item_type: Option<ItemType>,
+    /// Include the version information for this item, if applicable.
+    include_version_info: Option<bool>,
     /// Include games the user owns if true, exclude if false.
     include_owned: Option<bool>,
     /// Include games the user previously owned if true, exclude if false.
@@ -130,7 +134,7 @@ pub struct CollectionQueryParams {
     /// Show private collection info. Only works when viewing your own
     /// collection and you are logged in.
     show_private: Option<bool>,
-    /// ID of a particular item in a collection.
+    /// ID of a particular game in a collection.
     collection_id: Option<u64>,
 }
 
@@ -140,17 +144,38 @@ impl CollectionQueryParams {
         Self::default()
     }
 
-    /// Sets the item_type field, so that only that type of item will be
-    /// returned.
-    pub fn game_type(mut self, game_type: GameType) -> Self {
-        self.game_type = Some(game_type);
+    /// Adds an ID to the list of item IDs to retrieve.
+    pub fn item_id(mut self, id: u64) -> Self {
+        self.item_ids.push(id);
         self
     }
 
-    /// Set the exclude_item_type field, so that that type of item will be
+    /// Adds a list of IDs to the list of item IDs to retrieve.
+    pub fn item_ids(mut self, ids: Vec<u64>) -> Self {
+        self.item_ids.extend(ids);
+        self
+    }
+
+    /// Sets the item_type field, so that only that type of game will be
+    /// returned.
+    pub fn item_type(mut self, item_type: ItemType) -> Self {
+        self.item_type = Some(item_type);
+        self
+    }
+
+    /// Set the exclude_item_type field, so that that type of game will be
     /// excluded from. the results.
-    pub fn exclude_game_type(mut self, exclude_game_type: GameType) -> Self {
-        self.exclude_game_type = Some(exclude_game_type);
+    pub fn exclude_item_type(mut self, exclude_item_type: ItemType) -> Self {
+        self.exclude_item_type = Some(exclude_item_type);
+        self
+    }
+
+    /// Sets the include_version_info field. If true the result will include version
+    /// info for the games that have it. For most games this will be empty still,
+    /// but it will be set for games which are an alternative or translated
+    /// version of an existing game.
+    pub fn include_version_info(mut self, include_version_info: bool) -> Self {
+        self.include_version_info = Some(include_version_info);
         self
     }
 
@@ -309,16 +334,18 @@ impl CollectionQueryParams {
         self
     }
 
+    // NOTE currently private until logging in can be done via the API.
     /// Sets the show_private field. If set then private information about
     /// the collection will be returned. Only works if the user is logged in
     /// and requesting their own collection.
-    pub fn show_private(mut self, show_private: bool) -> Self {
+    #[allow(dead_code)]
+    fn show_private(mut self, show_private: bool) -> Self {
         self.show_private = Some(show_private);
         self
     }
 
     /// Sets the collection_id field. If set then results will be filtered
-    /// to get the item with the specific collection ID.
+    /// to get the game with the specific collection ID.
     pub fn collection_id(mut self, collection_id: u64) -> Self {
         self.collection_id = Some(collection_id);
         self
@@ -353,20 +380,41 @@ impl<'a> CollectionQueryBuilder<'a> {
             true => query_params.push(("brief", "1".to_string())),
             false => query_params.push(("brief", "0".to_string())),
         }
-        match self.params.game_type {
-            Some(GameType::BoardGame) => query_params.push(("subtype", "boardgame".to_string())),
-            Some(GameType::BoardGameExpansion) => {
+
+        let id_list_string = self
+            .params
+            .item_ids
+            .iter()
+            .map(u64::to_string)
+            .collect::<Vec<String>>()
+            .join(",");
+        query_params.push(("id", id_list_string));
+
+        match self.params.item_type {
+            Some(ItemType::BoardGame) => query_params.push(("subtype", "boardgame".to_string())),
+            Some(ItemType::BoardGameExpansion) => {
                 query_params.push(("subtype", "boardgameexpansion".to_string()))
+            },
+            Some(ItemType::BoardGameAccessory) => {
+                query_params.push(("subtype", "boardgameaccessory".to_string()))
             },
             None => {},
         }
-        match self.params.exclude_game_type {
-            Some(GameType::BoardGame) => {
+        match self.params.exclude_item_type {
+            Some(ItemType::BoardGame) => {
                 query_params.push(("excludesubtype", "boardgame".to_string()))
             },
-            Some(GameType::BoardGameExpansion) => {
+            Some(ItemType::BoardGameExpansion) => {
                 query_params.push(("excludesubtype", "boardgameexpansion".to_string()))
             },
+            Some(ItemType::BoardGameAccessory) => {
+                query_params.push(("excludesubtype", "boardgameaccessory".to_string()))
+            },
+            None => {},
+        }
+        match self.params.include_version_info {
+            Some(true) => query_params.push(("version", "1".to_string())),
+            Some(false) => query_params.push(("version", "0".to_string())),
             None => {},
         }
         match self.params.include_owned {
@@ -430,7 +478,7 @@ impl<'a> CollectionQueryBuilder<'a> {
         if let Some(modified_since) = self.params.modified_since {
             query_params.push((
                 "modifiedsince",
-                modified_since.format("YY-MM-DD").to_string(),
+                modified_since.format("%y-%m-%d").to_string(),
             ));
         }
         match self.params.include_rated_by_user {
@@ -491,13 +539,13 @@ impl<'a> CollectionQueryBuilder<'a> {
 /// Collection endpoint of the API. Used for returning user's collections
 /// of games by their username. Filtering by [CollectionItemStatus], rating,
 /// recorded plays.
-pub struct CollectionApi<'api, T: CollectionItemType<'api>> {
+pub struct CollectionApi<'api, T: CollectionType<'api>> {
     pub(crate) api: &'api BoardGameGeekApi,
     endpoint: &'static str,
     type_marker: std::marker::PhantomData<T>,
 }
 
-impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
+impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
     pub(crate) fn new(api: &'api BoardGameGeekApi) -> Self {
         Self {
             api,
@@ -508,8 +556,21 @@ impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
 
     /// Get all games of all types in the user's collection.
     pub async fn get_all(&self, username: &'api str) -> Result<Collection<T>> {
-        let query_params = CollectionQueryParams::default();
+        let query_params = CollectionQueryParams::new();
         self.get_from_query(username, query_params).await
+    }
+
+    /// Get the user's board game accessory collection.
+    pub async fn get_accessory_collection(
+        &self,
+        username: &'api str,
+        query_params: CollectionQueryParams,
+    ) -> Result<Collection<T>> {
+        self.get_from_query(
+            username,
+            query_params.item_type(ItemType::BoardGameAccessory),
+        )
+        .await
     }
 
     /// Gets all the games that a given user owns.
@@ -535,8 +596,8 @@ impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
     ) -> Result<Collection<T>> {
         let mut collection = self.get_from_query(username, query_params).await?;
 
-        collection.games.retain(|item| {
-            let stats = item.get_stats();
+        collection.items.retain(|items| {
+            let stats = items.get_stats();
             *player_counts.start() <= stats.max_players && *player_counts.end() >= stats.min_players
         });
         Ok(collection)
@@ -553,8 +614,8 @@ impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
     ) -> Result<Collection<T>> {
         let mut collection = self.get_from_query(username, query_params).await?;
 
-        collection.games.retain(|item| {
-            let stats = item.get_stats();
+        collection.items.retain(|items| {
+            let stats = items.get_stats();
             player_count <= stats.max_players && player_count >= stats.min_players
         });
         Ok(collection)
@@ -580,8 +641,9 @@ mod tests {
 
     use super::*;
     use crate::{
-        CollectionItemRating, CollectionItemStats, CollectionItemStatus, GameFamilyRank,
-        GameFamilyType, RankValue,
+        CollectionItemRating, CollectionItemStats, CollectionItemStatus, Dimensions, Game,
+        GameArtist, GameFamilyRank, GameFamilyType, GamePublisher, GameVersion, ItemType, Language,
+        RankValue,
     };
 
     #[test]
@@ -619,13 +681,13 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.games.len(), 1);
+        assert_eq!(collection.items.len(), 1);
         assert_eq!(
-            collection.games[0],
+            collection.items[0],
             CollectionItemBrief {
                 id: 131835,
                 collection_id: 118278872,
-                item_type: GameType::BoardGame,
+                item_type: ItemType::BoardGame,
                 name: "Boss Monster: The Dungeon Building Card Game".to_string(),
                 status: CollectionItemStatus {
                     own: true,
@@ -652,6 +714,7 @@ mod tests {
                         bayesian_average: 6.08972,
                     },
                 },
+                version: None,
             },
             "returned collection game doesn't match expected",
         );
@@ -687,7 +750,7 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.games.len(), 39);
+        assert_eq!(collection.items.len(), 39);
     }
 
     #[tokio::test]
@@ -720,13 +783,13 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.games.len(), 1);
+        assert_eq!(collection.items.len(), 1);
         assert_eq!(
-            collection.games[0],
+            collection.items[0],
             CollectionItem {
                 id: 131835,
                 collection_id: 118278872,
-                item_type: GameType::BoardGame,
+                item_type: ItemType::BoardGame,
                 name: "Boss Monster: The Dungeon Building Card Game".to_string(),
                 year_published: 2013,
                 image: "https://cf.geekdo-images.com/VBwaHyx-NWL3VLcCWKRA0w__original/img/izAmJ81QELl5DoK3y2bzJw55lhA=/0x0/filters:format(jpeg)/pic1732644.jpg".to_string(),
@@ -778,6 +841,7 @@ mod tests {
                         ],
                     },
                 },
+                version: None,
             },
             "returned collection game doesn't match expected",
         );
@@ -813,13 +877,13 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.games.len(), 1);
+        assert_eq!(collection.items.len(), 1);
         assert_eq!(
-            collection.games[0],
+            collection.items[0],
             CollectionItem {
                 id: 177736,
                 collection_id: 118332974,
-                item_type: GameType::BoardGame,
+                item_type: ItemType::BoardGame,
                 name: "A Feast for Odin".to_string(),
                 year_published: 2016,
                 image: "https://domain/img.jpg".to_string(),
@@ -871,8 +935,217 @@ mod tests {
                         ],
                     },
                 },
+                version: None,
             },
             "returned collection game doesn't match expected",
+        );
+    }
+
+    #[tokio::test]
+    async fn get_version() {
+        let mut server = mockito::Server::new_async().await;
+        let api = BoardGameGeekApi {
+            base_url: server.url(),
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "somename".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("brief".into(), "1".into()),
+                Matcher::UrlEncoded("version".into(), "1".into()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/collection/collection_brief_with_version.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let query = CollectionQueryParams::new().include_version_info(true);
+
+        let collection = api
+            .collection_brief()
+            .get_from_query("somename", query)
+            .await;
+        mock.assert_async().await;
+
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+
+        assert_eq!(collection.items.len(), 3);
+        assert_eq!(
+            collection.items[0],
+            CollectionItemBrief {
+                id: 356510,
+                collection_id: 118278786,
+                item_type: ItemType::BoardGame,
+                name: "Spirit Island: Feather & Flame".to_string(),
+                status: CollectionItemStatus {
+                    own: true,
+                    previously_owned: false,
+                    for_trade: false,
+                    want_in_trade: false,
+                    want_to_play: false,
+                    want_to_buy: false,
+                    wishlist: false,
+                    wishlist_priority: None,
+                    pre_ordered: false,
+                    last_modified: Utc.with_ymd_and_hms(2024, 4, 13, 17, 56, 44).unwrap(),
+                },
+                stats: CollectionItemStatsBrief {
+                    min_players: 1,
+                    max_players: 4,
+                    min_playtime: Duration::minutes(90),
+                    max_playtime: Duration::minutes(120),
+                    playing_time: Duration::minutes(120),
+                    owned_by: 5071,
+                    rating: CollectionItemRatingBrief {
+                        user_rating: None,
+                        average: 8.98038,
+                        bayesian_average: 6.55157,
+                    },
+                },
+                version: None,
+            },
+            "returned collection game with no version doesn't match expected",
+        );
+        assert_eq!(
+            collection.items[1],
+            CollectionItemBrief {
+                id: 13,
+                collection_id: 122520827,
+                item_type: ItemType::BoardGame,
+                name: "Колонизаторы".to_string(),
+                status: CollectionItemStatus {
+                    own: false,
+                    previously_owned: false,
+                    for_trade: false,
+                    want_in_trade: false,
+                    want_to_play: false,
+                    want_to_buy: false,
+                    wishlist: true,
+                    wishlist_priority: Some(WishlistPriority::LikeToHave),
+                    pre_ordered: false,
+                    last_modified: Utc.with_ymd_and_hms(2024, 8, 24, 8, 21, 52).unwrap(),
+                },
+                stats: CollectionItemStatsBrief {
+                    min_players: 3,
+                    max_players: 4,
+                    min_playtime: Duration::minutes(60),
+                    max_playtime: Duration::minutes(120),
+                    playing_time: Duration::minutes(120),
+                    owned_by: 210387,
+                    rating: CollectionItemRatingBrief {
+                        user_rating: None,
+                        average: 7.09836,
+                        bayesian_average: 6.91963,
+                    },
+                },
+                version: Some(GameVersion {
+                    id: 712636,
+                    name: "Russian edition 2024".into(),
+                    alternate_names: vec![],
+                    year_published: 2024,
+                    image: "https://cf.geekdo-images.com/IfUVNbebRWbtQ_SlGxG6ZQ__original/img/DNNED1WasGboaJH8OWMoGm6Zg1k=/0x0/filters:format(jpeg)/pic8177684.jpg".into(),
+                    thumbnail: "https://cf.geekdo-images.com/IfUVNbebRWbtQ_SlGxG6ZQ__thumb/img/E4EX1sbROpEXxte6IMx7cRgSL2E=/fit-in/200x150/filters:strip_icc()/pic8177684.jpg".into(),
+                    original_game: Game {
+                        id: 13,
+                        name: "CATAN".into(),
+                    },
+                    publishers: vec![GamePublisher {
+                        id: 18852,
+                        name: "Hobby World".into(),
+                    }],
+                    artists: vec![GameArtist {
+                        id: 11825,
+                        name: "Michael Menzel".into(),
+                    }],
+                    languages: vec![Language {
+                        id: 2202,
+                        name: "Russian".into(),
+                    }],
+                    dimensions: Some(Dimensions {
+                        width: 11.7323,
+                        length: 11.7323,
+                        depth: 2.79528,
+                    }),
+                    weight: Some(2.7205),
+                    product_code: Some("915853".into()),
+                }),
+            },
+            "returned collection game with version doesn't match expected",
+        );
+        assert_eq!(
+            collection.items[2],
+            CollectionItemBrief {
+                id: 352515,
+                collection_id: 118278970,
+                item_type: ItemType::BoardGame,
+                name: "ナナ".to_string(),
+                status: CollectionItemStatus {
+                    own: true,
+                    previously_owned: false,
+                    for_trade: false,
+                    want_in_trade: false,
+                    want_to_play: false,
+                    want_to_buy: false,
+                    wishlist: false,
+                    wishlist_priority: None,
+                    pre_ordered: false,
+                    last_modified: Utc.with_ymd_and_hms(2024, 4, 14, 9, 47, 13).unwrap(),
+                },
+                stats: CollectionItemStatsBrief {
+                    min_players: 3,
+                    max_players: 6,
+                    min_playtime: Duration::minutes(15),
+                    max_playtime: Duration::minutes(15),
+                    playing_time: Duration::minutes(15),
+                    owned_by: 8301,
+                    rating: CollectionItemRatingBrief {
+                        user_rating: Some(5.0),
+                        average: 7.31486,
+                        bayesian_average: 6.64921,
+                    },
+                },
+                version: Some(GameVersion {
+                    id: 590616,
+                    name: "English/Japanese edition".into(),
+                    alternate_names: vec![],
+                    year_published: 2021,
+                    image: "https://cf.geekdo-images.com/rt5qzjbrXq7PgI9IaRekNA__original/img/rh02vSdTIvg-oPr4ymQETCLUEjU=/0x0/filters:format(jpeg)/pic7227031.jpg".into(),
+                    thumbnail: "https://cf.geekdo-images.com/rt5qzjbrXq7PgI9IaRekNA__thumb/img/HGNVOyEKBxZVl0Ry7YDwIcQ5vVc=/fit-in/200x150/filters:strip_icc()/pic7227031.jpg".into(),
+                    original_game: Game {
+                        id: 352515,
+                        name: "Trio".into(),
+                    },
+                    publishers: vec![GamePublisher {
+                        id: 50472,
+                        name: "Mob+ (Mob Plus)".into(),
+                    }],
+                    artists: vec![GameArtist {
+                        id: 108040,
+                        name: "別府さい (Sai Beppu)".into(),
+                    }],
+                    languages: vec![
+                        Language {
+                            id: 2184,
+                            name: "English".into(),
+                        },
+                        Language {
+                            id: 2194,
+                            name: "Japanese".into(),
+                        },
+                    ],
+                    dimensions: None,
+                    weight: None,
+                    product_code: None,
+                }),
+            },
+            "returned collection game with version doesn't match expected",
         );
     }
 
@@ -887,14 +1160,40 @@ mod tests {
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
+                // This user's collection
                 Matcher::UrlEncoded("username".into(), "someone".into()),
+                // Which info to include for each item
                 Matcher::UrlEncoded("stats".into(), "1".into()),
                 Matcher::UrlEncoded("brief".into(), "0".into()),
-                Matcher::UrlEncoded("hasparts".into(), "0".into()),
+                Matcher::UrlEncoded("version".into(), "1".into()),
+                // Status filtering
                 Matcher::UrlEncoded("own".into(), "1".into()),
-                Matcher::UrlEncoded("minplays".into(), "14".into()),
+                Matcher::UrlEncoded("trade".into(), "0".into()),
+                Matcher::UrlEncoded("want".into(), "1".into()),
                 Matcher::UrlEncoded("wishlist".into(), "1".into()),
                 Matcher::UrlEncoded("wishlistpriority".into(), "5".into()),
+                Matcher::UrlEncoded("preordered".into(), "1".into()),
+                Matcher::UrlEncoded("wanttoplay".into(), "0".into()),
+                Matcher::UrlEncoded("wanttobuy".into(), "0".into()),
+                Matcher::UrlEncoded("prevowned".into(), "1".into()),
+                // Filtering
+                Matcher::UrlEncoded("subtype".into(), "boardgameexpansion".into()),
+                Matcher::UrlEncoded("excludesubtype".into(), "boardgame".into()),
+                Matcher::UrlEncoded("id".into(), "13,3000,1".into()),
+                Matcher::UrlEncoded("rated".into(), "1".into()),
+                Matcher::UrlEncoded("played".into(), "1".into()),
+                Matcher::UrlEncoded("comment".into(), "1".into()),
+                Matcher::UrlEncoded("hasparts".into(), "0".into()),
+                Matcher::UrlEncoded("wantparts".into(), "1".into()),
+                Matcher::UrlEncoded("minrating".into(), "3.5".into()),
+                Matcher::UrlEncoded("rating".into(), "9".into()),
+                Matcher::UrlEncoded("minbggrating".into(), "5.5".into()),
+                Matcher::UrlEncoded("bggrating".into(), "8.7".into()),
+                Matcher::UrlEncoded("minplays".into(), "2".into()),
+                Matcher::UrlEncoded("maxplays".into(), "450".into()),
+                Matcher::UrlEncoded("showprivate".into(), "1".into()),
+                Matcher::UrlEncoded("collid".into(), "345".into()),
+                Matcher::UrlEncoded("modifiedsince".into(), "24-05-17".into()),
             ]))
             .with_status(200)
             .with_body(
@@ -905,11 +1204,39 @@ mod tests {
             .await;
 
         let query = CollectionQueryParams::new()
-            .has_parts(false)
+            .include_version_info(true)
             .include_owned(true)
-            .min_plays(14)
+            .include_for_trade(false)
+            .include_want_in_trade(true)
             .include_wishlist(true)
-            .wishlist_priority(WishlistPriority::DontBuyThis);
+            .wishlist_priority(WishlistPriority::DontBuyThis)
+            .include_preordered(true)
+            .include_want_to_play(false)
+            .include_want_to_buy(false)
+            .include_previously_owned(true)
+            .item_type(ItemType::BoardGameExpansion)
+            .exclude_item_type(ItemType::BoardGame)
+            .item_id(13)
+            .item_ids(vec![3000, 1])
+            .include_rated_by_user(true)
+            .include_played_by_user(true)
+            .include_commented(true)
+            .has_parts(false)
+            .want_parts(true)
+            .min_rating(3.5)
+            .max_rating(9.0)
+            .min_bgg_rating(5.5)
+            .max_bgg_rating(8.7)
+            .min_plays(2)
+            .max_plays(450)
+            .show_private(true)
+            .collection_id(345)
+            .modified_since(
+                Utc.with_ymd_and_hms(2024, 5, 17, 0, 0, 0)
+                    .unwrap()
+                    .naive_utc()
+                    .date(),
+            );
 
         let _ = api.collection().get_from_query("someone", query).await;
         mock.assert_async().await;
@@ -947,13 +1274,13 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.games.len(), 1);
+        assert_eq!(collection.items.len(), 1);
         assert_eq!(
-            collection.games[0],
+            collection.items[0],
             CollectionItem {
                 id: 2281,
                 collection_id: 118280658,
-                item_type: GameType::BoardGame,
+                item_type: ItemType::BoardGame,
                 name: "Pictionary".to_string(),
                 year_published: 1985,
                 image: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__original/img/YRJAlLzkxMuJHVPsdnBLNFpoODA=/0x0/filters:format(png)/pic5147022.png".to_string(),
@@ -1005,6 +1332,7 @@ mod tests {
                         ],
                     }
                 },
+                version: None,
             },
             "returned collection game doesn't match expected",
         );
@@ -1035,7 +1363,7 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.games.len(), 37);
+        assert_eq!(collection.items.len(), 37);
 
         // Looking for a game that supports 17 players, not in the collection. Nothing
         // should be returned.
@@ -1063,7 +1391,7 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.games.len(), 0);
+        assert_eq!(collection.items.len(), 0);
     }
 
     #[tokio::test]
@@ -1098,13 +1426,13 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.games.len(), 1);
+        assert_eq!(collection.items.len(), 1);
         assert_eq!(
-            collection.games[0],
+            collection.items[0],
             CollectionItem {
                 id: 2281,
                 collection_id: 118280658,
-                item_type: GameType::BoardGame,
+                item_type: ItemType::BoardGame,
                 name: "Pictionary".to_string(),
                 year_published: 1985,
                 image: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__original/img/YRJAlLzkxMuJHVPsdnBLNFpoODA=/0x0/filters:format(png)/pic5147022.png".to_string(),
@@ -1156,6 +1484,7 @@ mod tests {
                         ],
                     }
                 },
+                version: None,
             },
             "returned collection game doesn't match expected",
         );
@@ -1184,9 +1513,9 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.games.len(), 30);
-        for item in collection.games {
-            assert!(item.stats.min_players <= 2 && item.stats.max_players >= 2)
+        assert_eq!(collection.items.len(), 30);
+        for game in collection.items {
+            assert!(game.stats.min_players <= 2 && game.stats.max_players >= 2)
         }
 
         // Looking for a game that supports 17 players, not in the collection. Nothing
@@ -1215,6 +1544,148 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
-        assert_eq!(collection.games.len(), 0);
+        assert_eq!(collection.items.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn get_accessory_collection() {
+        let mut server = mockito::Server::new_async().await;
+        let api = BoardGameGeekApi {
+            base_url: server.url(),
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "somename".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
+                Matcher::UrlEncoded("subtype".into(), "boardgameaccessory".into()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/collection/collection_accessories.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let collection = api
+            .collection()
+            .get_accessory_collection("somename", CollectionQueryParams::new())
+            .await;
+        mock.assert_async().await;
+
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+
+        assert_eq!(collection.items.len(), 2);
+        assert_eq!(
+            collection.items[0],
+            CollectionItem {
+                id: 142974,
+                collection_id: 122439219,
+                item_type: ItemType::BoardGameAccessory,
+                name: "12 Realms: Buildings Pack".to_string(),
+                year_published: 2013,
+                image: "https://cf.geekdo-images.com/5fKeQe2FG2FR1W3maIj1Gw__original/img/vWskbRA9FmoLrFghnPi_5RGVMec=/0x0/filters:format(jpeg)/pic2522878.jpg".to_string(),
+                thumbnail: "https://cf.geekdo-images.com/5fKeQe2FG2FR1W3maIj1Gw__thumb/img/Fu2YriGdZVDzf8sJyvnWADloJPU=/fit-in/200x150/filters:strip_icc()/pic2522878.jpg".to_string(),
+                status: CollectionItemStatus {
+                    own: true,
+                    previously_owned: false,
+                    for_trade: false,
+                    want_in_trade: false,
+                    want_to_play: false,
+                    want_to_buy: false,
+                    wishlist: false,
+                    wishlist_priority: None,
+                    pre_ordered: false,
+                    last_modified: Utc.with_ymd_and_hms(2024, 8, 21, 16, 47, 5).unwrap(),
+                },
+                number_of_plays: 0,
+                stats: CollectionItemStats {
+                    min_players: 0,
+                    max_players: 0,
+                    min_playtime: Duration::minutes(0),
+                    max_playtime: Duration::minutes(0),
+                    playing_time: Duration::minutes(0),
+                    owned_by: 281,
+                    rating: CollectionItemRating {
+                        user_rating: None,
+                        users_rated: 38,
+                        average: 6.51053,
+                        bayesian_average: 6.10014,
+                        standard_deviation: 1.89983,
+                        median: 0.0,
+                        ranks: vec![
+                            GameFamilyRank {
+                                game_family_type: GameFamilyType::Subtype,
+                                id: 62,
+                                name: "boardgameaccessory".into(),
+                                friendly_name: "Accessory Rank".into(),
+                                value: RankValue::Ranked(749),
+                                bayesian_average: 6.10014,
+                            },
+                        ],
+                    },
+                },
+                version: None,
+            },
+            "returned collection game doesn't match expected",
+        );
+        assert_eq!(
+            collection.items[1],
+            CollectionItem {
+                id: 22510,
+                collection_id: 122524875,
+                item_type: ItemType::BoardGameAccessory,
+                name: "Wings of War: Miniatures".to_string(),
+                year_published: 2007,
+                image: "https://cf.geekdo-images.com/qGV1v8Ye0FKTxZNCF1ZINw__original/img/49pxPDdA4CHNFZOMQM1UTM8FNL4=/0x0/filters:format(jpeg)/pic830522.jpg".to_string(),
+                thumbnail: "https://cf.geekdo-images.com/qGV1v8Ye0FKTxZNCF1ZINw__thumb/img/vgAzbZuLXNSawia3yp4BAPT_2is=/fit-in/200x150/filters:strip_icc()/pic830522.jpg".to_string(),
+                status: CollectionItemStatus {
+                    own: false,
+                    previously_owned: false,
+                    for_trade: false,
+                    want_in_trade: false,
+                    want_to_play: true,
+                    want_to_buy: false,
+                    wishlist: false,
+                    wishlist_priority: None,
+                    pre_ordered: false,
+                    last_modified: Utc.with_ymd_and_hms(2024, 8, 24, 11, 9, 37).unwrap(),
+                },
+                number_of_plays: 0,
+                stats: CollectionItemStats {
+                    min_players: 0,
+                    max_players: 0,
+                    min_playtime: Duration::minutes(0),
+                    max_playtime: Duration::minutes(0),
+                    playing_time: Duration::minutes(0),
+                    owned_by: 1618,
+                    rating: CollectionItemRating {
+                        user_rating: None,
+                        users_rated: 893,
+                        average: 7.87269,
+                        bayesian_average: 7.55507,
+                        standard_deviation: 1.30371,
+                        median: 0.0,
+                        ranks: vec![
+                            GameFamilyRank {
+                                game_family_type: GameFamilyType::Subtype,
+                                id: 62,
+                                name: "boardgameaccessory".into(),
+                                friendly_name: "Accessory Rank".into(),
+                                value: RankValue::Ranked(22),
+                                bayesian_average: 7.55507,
+                            },
+                        ],
+                    },
+                },
+                version: None,
+            },
+            "returned collection game doesn't match expected",
+        );
     }
 }

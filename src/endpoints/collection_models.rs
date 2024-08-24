@@ -3,107 +3,115 @@ use core::fmt;
 use chrono::{DateTime, Duration, Utc};
 use serde::Deserialize;
 
+use super::{Dimensions, Game, GameArtist, GamePublisher, ItemType, Language};
 use crate::utils::{
-    date_deserializer, deserialize_1_0_bool, deserialize_minutes, XmlFloatValue, XmlIntValue,
+    date_deserializer, deserialize_1_0_bool, deserialize_minutes, LinkType, XmlFloatValue,
+    XmlIntValue, XmlLink, XmlName, XmlSignedValue, XmlStringValue,
 };
+use crate::NameType;
 
 /// A user's collection on boardgamegeek.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Collection<T> {
-    /// List of games and expansions in the user's collection. Each item
+    /// List of games, expansions, and accessories in the user's collection. Each game
     /// is not necessarily owned but can be preowned, wishlisted etc.
+    ///
+    /// Note that accessories and games can never be returned together in one collection,
+    /// but games and game expansions can.
     #[serde(rename = "$value")]
-    pub games: Vec<T>,
+    pub items: Vec<T>,
 }
 
-/// An item in a collection, in brief form. With only the name, status, type,
-/// and IDs.
+/// An item in a collection, in brief form. With the name, status, type,
+/// and IDs, also a brief version of the game stats.
+///
+/// If requested and applicable, version information is also included,
+/// this will be the same information as is included in the full version.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemBrief {
-    /// The ID of the game.
+    /// The ID of the item.
     #[serde(rename = "objectid")]
     pub id: u64,
     /// The collection ID of the object.
     #[serde(rename = "collid")]
     pub collection_id: u64,
-    /// The type of game, which will either be boardgame or expansion.
+    /// The type of collection item, which will either be boardgame, expansion, or accessory.
     #[serde(rename = "subtype")]
-    pub item_type: GameType,
-    /// The name of the game.
+    pub item_type: ItemType,
+    /// The name of the item.
     pub name: String,
-    /// Status of the game in this collection, such as own, preowned, wishlist.
+    /// Status of the item in this collection, such as own, preowned, wishlist.
     pub status: CollectionItemStatus,
     /// Game stats such as number of players.
     pub stats: CollectionItemStatsBrief,
+    /// Information about this version of the game. Only included if version
+    /// information is requested and also if the game is an alternate
+    /// version of another game.
+    #[serde(default, deserialize_with = "deserialize_version_list")]
+    pub version: Option<GameVersion>,
 }
 
-/// A game or game expansion in a collection.
+/// A game, game expansion, or game accessory in a collection.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItem {
-    /// The ID of the game.
+    /// The ID of the item.
     #[serde(rename = "objectid")]
     pub id: u64,
     /// The collection ID of the object.
     #[serde(rename = "collid")]
     pub collection_id: u64,
-    /// The type of game, which will either be boardgame or expansion.
+    /// The type of collection item, which will either be boardgame, expansion, or accessory.
     #[serde(rename = "subtype")]
-    pub item_type: GameType,
-    /// The name of the game.
+    pub item_type: ItemType,
+    /// The name of the item.
     pub name: String,
-    /// The year the game was first published.
+    /// The year the item was first published.
     #[serde(rename = "yearpublished")]
     pub year_published: i64,
-    /// A link to a jpg image for the game.
+    /// A link to a jpg image for the item.
     pub image: String,
-    /// A link to a jpg thumbnail image for the game.
+    /// A link to a jpg thumbnail image for the item.
     pub thumbnail: String,
-    /// Status of the game in this collection, such as own, preowned, wishlist.
+    /// Status of the item in this collection, such as own, preowned, wishlist.
     pub status: CollectionItemStatus,
     /// The number of times the user has played the game.
     #[serde(rename = "numplays")]
     pub number_of_plays: u64,
     /// Game stats such as number of players.
     pub stats: CollectionItemStats,
+    /// Information about this version of the game. Only included if version
+    /// information is requested and also if the game is an alternate
+    /// version of another game.
+    #[serde(default, deserialize_with = "deserialize_version_list")]
+    pub version: Option<GameVersion>,
 }
 
-/// The type of game, board game or expansion.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
-pub enum GameType {
-    /// A type of game in a collection, a board game, or an expansion.
-    #[serde(rename = "boardgame")]
-    BoardGame,
-    /// A board game expansion.
-    #[serde(rename = "boardgameexpansion")]
-    BoardGameExpansion,
-}
-
-/// The status of the game in the user's collection, such as preowned or
+/// The status of the item in the user's collection, such as preowned or
 /// wishlist. Can be any or none of them.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemStatus {
-    /// User owns the game.
+    /// User owns the item.
     #[serde(deserialize_with = "deserialize_1_0_bool")]
     pub own: bool,
-    /// User has previously owned the game.
+    /// User has previously owned the item.
     #[serde(rename = "prevowned", deserialize_with = "deserialize_1_0_bool")]
     pub previously_owned: bool,
-    /// User wants to trade away the game.
+    /// User wants to trade away the item.
     #[serde(rename = "fortrade", deserialize_with = "deserialize_1_0_bool")]
     pub for_trade: bool,
-    /// User wants to receive the game in a trade.
+    /// User wants to receive the item in a trade.
     #[serde(rename = "want", deserialize_with = "deserialize_1_0_bool")]
     pub want_in_trade: bool,
-    /// User wants to play the game.
+    /// User wants to play the item.
     #[serde(rename = "wanttoplay", deserialize_with = "deserialize_1_0_bool")]
     pub want_to_play: bool,
-    /// User wants to buy the game.
+    /// User wants to buy the item.
     #[serde(rename = "wanttobuy", deserialize_with = "deserialize_1_0_bool")]
     pub want_to_buy: bool,
-    /// User pre-ordered the game.
+    /// User pre-ordered the item.
     #[serde(rename = "preordered", deserialize_with = "deserialize_1_0_bool")]
     pub pre_ordered: bool,
-    /// User has the game on their wishlist.
+    /// User has the item on their wishlist.
     #[serde(deserialize_with = "deserialize_1_0_bool")]
     pub wishlist: bool,
     /// The priority of the wishlist.
@@ -114,7 +122,7 @@ pub struct CollectionItemStatus {
     pub last_modified: DateTime<Utc>,
 }
 
-/// The status of the game in the user's collection, such as preowned or
+/// The status of the item in the user's collection, such as preowned or
 /// wishlist. Can be any or none of them.
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum WishlistPriority {
@@ -147,24 +155,349 @@ impl<'de> Deserialize<'de> for WishlistPriority {
     }
 }
 
+/// GameVersion is information about a game which is a version or
+/// reimplementation of another game, including the link to the
+/// original. It is not the same as an expansion for a game.
+#[derive(Clone, Debug, PartialEq)]
+pub struct GameVersion {
+    /// The ID of this game.
+    pub id: u64,
+    /// The name of the game.
+    pub name: String,
+    /// A list of alternate names for the game.
+    pub alternate_names: Vec<String>,
+    /// The year the game was first published.
+    pub year_published: i64,
+    /// A link to a jpg image for the game.
+    pub image: String,
+    /// A link to a jpg thumbnail image for the game.
+    pub thumbnail: String,
+    /// The name and ID of the game this version is based off of.
+    pub original_game: Game,
+    /// List of publishers for this game.
+    pub publishers: Vec<GamePublisher>,
+    /// List of game artists.
+    pub artists: Vec<GameArtist>,
+    /// Lists of languages that this version of the game supports.
+    pub languages: Vec<Language>,
+    /// The dimensions of the game, in inches, if included.
+    pub dimensions: Option<Dimensions>,
+    /// The weight of the game, in pounds, if included.
+    pub weight: Option<f64>,
+    /// Product code for the game, if included.
+    pub product_code: Option<String>,
+}
+
+// A user's collection on boardgamegeek.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+struct VersionsXml {
+    // List of versions, each in an XML tag called `item`, within an outer
+    // `version`. We use this intermediary type to get out just the first,
+    // since we only expect 1.
+    #[serde(rename = "$value")]
+    versions: Vec<GameVersion>,
+}
+
+pub(crate) fn deserialize_version_list<'de, D>(
+    deserializer: D,
+) -> Result<Option<GameVersion>, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    // If the tag is missing the None case is already handled by the `#serde[(default)]` on
+    // the type. If this deserialize returns an error it should be propagated.
+    let mut versions: VersionsXml = serde::de::Deserialize::deserialize(deserializer)?;
+
+    match versions.versions.len() {
+        0 => Err(serde::de::Error::custom(format!(
+            "empty version list found for game ID {}, expected \"1\"",
+            versions.versions[0].id,
+        ))),
+        1 => Ok(Some(versions.versions.remove(0))),
+        len => Err(serde::de::Error::custom(format!(
+            "invalid number of versions found for game ID {}, expected \"1\", but got {}",
+            versions.versions[0].id, len,
+        ))),
+    }
+}
+
+impl<'de> Deserialize<'de> for GameVersion {
+    fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        #[serde(field_identifier, rename_all = "lowercase")]
+        enum Field {
+            Id,
+            Name,
+            Image,
+            Thumbnail,
+            YearPublished,
+            ProductCode,
+            Width,
+            Length,
+            Depth,
+            Weight,
+            // Game original version, publisher, artist, are each in an individual XML tag called
+            // `link`
+            Link,
+            Type,
+        }
+
+        struct GameVersionVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for GameVersionVisitor {
+            type Value = GameVersion;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("a string containing the XML for game version information.")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                let mut id = None;
+                let mut name = None;
+                let mut alternate_names = vec![];
+                let mut publishers = vec![];
+                let mut artists = vec![];
+                let mut languages = vec![];
+                let mut year_published = None;
+                let mut image = None;
+                let mut thumbnail = None;
+                let mut original_game = None;
+                let mut width = None;
+                let mut length = None;
+                let mut depth = None;
+                let mut weight = None;
+                let mut product_code = None;
+
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::Id => {
+                            if id.is_some() {
+                                return Err(serde::de::Error::duplicate_field("id"));
+                            }
+                            id = Some(map.next_value()?);
+                        },
+                        Field::Name => {
+                            let name_xml: XmlName = map.next_value()?;
+                            match name_xml.name_type {
+                                NameType::Primary => {
+                                    if name.is_some() {
+                                        return Err(serde::de::Error::duplicate_field(
+                                            "name type=\"primary\"",
+                                        ));
+                                    }
+                                    name = Some(name_xml.value);
+                                },
+                                NameType::Alternate => {
+                                    alternate_names.push(name_xml.value);
+                                },
+                            }
+                        },
+                        Field::Image => {
+                            if image.is_some() {
+                                return Err(serde::de::Error::duplicate_field("image"));
+                            }
+                            image = Some(map.next_value()?);
+                        },
+                        Field::Thumbnail => {
+                            if thumbnail.is_some() {
+                                return Err(serde::de::Error::duplicate_field("thumbnail"));
+                            }
+                            thumbnail = Some(map.next_value()?);
+                        },
+                        Field::Link => {
+                            let link: XmlLink = map.next_value()?;
+                            match link.link_type {
+                                LinkType::BoardGameVersion => {
+                                    if original_game.is_some() {
+                                        return Err(serde::de::Error::duplicate_field(
+                                            "link with type \"boardgameversion\"",
+                                        ));
+                                    }
+                                    original_game = Some(Game {
+                                        id: link.id,
+                                        name: link.value,
+                                    });
+                                },
+                                LinkType::BoardGamePublisher => {
+                                    publishers.push(GamePublisher {
+                                        id: link.id,
+                                        name: link.value,
+                                    });
+                                },
+                                LinkType::BoardGameArtist => {
+                                    artists.push(GameArtist {
+                                        id: link.id,
+                                        name: link.value,
+                                    });
+                                },
+                                LinkType::Language => {
+                                    languages.push(Language {
+                                        id: link.id,
+                                        name: link.value,
+                                    });
+                                },
+                                link_type => {
+                                    return Err(serde::de::Error::custom(format!(
+                                        "found unexpected \"{:?}\" link in version",
+                                        link_type
+                                    )));
+                                },
+                            }
+                        },
+                        Field::Width => {
+                            if width.is_some() {
+                                return Err(serde::de::Error::duplicate_field("width"));
+                            }
+                            let width_xml: XmlFloatValue = map.next_value()?;
+                            if width_xml.value == 0.0 {
+                                width = Some(None)
+                            } else {
+                                width = Some(Some(width_xml.value))
+                            }
+                        },
+                        Field::Depth => {
+                            if depth.is_some() {
+                                return Err(serde::de::Error::duplicate_field("depth"));
+                            }
+                            let depth_xml: XmlFloatValue = map.next_value()?;
+                            if depth_xml.value == 0.0 {
+                                depth = Some(None)
+                            } else {
+                                depth = Some(Some(depth_xml.value))
+                            }
+                        },
+                        Field::Length => {
+                            if length.is_some() {
+                                return Err(serde::de::Error::duplicate_field("length"));
+                            }
+                            let length_xml: XmlFloatValue = map.next_value()?;
+                            if length_xml.value == 0.0 {
+                                length = Some(None)
+                            } else {
+                                length = Some(Some(length_xml.value))
+                            }
+                        },
+                        Field::Weight => {
+                            if weight.is_some() {
+                                return Err(serde::de::Error::duplicate_field("weight"));
+                            }
+                            let weight_xml: XmlFloatValue = map.next_value()?;
+                            if weight_xml.value == 0.0 {
+                                weight = Some(None)
+                            } else {
+                                weight = Some(Some(weight_xml.value));
+                            }
+                        },
+                        Field::ProductCode => {
+                            if product_code.is_some() {
+                                return Err(serde::de::Error::duplicate_field("product_code"));
+                            }
+                            let product_code_xml: XmlStringValue = map.next_value()?;
+                            if product_code_xml.value.is_empty() {
+                                product_code = Some(None);
+                            } else {
+                                product_code = Some(Some(product_code_xml.value));
+                            }
+                        },
+                        Field::YearPublished => {
+                            if year_published.is_some() {
+                                return Err(serde::de::Error::duplicate_field("yearpublished"));
+                            }
+                            let year_published_xml: XmlSignedValue = map.next_value()?;
+                            year_published = Some(year_published_xml.value);
+                        },
+                        Field::Type => {
+                            // Type is fixed at "boardgameversion", even for the list of games
+                            // contained so we don't add it. But we need
+                            // to consume the value.
+                            let _: String = map.next_value()?;
+                        },
+                    }
+                }
+                let id = id.ok_or_else(|| serde::de::Error::missing_field("id"))?;
+                let name = name.ok_or_else(|| serde::de::Error::missing_field("name"))?;
+                let year_published = year_published
+                    .ok_or_else(|| serde::de::Error::missing_field("yearpublished"))?;
+                let image = image.ok_or_else(|| serde::de::Error::missing_field("image"))?;
+                let thumbnail =
+                    thumbnail.ok_or_else(|| serde::de::Error::missing_field("thumbnail"))?;
+                let original_game = original_game.ok_or_else(|| {
+                    serde::de::Error::missing_field("link with type \"boardgameversion\"")
+                })?;
+                let width = width.ok_or_else(|| serde::de::Error::missing_field("width"))?;
+                let length = length.ok_or_else(|| serde::de::Error::missing_field("length"))?;
+                let depth = depth.ok_or_else(|| serde::de::Error::missing_field("depth"))?;
+                let weight = weight.ok_or_else(|| serde::de::Error::missing_field("weight"))?;
+                let product_code =
+                    product_code.ok_or_else(|| serde::de::Error::missing_field("productcode"))?;
+
+                let dimensions;
+                if let (Some(width), Some(length), Some(depth)) = (width, length, depth) {
+                    dimensions = Some(Dimensions {
+                        width,
+                        length,
+                        depth,
+                    });
+                } else if let (None, None, None) = (width, depth, length) {
+                    dimensions = None;
+                } else {
+                    return Err(serde::de::Error::custom("Invalid game dimensions, some but not all of width, length, depth, were set."));
+                }
+
+                Ok(Self::Value {
+                    id,
+                    name,
+                    alternate_names,
+                    year_published,
+                    image,
+                    thumbnail,
+                    original_game,
+                    publishers,
+                    artists,
+                    languages,
+                    dimensions,
+                    weight,
+                    product_code,
+                })
+            }
+        }
+        deserializer.deserialize_any(GameVersionVisitor)
+    }
+}
+
 /// Stats of the game such as playercount and duration. Can be omitted from the
 /// response. More stats can be found from the specific game endpoint.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemStatsBrief {
     /// Minimum players the game supports.
-    #[serde(rename = "minplayers")]
+    #[serde(default, rename = "minplayers")]
     pub min_players: u32,
     /// Maximum players the game supports.
-    #[serde(rename = "maxplayers")]
+    #[serde(default, rename = "maxplayers")]
     pub max_players: u32,
     /// Minimum amount of time the game is suggested to take to play.
-    #[serde(rename = "minplaytime", deserialize_with = "deserialize_minutes")]
+    #[serde(
+        default,
+        rename = "minplaytime",
+        deserialize_with = "deserialize_minutes"
+    )]
     pub min_playtime: Duration,
     /// Maximum amount of time the game is suggested to take to play.
-    #[serde(rename = "maxplaytime", deserialize_with = "deserialize_minutes")]
+    #[serde(
+        default,
+        rename = "maxplaytime",
+        deserialize_with = "deserialize_minutes"
+    )]
     pub max_playtime: Duration,
     /// The amount of time the game is suggested to take to play.
-    #[serde(rename = "playingtime", deserialize_with = "deserialize_minutes")]
+    #[serde(
+        default,
+        rename = "playingtime",
+        deserialize_with = "deserialize_minutes"
+    )]
     pub playing_time: Duration,
     /// The number of people that own this game.
     #[serde(rename = "numowned")]
@@ -180,19 +513,31 @@ pub struct CollectionItemStatsBrief {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemStats {
     /// Minimum players the game supports.
-    #[serde(rename = "minplayers")]
+    #[serde(default, rename = "minplayers")]
     pub min_players: u32,
     /// Maximum players the game supports.
-    #[serde(rename = "maxplayers")]
+    #[serde(default, rename = "maxplayers")]
     pub max_players: u32,
     /// Minimum amount of time the game is suggested to take to play.
-    #[serde(rename = "minplaytime", deserialize_with = "deserialize_minutes")]
+    #[serde(
+        default,
+        rename = "minplaytime",
+        deserialize_with = "deserialize_minutes"
+    )]
     pub min_playtime: Duration,
     /// Maximum amount of time the game is suggested to take to play.
-    #[serde(rename = "maxplaytime", deserialize_with = "deserialize_minutes")]
+    #[serde(
+        default,
+        rename = "maxplaytime",
+        deserialize_with = "deserialize_minutes"
+    )]
     pub max_playtime: Duration,
     /// The amount of time the game is suggested to take to play.
-    #[serde(rename = "playingtime", deserialize_with = "deserialize_minutes")]
+    #[serde(
+        default,
+        rename = "playingtime",
+        deserialize_with = "deserialize_minutes"
+    )]
     pub playing_time: Duration,
     /// The number of people that own this game.
     #[serde(rename = "numowned")]
@@ -203,15 +548,15 @@ pub struct CollectionItemStats {
     pub rating: CollectionItemRating,
 }
 
-/// The 0-10 rating that the user gave to this game. Also includes the total
+/// The 0-10 rating that the user gave to this item. Also includes the total
 /// number of users that have rated it, as well as the averages.
 #[derive(Clone, Debug, PartialEq)]
 pub struct CollectionItemRatingBrief {
-    /// The 0-10 rating that the user gave this game.
+    /// The 0-10 rating that the user gave this item.
     pub user_rating: Option<f64>,
-    /// The mean average rating for this game.
+    /// The mean average rating for this item.
     pub average: f64,
-    /// The bayesian average rating for this game.
+    /// The bayesian average rating for this item.
     pub bayesian_average: f64,
 }
 
@@ -289,24 +634,24 @@ impl<'de> Deserialize<'de> for CollectionItemRatingBrief {
     }
 }
 
-/// The 0-10 rating that the user gave to this game. Also includes the total
+/// The 0-10 rating that the user gave to this item. Also includes the total
 /// number of users that have rated it, as well as the averages, and standard
 /// deviation.
 #[derive(Clone, Debug, PartialEq)]
 pub struct CollectionItemRating {
-    /// The 0-10 rating that the user gave this game.
+    /// The 0-10 rating that the user gave this item.
     pub user_rating: Option<f64>,
-    /// The total number of users who have given this game a rating.
+    /// The total number of users who have given this item a rating.
     pub users_rated: u64,
-    /// The mean average rating for this game.
+    /// The mean average rating for this item.
     pub average: f64,
-    /// The bayesian average rating for this game.
+    /// The bayesian average rating for this item.
     pub bayesian_average: f64,
     /// The standard deviation of the average rating.
     pub standard_deviation: f64,
     // Kept private for now since the API always returns 0 for this seemingly.
     pub(crate) median: f64,
-    /// The list of ranks the game is on the site within each of its game types.
+    /// The list of ranks the item is on the site within each of its item types.
     pub ranks: Vec<GameFamilyRank>,
 }
 

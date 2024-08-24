@@ -13,7 +13,7 @@
 //!     let collection = api.collection().get_owned("bluebearbgg").await;
 //!
 //!     match collection {
-//!         Ok(collection) => println!("bluebearbgg owns {} games.", collection.games.len()),
+//!         Ok(collection) => println!("bluebearbgg owns {} games.", collection.items.len()),
 //!         Err(e) => println!("Error: {e}"),
 //!     }
 //! })

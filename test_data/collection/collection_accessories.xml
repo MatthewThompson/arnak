@@ -1,0 +1,55 @@
+<items totalitems="2" termsofuse="https://boardgamegeek.com/xmlapi/termsofuse"
+    pubdate="Sat, 24 Aug 2024 17:07:54 +0000">
+    <item objecttype="thing" objectid="142974" subtype="boardgameaccessory" collid="122439219">
+        <name sortindex="1">12 Realms: Buildings Pack</name>
+        <yearpublished>2013</yearpublished>
+        <image>
+            https://cf.geekdo-images.com/5fKeQe2FG2FR1W3maIj1Gw__original/img/vWskbRA9FmoLrFghnPi_5RGVMec=/0x0/filters:format(jpeg)/pic2522878.jpg
+        </image>
+        <thumbnail>
+            https://cf.geekdo-images.com/5fKeQe2FG2FR1W3maIj1Gw__thumb/img/Fu2YriGdZVDzf8sJyvnWADloJPU=/fit-in/200x150/filters:strip_icc()/pic2522878.jpg
+        </thumbnail>
+        <stats numowned="281">
+            <rating value="N/A">
+                <usersrated value="38" />
+                <average value="6.51053" />
+                <bayesaverage value="6.10014" />
+                <stddev value="1.89983" />
+                <median value="0" />
+                <ranks>
+                    <rank type="subtype" id="62" name="boardgameaccessory"
+                        friendlyname="Accessory Rank" value="749" bayesaverage="6.10014" />
+                </ranks>
+            </rating>
+        </stats>
+        <status own="1" prevowned="0" fortrade="0" want="0" wanttoplay="0" wanttobuy="0"
+            wishlist="0" preordered="0" lastmodified="2024-08-21 16:47:05" />
+        <numplays>0</numplays>
+    </item>
+    <item objecttype="thing" objectid="22510" subtype="boardgameaccessory" collid="122524875">
+        <name sortindex="1">Wings of War: Miniatures</name>
+        <yearpublished>2007</yearpublished>
+        <image>
+            https://cf.geekdo-images.com/qGV1v8Ye0FKTxZNCF1ZINw__original/img/49pxPDdA4CHNFZOMQM1UTM8FNL4=/0x0/filters:format(jpeg)/pic830522.jpg
+        </image>
+        <thumbnail>
+            https://cf.geekdo-images.com/qGV1v8Ye0FKTxZNCF1ZINw__thumb/img/vgAzbZuLXNSawia3yp4BAPT_2is=/fit-in/200x150/filters:strip_icc()/pic830522.jpg
+        </thumbnail>
+        <stats numowned="1618">
+            <rating value="N/A">
+                <usersrated value="893" />
+                <average value="7.87269" />
+                <bayesaverage value="7.55507" />
+                <stddev value="1.30371" />
+                <median value="0" />
+                <ranks>
+                    <rank type="subtype" id="62" name="boardgameaccessory"
+                        friendlyname="Accessory Rank" value="22" bayesaverage="7.55507" />
+                </ranks>
+            </rating>
+        </stats>
+        <status own="0" prevowned="0" fortrade="0" want="0" wanttoplay="1" wanttobuy="0"
+            wishlist="0" preordered="0" lastmodified="2024-08-24 11:09:37" />
+        <numplays>0</numplays>
+    </item>
+</items>
