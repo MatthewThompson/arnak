@@ -5,13 +5,13 @@ use serde::de::DeserializeOwned;
 
 use crate::api::BoardGameGeekApi;
 use crate::{
-    Collection, CollectionItem, CollectionItemBrief, CollectionItemRatingBrief,
-    CollectionItemStatsBrief, GameType, Result, WishlistPriority,
+    Collection, CollectionGame, CollectionGameBrief, CollectionGameRatingBrief,
+    CollectionGameStatsBrief, GameType, Result, WishlistPriority,
 };
 
 /// Trait for a type that the collection endpoint can return. Allows us to get
 /// values for the mandatory query params for the different types.
-pub trait CollectionItemType<'a>: DeserializeOwned {
+pub trait CollectionGameType<'a>: DeserializeOwned {
     /// Returns the values for the mandatory query params. This ensures that
     /// for the brief type, the `brief` query param is always set to true, and
     /// vice versa.
@@ -19,10 +19,10 @@ pub trait CollectionItemType<'a>: DeserializeOwned {
 
     /// Get the stats of the type, so post processing helper functions
     /// can be written.
-    fn get_stats(&self) -> CollectionItemStatsBrief;
+    fn get_stats(&self) -> CollectionGameStatsBrief;
 }
 
-impl<'a> CollectionItemType<'a> for CollectionItemBrief {
+impl<'a> CollectionGameType<'a> for CollectionGameBrief {
     fn base_query(username: &'a str) -> BaseCollectionQuery<'a> {
         BaseCollectionQuery {
             username,
@@ -30,12 +30,12 @@ impl<'a> CollectionItemType<'a> for CollectionItemBrief {
         }
     }
 
-    fn get_stats(&self) -> CollectionItemStatsBrief {
+    fn get_stats(&self) -> CollectionGameStatsBrief {
         self.stats.clone()
     }
 }
 
-impl<'a> CollectionItemType<'a> for CollectionItem {
+impl<'a> CollectionGameType<'a> for CollectionGame {
     fn base_query(username: &'a str) -> BaseCollectionQuery<'a> {
         BaseCollectionQuery {
             username,
@@ -43,15 +43,15 @@ impl<'a> CollectionItemType<'a> for CollectionItem {
         }
     }
 
-    fn get_stats(&self) -> CollectionItemStatsBrief {
-        CollectionItemStatsBrief {
+    fn get_stats(&self) -> CollectionGameStatsBrief {
+        CollectionGameStatsBrief {
             min_players: self.stats.min_players,
             max_players: self.stats.max_players,
             min_playtime: self.stats.min_playtime,
             max_playtime: self.stats.max_playtime,
             playing_time: self.stats.playing_time,
             owned_by: self.stats.owned_by,
-            rating: CollectionItemRatingBrief {
+            rating: CollectionGameRatingBrief {
                 user_rating: self.stats.rating.user_rating,
                 average: self.stats.rating.average,
                 bayesian_average: self.stats.rating.bayesian_average,
@@ -62,7 +62,7 @@ impl<'a> CollectionItemType<'a> for CollectionItem {
 
 /// Required query paramters. Any type the collection query can implement
 /// must be able to return a base query, so valid queries can be constructed
-/// for both [CollectionItem] and [CollectionItemBrief].
+/// for both [CollectionGame] and [CollectionGameBrief].
 #[derive(Clone, Debug)]
 pub struct BaseCollectionQuery<'q> {
     pub(crate) username: &'q str,
@@ -76,14 +76,14 @@ pub struct BaseCollectionQuery<'q> {
 /// If any are set to true then any excluded will not be returned.
 #[derive(Clone, Debug, Default)]
 pub struct CollectionQueryParams {
-    /// Include only results for this item type.
+    /// Include only results for this game type.
     ///
     /// Note, if this is set to [GameType::BoardGame] then it will include both
     /// board games and expansions, but set the type of all of them to be
     /// [GameType::BoardGame] in the results. Explicitly exclude
     /// [GameType::BoardGameExpansion] to avoid this.
     game_type: Option<GameType>,
-    /// Exclude results for this item type.
+    /// Exclude results for this game type.
     exclude_game_type: Option<GameType>,
     /// Include games the user owns if true, exclude if false.
     include_owned: Option<bool>,
@@ -130,7 +130,7 @@ pub struct CollectionQueryParams {
     /// Show private collection info. Only works when viewing your own
     /// collection and you are logged in.
     show_private: Option<bool>,
-    /// ID of a particular item in a collection.
+    /// ID of a particular game in a collection.
     collection_id: Option<u64>,
 }
 
@@ -140,14 +140,14 @@ impl CollectionQueryParams {
         Self::default()
     }
 
-    /// Sets the item_type field, so that only that type of item will be
+    /// Sets the game_type field, so that only that type of game will be
     /// returned.
     pub fn game_type(mut self, game_type: GameType) -> Self {
         self.game_type = Some(game_type);
         self
     }
 
-    /// Set the exclude_item_type field, so that that type of item will be
+    /// Set the exclude_game_type field, so that that type of game will be
     /// excluded from. the results.
     pub fn exclude_game_type(mut self, exclude_game_type: GameType) -> Self {
         self.exclude_game_type = Some(exclude_game_type);
@@ -318,7 +318,7 @@ impl CollectionQueryParams {
     }
 
     /// Sets the collection_id field. If set then results will be filtered
-    /// to get the item with the specific collection ID.
+    /// to get the game with the specific collection ID.
     pub fn collection_id(mut self, collection_id: u64) -> Self {
         self.collection_id = Some(collection_id);
         self
@@ -489,15 +489,15 @@ impl<'a> CollectionQueryBuilder<'a> {
 }
 
 /// Collection endpoint of the API. Used for returning user's collections
-/// of games by their username. Filtering by [CollectionItemStatus], rating,
+/// of games by their username. Filtering by [CollectionGameStatus], rating,
 /// recorded plays.
-pub struct CollectionApi<'api, T: CollectionItemType<'api>> {
+pub struct CollectionApi<'api, T: CollectionGameType<'api>> {
     pub(crate) api: &'api BoardGameGeekApi,
     endpoint: &'static str,
     type_marker: std::marker::PhantomData<T>,
 }
 
-impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
+impl<'api, T: CollectionGameType<'api> + 'api> CollectionApi<'api, T> {
     pub(crate) fn new(api: &'api BoardGameGeekApi) -> Self {
         Self {
             api,
@@ -535,8 +535,8 @@ impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
     ) -> Result<Collection<T>> {
         let mut collection = self.get_from_query(username, query_params).await?;
 
-        collection.games.retain(|item| {
-            let stats = item.get_stats();
+        collection.games.retain(|game| {
+            let stats = game.get_stats();
             *player_counts.start() <= stats.max_players && *player_counts.end() >= stats.min_players
         });
         Ok(collection)
@@ -553,8 +553,8 @@ impl<'api, T: CollectionItemType<'api> + 'api> CollectionApi<'api, T> {
     ) -> Result<Collection<T>> {
         let mut collection = self.get_from_query(username, query_params).await?;
 
-        collection.games.retain(|item| {
-            let stats = item.get_stats();
+        collection.games.retain(|game| {
+            let stats = game.get_stats();
             player_count <= stats.max_players && player_count >= stats.min_players
         });
         Ok(collection)
@@ -580,7 +580,7 @@ mod tests {
 
     use super::*;
     use crate::{
-        CollectionItemRating, CollectionItemStats, CollectionItemStatus, GameFamilyRank,
+        CollectionGameRating, CollectionGameStats, CollectionGameStatus, GameFamilyRank,
         GameFamilyType, RankValue,
     };
 
@@ -622,12 +622,12 @@ mod tests {
         assert_eq!(collection.games.len(), 1);
         assert_eq!(
             collection.games[0],
-            CollectionItemBrief {
+            CollectionGameBrief {
                 id: 131835,
                 collection_id: 118278872,
-                item_type: GameType::BoardGame,
+                game_type: GameType::BoardGame,
                 name: "Boss Monster: The Dungeon Building Card Game".to_string(),
-                status: CollectionItemStatus {
+                status: CollectionGameStatus {
                     own: true,
                     previously_owned: false,
                     for_trade: false,
@@ -639,14 +639,14 @@ mod tests {
                     pre_ordered: false,
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 13, 18, 29, 1).unwrap(),
                 },
-                stats: CollectionItemStatsBrief {
+                stats: CollectionGameStatsBrief {
                     min_players: 2,
                     max_players: 4,
                     min_playtime: Duration::minutes(30),
                     max_playtime: Duration::minutes(30),
                     playing_time: Duration::minutes(30),
                     owned_by: 36423,
-                    rating: CollectionItemRatingBrief {
+                    rating: CollectionGameRatingBrief {
                         user_rating: Some(3.0),
                         average: 6.27139,
                         bayesian_average: 6.08972,
@@ -723,15 +723,15 @@ mod tests {
         assert_eq!(collection.games.len(), 1);
         assert_eq!(
             collection.games[0],
-            CollectionItem {
+            CollectionGame {
                 id: 131835,
                 collection_id: 118278872,
-                item_type: GameType::BoardGame,
+                game_type: GameType::BoardGame,
                 name: "Boss Monster: The Dungeon Building Card Game".to_string(),
                 year_published: 2013,
                 image: "https://cf.geekdo-images.com/VBwaHyx-NWL3VLcCWKRA0w__original/img/izAmJ81QELl5DoK3y2bzJw55lhA=/0x0/filters:format(jpeg)/pic1732644.jpg".to_string(),
                 thumbnail: "https://cf.geekdo-images.com/VBwaHyx-NWL3VLcCWKRA0w__thumb/img/wisLXxKXbo5-Ci-ZjEj8ryyoN2g=/fit-in/200x150/filters:strip_icc()/pic1732644.jpg".to_string(),
-                status: CollectionItemStatus {
+                status: CollectionGameStatus {
                     own: true,
                     previously_owned: false,
                     for_trade: false,
@@ -744,14 +744,14 @@ mod tests {
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 13, 18, 29, 1).unwrap(),
                 },
                 number_of_plays: 2,
-                stats: CollectionItemStats {
+                stats: CollectionGameStats {
                     min_players: 2,
                     max_players: 4,
                     min_playtime: Duration::minutes(30),
                     max_playtime: Duration::minutes(30),
                     playing_time: Duration::minutes(30),
                     owned_by: 36423,
-                    rating: CollectionItemRating {
+                    rating: CollectionGameRating {
                         user_rating: Some(3.0),
                         users_rated: 17063,
                         average: 6.27139,
@@ -816,15 +816,15 @@ mod tests {
         assert_eq!(collection.games.len(), 1);
         assert_eq!(
             collection.games[0],
-            CollectionItem {
+            CollectionGame {
                 id: 177736,
                 collection_id: 118332974,
-                item_type: GameType::BoardGame,
+                game_type: GameType::BoardGame,
                 name: "A Feast for Odin".to_string(),
                 year_published: 2016,
                 image: "https://domain/img.jpg".to_string(),
                 thumbnail: "https://domain/thumbnail.jpg".to_string(),
-                status: CollectionItemStatus {
+                status: CollectionGameStatus {
                     own: false,
                     previously_owned: false,
                     for_trade: false,
@@ -837,14 +837,14 @@ mod tests {
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 18, 19, 28, 17).unwrap(),
                 },
                 number_of_plays: 0,
-                stats: CollectionItemStats {
+                stats: CollectionGameStats {
                     min_players: 1,
                     max_players: 4,
                     min_playtime: Duration::minutes(30),
                     max_playtime: Duration::minutes(120),
                     playing_time: Duration::minutes(120),
                     owned_by: 37542,
-                    rating: CollectionItemRating {
+                    rating: CollectionGameRating {
                         user_rating: None,
                         users_rated: 28890,
                         average: 8.17156,
@@ -950,15 +950,15 @@ mod tests {
         assert_eq!(collection.games.len(), 1);
         assert_eq!(
             collection.games[0],
-            CollectionItem {
+            CollectionGame {
                 id: 2281,
                 collection_id: 118280658,
-                item_type: GameType::BoardGame,
+                game_type: GameType::BoardGame,
                 name: "Pictionary".to_string(),
                 year_published: 1985,
                 image: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__original/img/YRJAlLzkxMuJHVPsdnBLNFpoODA=/0x0/filters:format(png)/pic5147022.png".to_string(),
                 thumbnail: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__thumb/img/7ls1a8ak5oT7BaKM-rVHpOVrP14=/fit-in/200x150/filters:strip_icc()/pic5147022.png".to_string(),
-                status: CollectionItemStatus {
+                status: CollectionGameStatus {
                     own: true,
                     previously_owned: false,
                     for_trade: false,
@@ -971,14 +971,14 @@ mod tests {
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 14, 9, 47, 38).unwrap(),
                 },
                 number_of_plays: 0,
-                stats: CollectionItemStats {
+                stats: CollectionGameStats {
                     min_players: 3,
                     max_players: 16,
                     min_playtime: Duration::minutes(90),
                     max_playtime: Duration::minutes(90),
                     playing_time: Duration::minutes(90),
                     owned_by: 14400,
-                    rating: CollectionItemRating {
+                    rating: CollectionGameRating {
                         user_rating: Some(7.0),
                         users_rated: 8097,
                         average: 5.84098,
@@ -1101,15 +1101,15 @@ mod tests {
         assert_eq!(collection.games.len(), 1);
         assert_eq!(
             collection.games[0],
-            CollectionItem {
+            CollectionGame {
                 id: 2281,
                 collection_id: 118280658,
-                item_type: GameType::BoardGame,
+                game_type: GameType::BoardGame,
                 name: "Pictionary".to_string(),
                 year_published: 1985,
                 image: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__original/img/YRJAlLzkxMuJHVPsdnBLNFpoODA=/0x0/filters:format(png)/pic5147022.png".to_string(),
                 thumbnail: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__thumb/img/7ls1a8ak5oT7BaKM-rVHpOVrP14=/fit-in/200x150/filters:strip_icc()/pic5147022.png".to_string(),
-                status: CollectionItemStatus {
+                status: CollectionGameStatus {
                     own: true,
                     previously_owned: false,
                     for_trade: false,
@@ -1122,14 +1122,14 @@ mod tests {
                     last_modified: Utc.with_ymd_and_hms(2024, 4, 14, 9, 47, 38).unwrap(),
                 },
                 number_of_plays: 0,
-                stats: CollectionItemStats {
+                stats: CollectionGameStats {
                     min_players: 3,
                     max_players: 16,
                     min_playtime: Duration::minutes(90),
                     max_playtime: Duration::minutes(90),
                     playing_time: Duration::minutes(90),
                     owned_by: 14400,
-                    rating: CollectionItemRating {
+                    rating: CollectionGameRating {
                         user_rating: Some(7.0),
                         users_rated: 8097,
                         average: 5.84098,
@@ -1185,8 +1185,8 @@ mod tests {
         let collection = collection.unwrap();
 
         assert_eq!(collection.games.len(), 30);
-        for item in collection.games {
-            assert!(item.stats.min_players <= 2 && item.stats.max_players >= 2)
+        for game in collection.games {
+            assert!(game.stats.min_players <= 2 && game.stats.max_players >= 2)
         }
 
         // Looking for a game that supports 17 players, not in the collection. Nothing

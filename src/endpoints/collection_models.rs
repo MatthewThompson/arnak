@@ -10,16 +10,16 @@ use crate::utils::{
 /// A user's collection on boardgamegeek.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Collection<T> {
-    /// List of games and expansions in the user's collection. Each item
+    /// List of games and expansions in the user's collection. Each game
     /// is not necessarily owned but can be preowned, wishlisted etc.
     #[serde(rename = "$value")]
     pub games: Vec<T>,
 }
 
-/// An item in a collection, in brief form. With only the name, status, type,
+/// A game in a collection, in brief form. With only the name, status, type,
 /// and IDs.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct CollectionItemBrief {
+pub struct CollectionGameBrief {
     /// The ID of the game.
     #[serde(rename = "objectid")]
     pub id: u64,
@@ -28,18 +28,18 @@ pub struct CollectionItemBrief {
     pub collection_id: u64,
     /// The type of game, which will either be boardgame or expansion.
     #[serde(rename = "subtype")]
-    pub item_type: GameType,
+    pub game_type: GameType,
     /// The name of the game.
     pub name: String,
     /// Status of the game in this collection, such as own, preowned, wishlist.
-    pub status: CollectionItemStatus,
+    pub status: CollectionGameStatus,
     /// Game stats such as number of players.
-    pub stats: CollectionItemStatsBrief,
+    pub stats: CollectionGameStatsBrief,
 }
 
 /// A game or game expansion in a collection.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct CollectionItem {
+pub struct CollectionGame {
     /// The ID of the game.
     #[serde(rename = "objectid")]
     pub id: u64,
@@ -48,7 +48,7 @@ pub struct CollectionItem {
     pub collection_id: u64,
     /// The type of game, which will either be boardgame or expansion.
     #[serde(rename = "subtype")]
-    pub item_type: GameType,
+    pub game_type: GameType,
     /// The name of the game.
     pub name: String,
     /// The year the game was first published.
@@ -59,12 +59,12 @@ pub struct CollectionItem {
     /// A link to a jpg thumbnail image for the game.
     pub thumbnail: String,
     /// Status of the game in this collection, such as own, preowned, wishlist.
-    pub status: CollectionItemStatus,
+    pub status: CollectionGameStatus,
     /// The number of times the user has played the game.
     #[serde(rename = "numplays")]
     pub number_of_plays: u64,
     /// Game stats such as number of players.
-    pub stats: CollectionItemStats,
+    pub stats: CollectionGameStats,
 }
 
 /// The type of game, board game or expansion.
@@ -81,7 +81,7 @@ pub enum GameType {
 /// The status of the game in the user's collection, such as preowned or
 /// wishlist. Can be any or none of them.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct CollectionItemStatus {
+pub struct CollectionGameStatus {
     /// User owns the game.
     #[serde(deserialize_with = "deserialize_1_0_bool")]
     pub own: bool,
@@ -150,7 +150,7 @@ impl<'de> Deserialize<'de> for WishlistPriority {
 /// Stats of the game such as playercount and duration. Can be omitted from the
 /// response. More stats can be found from the specific game endpoint.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct CollectionItemStatsBrief {
+pub struct CollectionGameStatsBrief {
     /// Minimum players the game supports.
     #[serde(rename = "minplayers")]
     pub min_players: u32,
@@ -172,13 +172,13 @@ pub struct CollectionItemStatsBrief {
     /// Information about the rating that this user, as well as all users, have
     /// given this game.
     #[serde(rename = "$value")]
-    pub rating: CollectionItemRatingBrief,
+    pub rating: CollectionGameRatingBrief,
 }
 
 /// Stats of the game such as playercount and duration. Can be omitted from the
 /// response. More stats can be found from the specific game endpoint.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct CollectionItemStats {
+pub struct CollectionGameStats {
     /// Minimum players the game supports.
     #[serde(rename = "minplayers")]
     pub min_players: u32,
@@ -200,13 +200,13 @@ pub struct CollectionItemStats {
     /// Information about the rating that this user, as well as all users, have
     /// given this game.
     #[serde(rename = "$value")]
-    pub rating: CollectionItemRating,
+    pub rating: CollectionGameRating,
 }
 
 /// The 0-10 rating that the user gave to this game. Also includes the total
 /// number of users that have rated it, as well as the averages.
 #[derive(Clone, Debug, PartialEq)]
-pub struct CollectionItemRatingBrief {
+pub struct CollectionGameRatingBrief {
     /// The 0-10 rating that the user gave this game.
     pub user_rating: Option<f64>,
     /// The mean average rating for this game.
@@ -215,7 +215,7 @@ pub struct CollectionItemRatingBrief {
     pub bayesian_average: f64,
 }
 
-impl<'de> Deserialize<'de> for CollectionItemRatingBrief {
+impl<'de> Deserialize<'de> for CollectionGameRatingBrief {
     fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "lowercase")]
@@ -225,10 +225,10 @@ impl<'de> Deserialize<'de> for CollectionItemRatingBrief {
             Bayesaverage,
         }
 
-        struct CollectionItemRatingBriefVisitor;
+        struct CollectionGameRatingBriefVisitor;
 
-        impl<'de> serde::de::Visitor<'de> for CollectionItemRatingBriefVisitor {
-            type Value = CollectionItemRatingBrief;
+        impl<'de> serde::de::Visitor<'de> for CollectionGameRatingBriefVisitor {
+            type Value = CollectionGameRatingBrief;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 formatter.write_str("a string containing the XML for a user's rating of a board game, which includes the average rating on the site and the number of ratings.")
@@ -285,7 +285,7 @@ impl<'de> Deserialize<'de> for CollectionItemRatingBrief {
                 })
             }
         }
-        deserializer.deserialize_any(CollectionItemRatingBriefVisitor)
+        deserializer.deserialize_any(CollectionGameRatingBriefVisitor)
     }
 }
 
@@ -293,7 +293,7 @@ impl<'de> Deserialize<'de> for CollectionItemRatingBrief {
 /// number of users that have rated it, as well as the averages, and standard
 /// deviation.
 #[derive(Clone, Debug, PartialEq)]
-pub struct CollectionItemRating {
+pub struct CollectionGameRating {
     /// The 0-10 rating that the user gave this game.
     pub user_rating: Option<f64>,
     /// The total number of users who have given this game a rating.
@@ -310,7 +310,7 @@ pub struct CollectionItemRating {
     pub ranks: Vec<GameFamilyRank>,
 }
 
-impl<'de> Deserialize<'de> for CollectionItemRating {
+impl<'de> Deserialize<'de> for CollectionGameRating {
     fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "lowercase")]
@@ -324,10 +324,10 @@ impl<'de> Deserialize<'de> for CollectionItemRating {
             Ranks,
         }
 
-        struct CollectionItemRatingVisitor;
+        struct CollectionGameRatingVisitor;
 
-        impl<'de> serde::de::Visitor<'de> for CollectionItemRatingVisitor {
-            type Value = CollectionItemRating;
+        impl<'de> serde::de::Visitor<'de> for CollectionGameRatingVisitor {
+            type Value = CollectionGameRating;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 formatter.write_str("a string containing the XML for a user's rating of a board game, which includes the average rating on the site and the number of ratings.")
@@ -429,7 +429,7 @@ impl<'de> Deserialize<'de> for CollectionItemRating {
                 })
             }
         }
-        deserializer.deserialize_any(CollectionItemRatingVisitor)
+        deserializer.deserialize_any(CollectionGameRatingVisitor)
     }
 }
 

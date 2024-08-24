@@ -8,7 +8,7 @@ use tokio::time::sleep;
 use crate::endpoints::collection::CollectionApi;
 use crate::escape_xml::escape_xml;
 use crate::{
-    ApiXmlErrors, CollectionItem, CollectionItemBrief, Error, GameFamilyApi, HotListApi, Result,
+    ApiXmlErrors, CollectionGame, CollectionGameBrief, Error, GameFamilyApi, HotListApi, Result,
     SearchApi,
 };
 
@@ -40,13 +40,13 @@ impl BoardGameGeekApi {
 
     /// Returns the collection endpoint of the API, which is used for querying a
     /// specific user's board game collection.
-    pub fn collection(&self) -> CollectionApi<CollectionItem> {
+    pub fn collection(&self) -> CollectionApi<CollectionGame> {
         CollectionApi::new(self)
     }
 
     /// Returns the collection endpoint of the API, which is used for querying a
     /// specific user's board game collection.
-    pub fn collection_brief(&self) -> CollectionApi<CollectionItemBrief> {
+    pub fn collection_brief(&self) -> CollectionApi<CollectionGameBrief> {
         CollectionApi::new(self)
     }
 
