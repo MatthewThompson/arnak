@@ -85,6 +85,8 @@ pub struct CollectionQueryParams {
     game_type: Option<GameType>,
     /// Exclude results for this game type.
     exclude_game_type: Option<GameType>,
+    /// Include the version information for this game, if applicable.
+    include_version_info: Option<bool>,
     /// Include games the user owns if true, exclude if false.
     include_owned: Option<bool>,
     /// Include games the user previously owned if true, exclude if false.
@@ -151,6 +153,15 @@ impl CollectionQueryParams {
     /// excluded from. the results.
     pub fn exclude_game_type(mut self, exclude_game_type: GameType) -> Self {
         self.exclude_game_type = Some(exclude_game_type);
+        self
+    }
+
+    /// Sets the include_version_info field. If true the result will include version
+    /// info for the games that have it. For most games this will be empty still,
+    /// but it will be set for games which are an alternative or translated
+    /// version of an existing game.
+    pub fn include_version_info(mut self, include_version_info: bool) -> Self {
+        self.include_version_info = Some(include_version_info);
         self
     }
 
@@ -369,6 +380,11 @@ impl<'a> CollectionQueryBuilder<'a> {
             },
             None => {},
         }
+        match self.params.include_version_info {
+            Some(true) => query_params.push(("version", "1".to_string())),
+            Some(false) => query_params.push(("version", "0".to_string())),
+            None => {},
+        }
         match self.params.include_owned {
             Some(true) => query_params.push(("own", "1".to_string())),
             Some(false) => query_params.push(("own", "0".to_string())),
@@ -580,8 +596,9 @@ mod tests {
 
     use super::*;
     use crate::{
-        CollectionGameRating, CollectionGameStats, CollectionGameStatus, GameFamilyRank,
-        GameFamilyType, RankValue,
+        CollectionGameRating, CollectionGameStats, CollectionGameStatus, Dimensions, Game,
+        GameArtist, GameFamilyRank, GameFamilyType, GamePublisher, GameVersion, Language,
+        RankValue,
     };
 
     #[test]
@@ -652,6 +669,7 @@ mod tests {
                         bayesian_average: 6.08972,
                     },
                 },
+                version: None,
             },
             "returned collection game doesn't match expected",
         );
@@ -778,6 +796,7 @@ mod tests {
                         ],
                     },
                 },
+                version: None,
             },
             "returned collection game doesn't match expected",
         );
@@ -871,8 +890,217 @@ mod tests {
                         ],
                     },
                 },
+                version: None,
             },
             "returned collection game doesn't match expected",
+        );
+    }
+
+    #[tokio::test]
+    async fn get_version() {
+        let mut server = mockito::Server::new_async().await;
+        let api = BoardGameGeekApi {
+            base_url: server.url(),
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "somename".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("brief".into(), "1".into()),
+                Matcher::UrlEncoded("version".into(), "1".into()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/collection/collection_brief_with_version.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let query = CollectionQueryParams::new().include_version_info(true);
+
+        let collection = api
+            .collection_brief()
+            .get_from_query("somename", query)
+            .await;
+        mock.assert_async().await;
+
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+
+        assert_eq!(collection.games.len(), 3);
+        assert_eq!(
+            collection.games[0],
+            CollectionGameBrief {
+                id: 356510,
+                collection_id: 118278786,
+                game_type: GameType::BoardGame,
+                name: "Spirit Island: Feather & Flame".to_string(),
+                status: CollectionGameStatus {
+                    own: true,
+                    previously_owned: false,
+                    for_trade: false,
+                    want_in_trade: false,
+                    want_to_play: false,
+                    want_to_buy: false,
+                    wishlist: false,
+                    wishlist_priority: None,
+                    pre_ordered: false,
+                    last_modified: Utc.with_ymd_and_hms(2024, 4, 13, 17, 56, 44).unwrap(),
+                },
+                stats: CollectionGameStatsBrief {
+                    min_players: 1,
+                    max_players: 4,
+                    min_playtime: Duration::minutes(90),
+                    max_playtime: Duration::minutes(120),
+                    playing_time: Duration::minutes(120),
+                    owned_by: 5071,
+                    rating: CollectionGameRatingBrief {
+                        user_rating: None,
+                        average: 8.98038,
+                        bayesian_average: 6.55157,
+                    },
+                },
+                version: None,
+            },
+            "returned collection game with no version doesn't match expected",
+        );
+        assert_eq!(
+            collection.games[1],
+            CollectionGameBrief {
+                id: 13,
+                collection_id: 122520827,
+                game_type: GameType::BoardGame,
+                name: "Колонизаторы".to_string(),
+                status: CollectionGameStatus {
+                    own: false,
+                    previously_owned: false,
+                    for_trade: false,
+                    want_in_trade: false,
+                    want_to_play: false,
+                    want_to_buy: false,
+                    wishlist: true,
+                    wishlist_priority: Some(WishlistPriority::LikeToHave),
+                    pre_ordered: false,
+                    last_modified: Utc.with_ymd_and_hms(2024, 8, 24, 8, 21, 52).unwrap(),
+                },
+                stats: CollectionGameStatsBrief {
+                    min_players: 3,
+                    max_players: 4,
+                    min_playtime: Duration::minutes(60),
+                    max_playtime: Duration::minutes(120),
+                    playing_time: Duration::minutes(120),
+                    owned_by: 210387,
+                    rating: CollectionGameRatingBrief {
+                        user_rating: None,
+                        average: 7.09836,
+                        bayesian_average: 6.91963,
+                    },
+                },
+                version: Some(GameVersion {
+                    id: 712636,
+                    name: "Russian edition 2024".into(),
+                    alternate_names: vec![],
+                    year_published: 2024,
+                    image: "https://cf.geekdo-images.com/IfUVNbebRWbtQ_SlGxG6ZQ__original/img/DNNED1WasGboaJH8OWMoGm6Zg1k=/0x0/filters:format(jpeg)/pic8177684.jpg".into(),
+                    thumbnail: "https://cf.geekdo-images.com/IfUVNbebRWbtQ_SlGxG6ZQ__thumb/img/E4EX1sbROpEXxte6IMx7cRgSL2E=/fit-in/200x150/filters:strip_icc()/pic8177684.jpg".into(),
+                    original_game: Game {
+                        id: 13,
+                        name: "CATAN".into(),
+                    },
+                    publishers: vec![GamePublisher {
+                        id: 18852,
+                        name: "Hobby World".into(),
+                    }],
+                    artists: vec![GameArtist {
+                        id: 11825,
+                        name: "Michael Menzel".into(),
+                    }],
+                    languages: vec![Language {
+                        id: 2202,
+                        name: "Russian".into(),
+                    }],
+                    dimensions: Some(Dimensions {
+                        width: 11.7323,
+                        length: 11.7323,
+                        depth: 2.79528,
+                    }),
+                    weight: Some(2.7205),
+                    product_code: Some("915853".into()),
+                }),
+            },
+            "returned collection game with version doesn't match expected",
+        );
+        assert_eq!(
+            collection.games[2],
+            CollectionGameBrief {
+                id: 352515,
+                collection_id: 118278970,
+                game_type: GameType::BoardGame,
+                name: "ナナ".to_string(),
+                status: CollectionGameStatus {
+                    own: true,
+                    previously_owned: false,
+                    for_trade: false,
+                    want_in_trade: false,
+                    want_to_play: false,
+                    want_to_buy: false,
+                    wishlist: false,
+                    wishlist_priority: None,
+                    pre_ordered: false,
+                    last_modified: Utc.with_ymd_and_hms(2024, 4, 14, 9, 47, 13).unwrap(),
+                },
+                stats: CollectionGameStatsBrief {
+                    min_players: 3,
+                    max_players: 6,
+                    min_playtime: Duration::minutes(15),
+                    max_playtime: Duration::minutes(15),
+                    playing_time: Duration::minutes(15),
+                    owned_by: 8301,
+                    rating: CollectionGameRatingBrief {
+                        user_rating: Some(5.0),
+                        average: 7.31486,
+                        bayesian_average: 6.64921,
+                    },
+                },
+                version: Some(GameVersion {
+                    id: 590616,
+                    name: "English/Japanese edition".into(),
+                    alternate_names: vec![],
+                    year_published: 2021,
+                    image: "https://cf.geekdo-images.com/rt5qzjbrXq7PgI9IaRekNA__original/img/rh02vSdTIvg-oPr4ymQETCLUEjU=/0x0/filters:format(jpeg)/pic7227031.jpg".into(),
+                    thumbnail: "https://cf.geekdo-images.com/rt5qzjbrXq7PgI9IaRekNA__thumb/img/HGNVOyEKBxZVl0Ry7YDwIcQ5vVc=/fit-in/200x150/filters:strip_icc()/pic7227031.jpg".into(),
+                    original_game: Game {
+                        id: 352515,
+                        name: "Trio".into(),
+                    },
+                    publishers: vec![GamePublisher {
+                        id: 50472,
+                        name: "Mob+ (Mob Plus)".into(),
+                    }],
+                    artists: vec![GameArtist {
+                        id: 108040,
+                        name: "別府さい (Sai Beppu)".into(),
+                    }],
+                    languages: vec![
+                        Language {
+                            id: 2184,
+                            name: "English".into(),
+                        },
+                        Language {
+                            id: 2194,
+                            name: "Japanese".into(),
+                        },
+                    ],
+                    dimensions: None,
+                    weight: None,
+                    product_code: None,
+                }),
+            },
+            "returned collection game with version doesn't match expected",
         );
     }
 
@@ -1005,6 +1233,7 @@ mod tests {
                         ],
                     }
                 },
+                version: None,
             },
             "returned collection game doesn't match expected",
         );
@@ -1156,6 +1385,7 @@ mod tests {
                         ],
                     }
                 },
+                version: None,
             },
             "returned collection game doesn't match expected",
         );

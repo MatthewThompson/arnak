@@ -2,7 +2,8 @@ use core::fmt;
 
 use serde::Deserialize;
 
-use crate::utils::XmlName;
+use super::Game;
+use crate::utils::{LinkType, XmlLink, XmlName};
 use crate::NameType;
 
 /// A list of game families. Which are groups of games in a particular series.
@@ -30,17 +31,7 @@ pub struct GameFamily {
     /// A description of the group of games.
     pub description: String,
     /// The list of games in this game family.
-    pub games: Vec<GameFamilyGame>,
-}
-
-/// A game belonging to a particular family of games.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct GameFamilyGame {
-    /// The ID of the game.
-    pub id: u64,
-    /// The name of the game.
-    #[serde(rename = "value")]
-    pub name: String,
+    pub games: Vec<Game>,
 }
 
 impl<'de> Deserialize<'de> for GameFamily {
@@ -127,8 +118,21 @@ impl<'de> Deserialize<'de> for GameFamily {
                             description = Some(unescaped.into_owned())
                         },
                         Field::Link => {
-                            let game: GameFamilyGame = map.next_value()?;
-                            games.push(game);
+                            let link: XmlLink = map.next_value()?;
+                            match link.link_type {
+                                LinkType::BoardGameFamily => {
+                                    games.push(Game {
+                                        id: link.id,
+                                        name: link.value,
+                                    });
+                                },
+                                link_type => {
+                                    return Err(serde::de::Error::custom(format!(
+                                        "found unexpected \"{:?}\" link in game family",
+                                        link_type
+                                    )));
+                                },
+                            }
                         },
                         Field::Type => {
                             // Type is fixed at "boardgamefamily", even for the list of games

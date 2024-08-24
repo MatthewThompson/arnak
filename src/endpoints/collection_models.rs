@@ -3,9 +3,12 @@ use core::fmt;
 use chrono::{DateTime, Duration, Utc};
 use serde::Deserialize;
 
+use super::{Dimensions, Game, GameArtist, GamePublisher, Language};
 use crate::utils::{
-    date_deserializer, deserialize_1_0_bool, deserialize_minutes, XmlFloatValue, XmlIntValue,
+    date_deserializer, deserialize_1_0_bool, deserialize_minutes, LinkType, XmlFloatValue,
+    XmlIntValue, XmlLink, XmlName, XmlSignedValue, XmlStringValue,
 };
+use crate::NameType;
 
 /// A user's collection on boardgamegeek.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
@@ -35,6 +38,11 @@ pub struct CollectionGameBrief {
     pub status: CollectionGameStatus,
     /// Game stats such as number of players.
     pub stats: CollectionGameStatsBrief,
+    /// Information about this version of the game. Only included if version
+    /// information is requested and also if the game is an alternate
+    /// version of another game.
+    #[serde(default, deserialize_with = "deserialize_version_list")]
+    pub version: Option<GameVersion>,
 }
 
 /// A game or game expansion in a collection.
@@ -65,6 +73,11 @@ pub struct CollectionGame {
     pub number_of_plays: u64,
     /// Game stats such as number of players.
     pub stats: CollectionGameStats,
+    /// Information about this version of the game. Only included if version
+    /// information is requested and also if the game is an alternate
+    /// version of another game.
+    #[serde(default, deserialize_with = "deserialize_version_list")]
+    pub version: Option<GameVersion>,
 }
 
 /// The type of game, board game or expansion.
@@ -144,6 +157,319 @@ impl<'de> Deserialize<'de> for WishlistPriority {
                 "invalid value for wishlist priority, expected \"1\" - \"5\" but got {s}"
             ))),
         }
+    }
+}
+
+/// GameVersion is information about a game which is a version or
+/// reimplementation of another game, including the link to the
+/// original. It is not the same as an expansion for a game.
+#[derive(Clone, Debug, PartialEq)]
+pub struct GameVersion {
+    /// The ID of this game.
+    pub id: u64,
+    /// The name of the game.
+    pub name: String,
+    /// A list of alternate names for the game.
+    pub alternate_names: Vec<String>,
+    /// The year the game was first published.
+    pub year_published: i64,
+    /// A link to a jpg image for the game.
+    pub image: String,
+    /// A link to a jpg thumbnail image for the game.
+    pub thumbnail: String,
+    /// The name and ID of the game this version is based off of.
+    pub original_game: Game,
+    /// List of publishers for this game.
+    pub publishers: Vec<GamePublisher>,
+    /// List of game artists.
+    pub artists: Vec<GameArtist>,
+    /// Lists of languages that this version of the game supports.
+    pub languages: Vec<Language>,
+    /// The dimensions of the game, in inches, if included.
+    pub dimensions: Option<Dimensions>,
+    /// The weight of the game, in pounds, if included.
+    pub weight: Option<f64>,
+    /// Product code for the game, if included.
+    pub product_code: Option<String>,
+}
+
+// A user's collection on boardgamegeek.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+struct VersionsXml {
+    // List of versions, each in an XML tag called `item`, within an outer
+    // `version`. We use this intermediary type to get out just the first,
+    // since we only expect 1.
+    #[serde(rename = "$value")]
+    versions: Vec<GameVersion>,
+}
+
+pub(crate) fn deserialize_version_list<'de, D>(
+    deserializer: D,
+) -> Result<Option<GameVersion>, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    // If the tag is missing the None case is already handled by the `#serde[(default)]` on
+    // the type. If this deserialize returns an error it should be propagated.
+    let mut versions: VersionsXml = serde::de::Deserialize::deserialize(deserializer)?;
+
+    match versions.versions.len() {
+        0 => Err(serde::de::Error::custom(format!(
+            "empty version list found for game ID {}, expected \"1\"",
+            versions.versions[0].id,
+        ))),
+        1 => Ok(Some(versions.versions.remove(0))),
+        len => Err(serde::de::Error::custom(format!(
+            "invalid number of versions found for game ID {}, expected \"1\", but got {}",
+            versions.versions[0].id, len,
+        ))),
+    }
+}
+
+impl<'de> Deserialize<'de> for GameVersion {
+    fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        #[serde(field_identifier, rename_all = "lowercase")]
+        enum Field {
+            Id,
+            Name,
+            Image,
+            Thumbnail,
+            YearPublished,
+            ProductCode,
+            Width,
+            Length,
+            Depth,
+            Weight,
+            // Game original version, publisher, artist, are each in an individual XML tag called
+            // `link`
+            Link,
+            Type,
+        }
+
+        struct GameVersionVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for GameVersionVisitor {
+            type Value = GameVersion;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("a string containing the XML for a family of games.")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                let mut id = None;
+                let mut name = None;
+                let mut alternate_names = vec![];
+                let mut publishers = vec![];
+                let mut artists = vec![];
+                let mut languages = vec![];
+                let mut year_published = None;
+                let mut image = None;
+                let mut thumbnail = None;
+                let mut original_game = None;
+                let mut width = None;
+                let mut length = None;
+                let mut depth = None;
+                let mut weight = None;
+                let mut product_code = None;
+
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::Id => {
+                            if id.is_some() {
+                                return Err(serde::de::Error::duplicate_field("id"));
+                            }
+                            id = Some(map.next_value()?);
+                        },
+                        Field::Name => {
+                            let name_xml: XmlName = map.next_value()?;
+                            match name_xml.name_type {
+                                NameType::Primary => {
+                                    if name.is_some() {
+                                        return Err(serde::de::Error::duplicate_field(
+                                            "name type=\"primary\"",
+                                        ));
+                                    }
+                                    name = Some(name_xml.value);
+                                },
+                                NameType::Alternate => {
+                                    alternate_names.push(name_xml.value);
+                                },
+                            }
+                        },
+                        Field::Image => {
+                            if image.is_some() {
+                                return Err(serde::de::Error::duplicate_field("image"));
+                            }
+                            image = Some(map.next_value()?);
+                        },
+                        Field::Thumbnail => {
+                            if thumbnail.is_some() {
+                                return Err(serde::de::Error::duplicate_field("thumbnail"));
+                            }
+                            thumbnail = Some(map.next_value()?);
+                        },
+                        Field::Link => {
+                            let link: XmlLink = map.next_value()?;
+                            match link.link_type {
+                                LinkType::BoardGameVersion => {
+                                    if original_game.is_some() {
+                                        return Err(serde::de::Error::duplicate_field(
+                                            "link with type \"boardgameversion\"",
+                                        ));
+                                    }
+                                    original_game = Some(Game {
+                                        id: link.id,
+                                        name: link.value,
+                                    });
+                                },
+                                LinkType::BoardGamePublisher => {
+                                    publishers.push(GamePublisher {
+                                        id: link.id,
+                                        name: link.value,
+                                    });
+                                },
+                                LinkType::BoardGameArtist => {
+                                    artists.push(GameArtist {
+                                        id: link.id,
+                                        name: link.value,
+                                    });
+                                },
+                                LinkType::Language => {
+                                    languages.push(Language {
+                                        id: link.id,
+                                        name: link.value,
+                                    });
+                                },
+                                link_type => {
+                                    return Err(serde::de::Error::custom(format!(
+                                        "found unexpected \"{:?}\" link in version",
+                                        link_type
+                                    )));
+                                },
+                            }
+                        },
+                        Field::Width => {
+                            if width.is_some() {
+                                return Err(serde::de::Error::duplicate_field("width"));
+                            }
+                            let width_xml: XmlFloatValue = map.next_value()?;
+                            if width_xml.value == 0.0 {
+                                width = Some(None)
+                            } else {
+                                width = Some(Some(width_xml.value))
+                            }
+                        },
+                        Field::Depth => {
+                            if depth.is_some() {
+                                return Err(serde::de::Error::duplicate_field("depth"));
+                            }
+                            let depth_xml: XmlFloatValue = map.next_value()?;
+                            if depth_xml.value == 0.0 {
+                                depth = Some(None)
+                            } else {
+                                depth = Some(Some(depth_xml.value))
+                            }
+                        },
+                        Field::Length => {
+                            if length.is_some() {
+                                return Err(serde::de::Error::duplicate_field("length"));
+                            }
+                            let length_xml: XmlFloatValue = map.next_value()?;
+                            if length_xml.value == 0.0 {
+                                length = Some(None)
+                            } else {
+                                length = Some(Some(length_xml.value))
+                            }
+                        },
+                        Field::Weight => {
+                            if weight.is_some() {
+                                return Err(serde::de::Error::duplicate_field("weight"));
+                            }
+                            let weight_xml: XmlFloatValue = map.next_value()?;
+                            if weight_xml.value == 0.0 {
+                                weight = Some(None)
+                            } else {
+                                weight = Some(Some(weight_xml.value));
+                            }
+                        },
+                        Field::ProductCode => {
+                            if product_code.is_some() {
+                                return Err(serde::de::Error::duplicate_field("product_code"));
+                            }
+                            let product_code_xml: XmlStringValue = map.next_value()?;
+                            if product_code_xml.value.is_empty() {
+                                product_code = Some(None);
+                            } else {
+                                product_code = Some(Some(product_code_xml.value));
+                            }
+                        },
+                        Field::YearPublished => {
+                            if year_published.is_some() {
+                                return Err(serde::de::Error::duplicate_field("yearpublished"));
+                            }
+                            let year_published_xml: XmlSignedValue = map.next_value()?;
+                            year_published = Some(year_published_xml.value);
+                        },
+                        Field::Type => {
+                            // Type is fixed at "boardgameversion", even for the list of games
+                            // contained so we don't add it. But we need
+                            // to consume the value.
+                            let _: String = map.next_value()?;
+                        },
+                    }
+                }
+                let id = id.ok_or_else(|| serde::de::Error::missing_field("id"))?;
+                let name = name.ok_or_else(|| serde::de::Error::missing_field("name"))?;
+                let year_published = year_published
+                    .ok_or_else(|| serde::de::Error::missing_field("yearpublished"))?;
+                let image = image.ok_or_else(|| serde::de::Error::missing_field("image"))?;
+                let thumbnail =
+                    thumbnail.ok_or_else(|| serde::de::Error::missing_field("thumbnail"))?;
+                let original_game = original_game.ok_or_else(|| {
+                    serde::de::Error::missing_field("link with type \"boardgameversion\"")
+                })?;
+                let width = width.ok_or_else(|| serde::de::Error::missing_field("width"))?;
+                let length = length.ok_or_else(|| serde::de::Error::missing_field("length"))?;
+                let depth = depth.ok_or_else(|| serde::de::Error::missing_field("depth"))?;
+                let weight = weight.ok_or_else(|| serde::de::Error::missing_field("weight"))?;
+                let product_code =
+                    product_code.ok_or_else(|| serde::de::Error::missing_field("productcode"))?;
+
+                let dimensions;
+                if let (Some(width), Some(length), Some(depth)) = (width, length, depth) {
+                    dimensions = Some(Dimensions {
+                        width,
+                        length,
+                        depth,
+                    });
+                } else if let (None, None, None) = (width, depth, length) {
+                    dimensions = None;
+                } else {
+                    return Err(serde::de::Error::custom("Invalid game dimensions, some but not all of width, length, depth, were set."));
+                }
+
+                Ok(Self::Value {
+                    id,
+                    name,
+                    alternate_names,
+                    year_published,
+                    image,
+                    thumbnail,
+                    original_game,
+                    publishers,
+                    artists,
+                    languages,
+                    dimensions,
+                    weight,
+                    product_code,
+                })
+            }
+        }
+        deserializer.deserialize_any(GameVersionVisitor)
     }
 }
 
