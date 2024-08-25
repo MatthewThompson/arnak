@@ -34,3 +34,9 @@ impl IntoQueryParam for ItemType {
         (key, self.to_string())
     }
 }
+
+impl IntoQueryParam for u64 {
+    fn into_query_param(self, key: &str) -> QueryParam<'_> {
+        (key, self.to_string())
+    }
+}

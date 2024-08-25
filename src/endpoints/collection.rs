@@ -472,10 +472,10 @@ impl<'builder> CollectionQueryBuilder<'builder> {
             query_params.push(("bggrating", max_bgg_rating.to_string()));
         }
         if let Some(min_plays) = self.params.min_plays {
-            query_params.push(("minplays", min_plays.to_string()));
+            query_params.push(min_plays.into_query_param("minplays"));
         }
         if let Some(max_plays) = self.params.max_plays {
-            query_params.push(("maxplays", max_plays.to_string()));
+            query_params.push(max_plays.into_query_param("maxplays"));
         }
         if let Some(value) = self.params.show_private {
             query_params.push(value.into_query_param("showprivate"));
