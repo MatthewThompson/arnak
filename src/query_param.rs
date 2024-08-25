@@ -40,3 +40,9 @@ impl IntoQueryParam for u64 {
         (key, self.to_string())
     }
 }
+
+impl IntoQueryParam for f32 {
+    fn into_query_param(self, key: &str) -> QueryParam<'_> {
+        (key, self.to_string())
+    }
+}

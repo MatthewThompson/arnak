@@ -460,16 +460,16 @@ impl<'builder> CollectionQueryBuilder<'builder> {
             query_params.push(value.into_query_param("wantparts"));
         }
         if let Some(min_rating) = self.params.min_rating {
-            query_params.push(("minrating", min_rating.to_string()));
+            query_params.push(min_rating.into_query_param("minrating"));
         }
         if let Some(max_rating) = self.params.max_rating {
-            query_params.push(("rating", max_rating.to_string()));
+            query_params.push(max_rating.into_query_param("rating"));
         }
         if let Some(min_bgg_rating) = self.params.min_bgg_rating {
-            query_params.push(("minbggrating", min_bgg_rating.to_string()));
+            query_params.push(min_bgg_rating.into_query_param("minbggrating"));
         }
         if let Some(max_bgg_rating) = self.params.max_bgg_rating {
-            query_params.push(("bggrating", max_bgg_rating.to_string()));
+            query_params.push(max_bgg_rating.into_query_param("bggrating"));
         }
         if let Some(min_plays) = self.params.min_plays {
             query_params.push(min_plays.into_query_param("minplays"));
@@ -481,7 +481,7 @@ impl<'builder> CollectionQueryBuilder<'builder> {
             query_params.push(value.into_query_param("showprivate"));
         }
         if let Some(collection_id) = self.params.collection_id {
-            query_params.push(("collid", collection_id.to_string()));
+            query_params.push(collection_id.into_query_param("collid"));
         }
         query_params
     }
