@@ -439,10 +439,7 @@ impl<'builder> CollectionQueryBuilder<'builder> {
             None => {},
         }
         if let Some(modified_since) = self.params.modified_since {
-            query_params.push((
-                "modifiedsince",
-                modified_since.format("%y-%m-%d").to_string(),
-            ));
+            query_params.push(modified_since.into_query_param("modifiedsince"));
         }
         if let Some(value) = self.params.include_rated_by_user {
             query_params.push(value.into_query_param("rated"));

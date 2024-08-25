@@ -1,3 +1,5 @@
+use chrono::NaiveDate;
+
 use crate::ItemType;
 
 pub(crate) type QueryParam<'a> = (&'a str, String);
@@ -44,5 +46,11 @@ impl IntoQueryParam for u64 {
 impl IntoQueryParam for f32 {
     fn into_query_param(self, key: &str) -> QueryParam<'_> {
         (key, self.to_string())
+    }
+}
+
+impl IntoQueryParam for NaiveDate {
+    fn into_query_param(self, key: &str) -> QueryParam<'_> {
+        (key, self.format("%y-%m-%d").to_string())
     }
 }
