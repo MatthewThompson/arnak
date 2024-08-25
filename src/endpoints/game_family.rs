@@ -1,4 +1,4 @@
-use super::GameFamilies;
+use super::{GameFamilies, ItemType};
 use crate::{BoardGameGeekApi, IntoQueryParam, QueryParam, Result};
 
 /// Query parameters for making a request to the game family endpoint.
@@ -44,7 +44,7 @@ impl<'builder> GameFamilyQueryBuilder {
     fn build(self) -> Vec<QueryParam<'builder>> {
         let mut query_params: Vec<_> = vec![];
         // Underlying endpoint supports RPG and Video game families too but we hide those.
-        query_params.push(("type", "boardgamefamily".to_string()));
+        query_params.push(ItemType::BoardGameFamily.into_query_param("type"));
 
         if !self.params.game_family_ids.is_empty() {
             query_params.push(self.params.game_family_ids.into_query_param("id"));
