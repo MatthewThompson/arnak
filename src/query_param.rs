@@ -66,3 +66,14 @@ impl IntoQueryParam for WishlistPriority {
         }
     }
 }
+
+impl<Stringable: ToString> IntoQueryParam for Vec<Stringable> {
+    fn into_query_param(self, key: &str) -> QueryParam<'_> {
+        let value_list = self
+            .into_iter()
+            .map(|v| v.to_string())
+            .collect::<Vec<String>>()
+            .join(",");
+        (key, value_list)
+    }
+}

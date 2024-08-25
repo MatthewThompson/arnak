@@ -378,15 +378,9 @@ impl<'builder> CollectionQueryBuilder<'builder> {
         query_params.push(include_stats.into_query_param("stats"));
         query_params.push(self.base.brief.into_query_param("brief"));
 
-        let id_list_string = self
-            .params
-            .item_ids
-            .iter()
-            .map(u64::to_string)
-            .collect::<Vec<String>>()
-            .join(",");
-        query_params.push(("id", id_list_string));
-
+        if !self.params.item_ids.is_empty() {
+            query_params.push(self.params.item_ids.into_query_param("id"));
+        }
         if let Some(item_type) = self.params.item_type {
             query_params.push(item_type.into_query_param("subtype"));
         }
