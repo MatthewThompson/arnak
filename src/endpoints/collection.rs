@@ -387,27 +387,11 @@ impl<'builder> CollectionQueryBuilder<'builder> {
             .join(",");
         query_params.push(("id", id_list_string));
 
-        match self.params.item_type {
-            Some(ItemType::BoardGame) => query_params.push(("subtype", "boardgame".to_string())),
-            Some(ItemType::BoardGameExpansion) => {
-                query_params.push(("subtype", "boardgameexpansion".to_string()))
-            },
-            Some(ItemType::BoardGameAccessory) => {
-                query_params.push(("subtype", "boardgameaccessory".to_string()))
-            },
-            None => {},
+        if let Some(value) = self.params.item_type {
+            query_params.push(value.into_query_param("subtype"));
         }
-        match self.params.exclude_item_type {
-            Some(ItemType::BoardGame) => {
-                query_params.push(("excludesubtype", "boardgame".to_string()))
-            },
-            Some(ItemType::BoardGameExpansion) => {
-                query_params.push(("excludesubtype", "boardgameexpansion".to_string()))
-            },
-            Some(ItemType::BoardGameAccessory) => {
-                query_params.push(("excludesubtype", "boardgameaccessory".to_string()))
-            },
-            None => {},
+        if let Some(value) = self.params.exclude_item_type {
+            query_params.push(value.into_query_param("excludesubtype"));
         }
         if let Some(value) = self.params.include_version_info {
             query_params.push(value.into_query_param("version"));

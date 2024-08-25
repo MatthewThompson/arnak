@@ -1,3 +1,5 @@
+use crate::ItemType;
+
 pub(crate) type QueryParam<'a> = (&'a str, String);
 
 // Can't use the from and into traits because it needs to be defined for
@@ -15,11 +17,20 @@ impl IntoQueryParam for bool {
     }
 }
 
-// TODO see if there is a way to define this trait for all Into<&str>
+// TODO see if there is a way to define this trait for all ToString
 // or ToString so we can define Display on enums and it'll "just work"
+// Currently doesn't work due to conflicting types with the bool implementation.
+// I think this may be solvable with the default fn feature, but this is currently
+// not stable.
 
 impl IntoQueryParam for &str {
     fn into_query_param(self, key: &str) -> QueryParam<'_> {
         (key, self.to_owned())
+    }
+}
+
+impl IntoQueryParam for ItemType {
+    fn into_query_param(self, key: &str) -> QueryParam<'_> {
+        (key, self.to_string())
     }
 }

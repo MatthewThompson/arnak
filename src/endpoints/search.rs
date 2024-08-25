@@ -73,15 +73,8 @@ impl<'builder> SearchQueryBuilder<'builder> {
         if let Some(value) = self.params.exact {
             query_params.push(value.into_query_param("exact"));
         }
-        match self.params.item_type {
-            Some(ItemType::BoardGame) => query_params.push(("type", "boardgame".to_string())),
-            Some(ItemType::BoardGameExpansion) => {
-                query_params.push(("type", "boardgameexpansion".to_string()))
-            },
-            Some(ItemType::BoardGameAccessory) => {
-                query_params.push(("type", "boardgameaccessory".to_string()))
-            },
-            None => {},
+        if let Some(value) = self.params.item_type {
+            query_params.push(value.into_query_param("type"));
         }
         query_params
     }
