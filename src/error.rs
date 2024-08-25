@@ -3,7 +3,7 @@ use std::fmt;
 
 use serde::Deserialize;
 
-/// A `Result` alias where the `Err` case is `arnak::Error`.
+/// A [std::result::Result] alias where the `Err` case is [Error].
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// An error returned by the API. This is an enum representing

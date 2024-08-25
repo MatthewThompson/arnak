@@ -103,7 +103,10 @@ impl<'api> SearchApi<'api> {
         }
     }
 
-    /// Searches with a given query.
+    /// Searches with a given query, and no additional query parameters set.
+    /// This defaults to returning only games, returning both board games
+    /// and expansions. However, expansions will be included in the results twice,
+    /// once with the type [ItemType::BoardGame] and once with the type [ItemType::BoardGameExpansion].
     pub async fn search(&self, query: &str) -> Result<SearchResults> {
         let query = SearchQueryBuilder::new(query, SearchQueryParams::new());
 
@@ -111,7 +114,10 @@ impl<'api> SearchApi<'api> {
         self.api.execute_request::<SearchResults>(request).await
     }
 
-    /// Searches for exact matches to a given query.
+    /// Searches for exact matches to a given query, and no additional query parameters set.
+    /// This defaults to returning only games, returning both board games
+    /// and expansions. However, expansions will be included in the results twice,
+    /// once with the type [ItemType::BoardGame] and once with the type [ItemType::BoardGameExpansion].
     pub async fn search_exact(&self, query: &str) -> Result<SearchResults> {
         let query = SearchQueryBuilder::new(query, SearchQueryParams::new().exact(true));
 

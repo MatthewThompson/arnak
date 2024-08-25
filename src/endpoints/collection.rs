@@ -554,13 +554,18 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
         }
     }
 
-    /// Get all games of all types in the user's collection.
-    pub async fn get_all(&self, username: &'api str) -> Result<Collection<T>> {
+    /// Makes a request to a given user's collection with no additional parameters set.
+    /// This will default to including board games and board game expansions, but the
+    /// [ItemType] will be set to [ItemType::BoardGame] for all results. This is a
+    /// "feature" of the underlying API.
+    pub async fn get_all_games(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::new();
         self.get_from_query(username, query_params).await
     }
 
-    /// Get the user's board game accessory collection.
+    /// Get the user's board game accessory collection. Filtering by any additional
+    /// query parameters provided. No board games will be returned in the collection
+    /// alongside the accessories.
     pub async fn get_accessory_collection(
         &self,
         username: &'api str,
@@ -573,21 +578,22 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
         .await
     }
 
-    /// Gets all the games that a given user owns.
+    /// Gets all the items in a collection that the given user owns.
     pub async fn get_owned(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::new().include_owned(true);
         self.get_from_query(username, query_params).await
     }
 
-    /// Gets all the games that a given user has on their wishlist.
+    /// Gets all the items in a collection that the given user has on their wishlist.
     pub async fn get_wishlist(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::new().include_wishlist(true);
         self.get_from_query(username, query_params).await
     }
 
     /// Gets all the games that support any player counts in a given range.
-    /// The include_stats parameter is automatically set to true, as it is
-    /// needed to filter the results.
+    ///
+    /// Note that the minimum and maximum player count fields are not included for
+    /// [ItemType::BoardGameAccessory], and will be defaulted to 0 in the result.
     pub async fn get_by_player_counts(
         &self,
         username: &'api str,
@@ -604,8 +610,9 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
     }
 
     /// Gets all the games that support the given player count.
-    /// The include_stats parameter is automatically set to true, as it is
-    /// needed to filter the results.
+    ///
+    /// Note that the minimum and maximum player count fields are not included for
+    /// [ItemType::BoardGameAccessory], and will be defaulted to 0 in the result.
     pub async fn get_by_player_count(
         &self,
         username: &'api str,

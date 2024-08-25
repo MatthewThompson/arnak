@@ -117,7 +117,7 @@ pub struct CollectionItemStatus {
     /// The priority of the wishlist.
     #[serde(default, rename = "wishlistpriority")]
     pub wishlist_priority: Option<WishlistPriority>,
-    /// When the collection status was last modified
+    /// When the collection status was last modified.
     #[serde(rename = "lastmodified", with = "date_deserializer")]
     pub last_modified: DateTime<Utc>,
 }
@@ -799,7 +799,7 @@ pub struct GameFamilyRank {
     /// includes all board games.
     pub name: String,
     /// User friendly name in the format "GENRE game rank" e.g. "Party Game
-    /// Rank"
+    /// Rank".
     #[serde(rename = "friendlyname")]
     pub friendly_name: String,
     /// The overall rank on the site within this type of game.
