@@ -68,7 +68,7 @@ impl<'builder> SearchQueryBuilder<'builder> {
     // key value pairs that reqwest can use as HTTP query parameters.
     fn build(self) -> Vec<QueryParam<'builder>> {
         let mut query_params: Vec<_> = vec![];
-        query_params.push(("query", self.search_query.to_string()));
+        query_params.push(self.search_query.into_query_param("query"));
 
         if let Some(value) = self.params.exact {
             query_params.push(value.into_query_param("exact"));

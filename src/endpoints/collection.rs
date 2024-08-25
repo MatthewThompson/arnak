@@ -370,7 +370,7 @@ impl<'builder> CollectionQueryBuilder<'builder> {
     // key value pairs that reqwest can use as HTTP query parameters.
     fn build(self) -> Vec<QueryParam<'builder>> {
         let mut query_params: Vec<_> = vec![];
-        query_params.push(("username", self.base.username.to_owned()));
+        query_params.push(self.base.username.into_query_param("username"));
         // The API is inconsistent with whether stats are returned or not when this is
         // omitted. Set it to always true to avoid any problems with this and
         // avoid the need for the type to be an optional.

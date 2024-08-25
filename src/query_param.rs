@@ -14,3 +14,12 @@ impl IntoQueryParam for bool {
         }
     }
 }
+
+// TODO see if there is a way to define this trait for all Into<&str>
+// or ToString so we can define Display on enums and it'll "just work"
+
+impl IntoQueryParam for &str {
+    fn into_query_param(self, key: &str) -> QueryParam<'_> {
+        (key, self.to_owned())
+    }
+}
