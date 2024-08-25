@@ -17,7 +17,7 @@ pub struct BoardGameGeekApi {
     // URL for the board game geek API.
     // Note this is a String instead of a 'static &str for unit test purposes.
     pub(crate) base_url: String,
-    // Http client for making requests.
+    // Http client for making requests to the underlying API.
     pub(crate) client: reqwest::Client,
 }
 
@@ -30,7 +30,7 @@ impl Default for BoardGameGeekApi {
 impl BoardGameGeekApi {
     const BASE_URL: &'static str = "https://boardgamegeek.com/xmlapi2";
 
-    /// Creates a new API.
+    /// Creates a new API from a default HTTP client.
     pub fn new() -> Self {
         Self {
             base_url: String::from(BoardGameGeekApi::BASE_URL),
@@ -39,13 +39,24 @@ impl BoardGameGeekApi {
     }
 
     /// Returns the collection endpoint of the API, which is used for querying a
-    /// specific user's board game collection.
+    /// specific user's collections.
+    ///
+    /// A collection can be a set of games, or game accessories,
+    /// and doesn't necessarily just include items that the user owns, but also
+    /// items on the user's wishlist or ones they have previously owned, or even
+    /// items they have manually added to the collection.
     pub fn collection(&self) -> CollectionApi<CollectionItem> {
         CollectionApi::new(self)
     }
 
-    /// Returns the collection endpoint of the API, which is used for querying a
-    /// specific user's board game collection.
+    /// Returns the brief collection endpoint of the API, which is used for querying a
+    /// specific user's collections, but in a more brief format. Data such as game images is
+    /// omitted.
+    ///
+    /// A collection can be a set of games, or game accessories,
+    /// and doesn't necessarily just include items that the user owns, but also
+    /// items on the user's wishlist or ones they have previously owned, or even
+    /// items they have manually added to the collection.
     pub fn collection_brief(&self) -> CollectionApi<CollectionItemBrief> {
         CollectionApi::new(self)
     }
@@ -99,13 +110,14 @@ impl BoardGameGeekApi {
             Ok(result) => Ok(result),
             Err(e) => {
                 // The API returns a 200 but with an XML error in some cases,
-                // such as a usename not found, so we try to parse that first
+                // such as a username not found, so we try to parse that first
                 // for a more specific error.
                 let api_error = from_str::<ApiXmlErrors>(&escaped);
                 match api_error {
                     Ok(api_error) => Err(api_error.into()),
-                    // If it's not a parseable error, we want to return the orignal error
-                    // from failing to parse the output type.
+                    // If the error cannot be parsed, that likely means it was a successful response
+                    // that we failed to parse. So return an unexpected response with the original
+                    // error.
                     Err(_) => Err(Error::UnexpectedResponseError(e)),
                 }
             },
@@ -114,8 +126,7 @@ impl BoardGameGeekApi {
 
     // Handles an HTTP request. send_request accepts a reqwest::ReqwestBuilder,
     // sends it and awaits. If the response is Accepted (202), it will wait for the
-    // data to be ready and try again. Any errors are wrapped in the local
-    // BoardGameGeekApiError enum before being returned.
+    // data to be ready and try again.
     fn send_request(&self, request: RequestBuilder) -> impl Future<Output = Result<Response>> {
         let mut retries: u32 = 0;
         async move {
@@ -126,7 +137,6 @@ impl BoardGameGeekApi {
                     Err(e) => break Err(Error::HttpError(e)),
                 };
                 if response.status() == reqwest::StatusCode::ACCEPTED {
-                    // Attempt the request 5 times total
                     if retries >= 4 {
                         break Err(Error::MaxRetryError(retries));
                     }

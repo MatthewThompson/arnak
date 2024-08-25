@@ -15,11 +15,12 @@ pub enum Error {
     /// An error was returned making the HTTP request, or an error
     /// status code was returned.
     HttpError(reqwest::Error),
-    /// An error occured attempting to parse the response from
+    /// An error occurred attempting to parse the response from
     /// the API into the expected type.
     UnexpectedResponseError(serde_xml_rs::Error),
     /// The request tried too many times and timed out before the
-    /// data was ready to be returned by the API.
+    /// data was ready to be returned by the API. Includes the total
+    /// number of times retried.
     MaxRetryError(u32),
     /// The username requested was not found.
     UnknownUsernameError,
@@ -73,6 +74,8 @@ impl StdError for Error {
     }
 }
 
+// The XML returned by the API in case of an error is a list
+// of `message` tags. Usually with just one error inside.
 #[derive(Debug, Deserialize)]
 pub(crate) struct ApiXmlErrors {
     #[serde(rename = "$value")]

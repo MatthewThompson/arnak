@@ -60,7 +60,7 @@ impl<'a> CollectionType<'a> for CollectionItem {
     }
 }
 
-/// Required query paramters. Any type the collection query can implement
+/// Required query parameters. Any type the collection query can implement
 /// must be able to return a base query, so valid queries can be constructed
 /// for both [CollectionItem] and [CollectionItemBrief].
 #[derive(Clone, Debug)]
@@ -101,7 +101,7 @@ pub struct CollectionQueryParams {
     include_want_to_play: Option<bool>,
     /// Include games the user wants to buy if true, exclude if false.
     include_want_to_buy: Option<bool>,
-    /// Include games the user has preordered if true, exclude if false.
+    /// Include games the user has pre-ordered if true, exclude if false.
     include_preordered: Option<bool>,
     /// Include games the user has on their wishlist if true, exclude if false.
     include_wishlist: Option<bool>,
@@ -251,7 +251,7 @@ impl CollectionQueryParams {
     }
 
     /// Sets the modified_since field. If set then only results that have been
-    /// modified since that datetime will be returned.
+    /// modified since that date and time will be returned.
     pub fn modified_since(mut self, modified_since: NaiveDate) -> Self {
         self.modified_since = Some(modified_since);
         self
@@ -360,15 +360,15 @@ struct CollectionQueryBuilder<'q> {
 }
 
 impl<'a> CollectionQueryBuilder<'a> {
-    /// Constructs a new query builder from a base query, and the rest of the
-    /// parameters.
+    // Constructs a new query builder from a base query, and the rest of the
+    // parameters.
     fn new(base: BaseCollectionQuery<'a>, params: CollectionQueryParams) -> Self {
         Self { base, params }
     }
 
-    /// Converts the fields into a vector of (&str, &str) tuples that match
-    /// the expected query parameter key value pairs.
-    pub fn build(self) -> Vec<(&'a str, String)> {
+    // Converts the list of parameters into a vector of
+    // key value pairs that reqwest can use as HTTP query parameters.
+    fn build(self) -> Vec<(&'a str, String)> {
         let mut query_params: Vec<_> = vec![];
         query_params.push(("username", self.base.username.to_string()));
         // The API is inconsistent with whether stats are returned or not when this is

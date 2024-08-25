@@ -47,7 +47,7 @@ impl SearchQueryParams {
     }
 }
 
-/// Struct for building a query for the request to the search endpoint.
+// Struct for building a query for the request to the search endpoint.
 #[derive(Clone, Debug)]
 struct SearchQueryBuilder<'q> {
     search_query: &'q str,
@@ -55,8 +55,8 @@ struct SearchQueryBuilder<'q> {
 }
 
 impl<'builder> SearchQueryBuilder<'builder> {
-    /// Constructs a new query builder from a search query, and the rest of the
-    /// parameters.
+    // Constructs a new query builder from a search query, and the rest of the
+    // parameters.
     fn new(search_query: &'builder str, params: SearchQueryParams) -> Self {
         Self {
             search_query,
@@ -64,7 +64,9 @@ impl<'builder> SearchQueryBuilder<'builder> {
         }
     }
 
-    pub fn build(self) -> Vec<(&'builder str, String)> {
+    // Converts the list of parameters into a vector of
+    // key value pairs that reqwest can use as HTTP query parameters.
+    fn build(self) -> Vec<(&'builder str, String)> {
         let mut query_params: Vec<_> = vec![];
         query_params.push(("query", self.search_query.to_string()));
 

@@ -1,14 +1,16 @@
 use serde::Deserialize;
 
-/// The type of game, board game or expansion.
+/// The type of the item. Either a board game, a board game expansion, or board game accessory.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum ItemType {
-    /// A board game, or expansion, or board game accessory.
+    /// A board game. In many cases the underlying API will also include
+    /// board game expansions under this type, unless explicitly excluded.
     BoardGame,
     /// A board game expansion.
     BoardGameExpansion,
-    /// An accessory for a board game expansion.
+    /// An accessory for a board game. This can include things such as playmats
+    /// and miniatures.
     BoardGameAccessory,
 }
 
@@ -33,7 +35,7 @@ pub struct Game {
     pub name: String,
 }
 
-/// A publisher of/ a game.
+/// A publisher of a game.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct GamePublisher {
     /// The ID of the publisher.
@@ -54,7 +56,7 @@ pub struct GameArtist {
 }
 
 /// A language, listed on versions of games that may support
-/// one or more langages.
+/// one or more languages.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Language {
     /// The ID of the language.
@@ -64,13 +66,13 @@ pub struct Language {
     pub name: String,
 }
 
-/// The dimensions of a game, in inches (TODO check this)
+/// The dimensions of a game, in inches.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Dimensions {
-    /// The width of the game, in inches
+    /// The width of the game, in inches.
     pub width: f64,
-    /// The lenth of the game, in inches
+    /// The length of the game, in inches.
     pub length: f64,
-    /// The depth of the game, in inches
+    /// The depth of the game, in inches.
     pub depth: f64,
 }
