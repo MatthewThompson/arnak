@@ -60,7 +60,7 @@ impl<'a> CollectionType<'a> for CollectionItem {
     }
 }
 
-/// Required query paramters. Any type the collection query can implement
+/// Required query parameters. Any type the collection query can implement
 /// must be able to return a base query, so valid queries can be constructed
 /// for both [CollectionItem] and [CollectionItemBrief].
 #[derive(Clone, Debug)]
@@ -101,7 +101,7 @@ pub struct CollectionQueryParams {
     include_want_to_play: Option<bool>,
     /// Include games the user wants to buy if true, exclude if false.
     include_want_to_buy: Option<bool>,
-    /// Include games the user has preordered if true, exclude if false.
+    /// Include games the user has pre-ordered if true, exclude if false.
     include_preordered: Option<bool>,
     /// Include games the user has on their wishlist if true, exclude if false.
     include_wishlist: Option<bool>,
@@ -251,7 +251,7 @@ impl CollectionQueryParams {
     }
 
     /// Sets the modified_since field. If set then only results that have been
-    /// modified since that datetime will be returned.
+    /// modified since that date and time will be returned.
     pub fn modified_since(mut self, modified_since: NaiveDate) -> Self {
         self.modified_since = Some(modified_since);
         self
@@ -360,15 +360,15 @@ struct CollectionQueryBuilder<'q> {
 }
 
 impl<'a> CollectionQueryBuilder<'a> {
-    /// Constructs a new query builder from a base query, and the rest of the
-    /// parameters.
+    // Constructs a new query builder from a base query, and the rest of the
+    // parameters.
     fn new(base: BaseCollectionQuery<'a>, params: CollectionQueryParams) -> Self {
         Self { base, params }
     }
 
-    /// Converts the fields into a vector of (&str, &str) tuples that match
-    /// the expected query parameter key value pairs.
-    pub fn build(self) -> Vec<(&'a str, String)> {
+    // Converts the list of parameters into a vector of
+    // key value pairs that reqwest can use as HTTP query parameters.
+    fn build(self) -> Vec<(&'a str, String)> {
         let mut query_params: Vec<_> = vec![];
         query_params.push(("username", self.base.username.to_string()));
         // The API is inconsistent with whether stats are returned or not when this is
@@ -537,7 +537,7 @@ impl<'a> CollectionQueryBuilder<'a> {
 }
 
 /// Collection endpoint of the API. Used for returning user's collections
-/// of games by their username. Filtering by [CollectionItemStatus], rating,
+/// of games by their username. Filtering by [crate::CollectionItemStatus], rating,
 /// recorded plays.
 pub struct CollectionApi<'api, T: CollectionType<'api>> {
     pub(crate) api: &'api BoardGameGeekApi,
@@ -554,13 +554,18 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
         }
     }
 
-    /// Get all games of all types in the user's collection.
-    pub async fn get_all(&self, username: &'api str) -> Result<Collection<T>> {
+    /// Makes a request to a given user's collection with no additional parameters set.
+    /// This will default to including board games and board game expansions, but the
+    /// [ItemType] will be set to [ItemType::BoardGame] for all results. This is a
+    /// "feature" of the underlying API.
+    pub async fn get_all_games(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::new();
         self.get_from_query(username, query_params).await
     }
 
-    /// Get the user's board game accessory collection.
+    /// Get the user's board game accessory collection. Filtering by any additional
+    /// query parameters provided. No board games will be returned in the collection
+    /// alongside the accessories.
     pub async fn get_accessory_collection(
         &self,
         username: &'api str,
@@ -573,21 +578,22 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
         .await
     }
 
-    /// Gets all the games that a given user owns.
+    /// Gets all the items in a collection that the given user owns.
     pub async fn get_owned(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::new().include_owned(true);
         self.get_from_query(username, query_params).await
     }
 
-    /// Gets all the games that a given user has on their wishlist.
+    /// Gets all the items in a collection that the given user has on their wishlist.
     pub async fn get_wishlist(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::new().include_wishlist(true);
         self.get_from_query(username, query_params).await
     }
 
     /// Gets all the games that support any player counts in a given range.
-    /// The include_stats parameter is automatically set to true, as it is
-    /// needed to filter the results.
+    ///
+    /// Note that the minimum and maximum player count fields are not included for
+    /// [ItemType::BoardGameAccessory], and will be defaulted to 0 in the result.
     pub async fn get_by_player_counts(
         &self,
         username: &'api str,
@@ -604,8 +610,9 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
     }
 
     /// Gets all the games that support the given player count.
-    /// The include_stats parameter is automatically set to true, as it is
-    /// needed to filter the results.
+    ///
+    /// Note that the minimum and maximum player count fields are not included for
+    /// [ItemType::BoardGameAccessory], and will be defaulted to 0 in the result.
     pub async fn get_by_player_count(
         &self,
         username: &'api str,

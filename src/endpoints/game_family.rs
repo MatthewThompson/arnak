@@ -34,12 +34,14 @@ struct GameFamilyQueryBuilder {
 }
 
 impl<'builder> GameFamilyQueryBuilder {
-    /// Constructs a new query builder from the query params.
+    // Constructs a new query builder from the query params.
     fn new(params: GameFamilyQueryParams) -> Self {
         Self { params }
     }
 
-    pub fn build(self) -> Vec<(&'builder str, String)> {
+    // Converts the list of parameters into a vector of
+    // key value pairs that reqwest can use as HTTP query parameters.
+    fn build(self) -> Vec<(&'builder str, String)> {
         let mut query_params: Vec<_> = vec![];
         // Underlying endpoint supports RPG and Video game families too but we hide those.
         query_params.push(("type", "boardgamefamily".to_string()));

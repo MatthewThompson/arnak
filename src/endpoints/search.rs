@@ -47,7 +47,7 @@ impl SearchQueryParams {
     }
 }
 
-/// Struct for building a query for the request to the search endpoint.
+// Struct for building a query for the request to the search endpoint.
 #[derive(Clone, Debug)]
 struct SearchQueryBuilder<'q> {
     search_query: &'q str,
@@ -55,8 +55,8 @@ struct SearchQueryBuilder<'q> {
 }
 
 impl<'builder> SearchQueryBuilder<'builder> {
-    /// Constructs a new query builder from a search query, and the rest of the
-    /// parameters.
+    // Constructs a new query builder from a search query, and the rest of the
+    // parameters.
     fn new(search_query: &'builder str, params: SearchQueryParams) -> Self {
         Self {
             search_query,
@@ -64,7 +64,9 @@ impl<'builder> SearchQueryBuilder<'builder> {
         }
     }
 
-    pub fn build(self) -> Vec<(&'builder str, String)> {
+    // Converts the list of parameters into a vector of
+    // key value pairs that reqwest can use as HTTP query parameters.
+    fn build(self) -> Vec<(&'builder str, String)> {
         let mut query_params: Vec<_> = vec![];
         query_params.push(("query", self.search_query.to_string()));
 
@@ -101,7 +103,11 @@ impl<'api> SearchApi<'api> {
         }
     }
 
-    /// Searches with a given query.
+    /// Searches with a given query, and no additional query parameters set.
+    /// This defaults to returning only games, returning both board games
+    /// and expansions. However, expansions will be included in the results twice,
+    /// once with the type [ItemType::BoardGame] and once with the type
+    /// [ItemType::BoardGameExpansion].
     pub async fn search(&self, query: &str) -> Result<SearchResults> {
         let query = SearchQueryBuilder::new(query, SearchQueryParams::new());
 
@@ -109,7 +115,11 @@ impl<'api> SearchApi<'api> {
         self.api.execute_request::<SearchResults>(request).await
     }
 
-    /// Searches for exact matches to a given query.
+    /// Searches for exact matches to a given query, and no additional query parameters set.
+    /// This defaults to returning only games, returning both board games
+    /// and expansions. However, expansions will be included in the results twice,
+    /// once with the type [ItemType::BoardGame] and once with the type
+    /// [ItemType::BoardGameExpansion].
     pub async fn search_exact(&self, query: &str) -> Result<SearchResults> {
         let query = SearchQueryBuilder::new(query, SearchQueryParams::new().exact(true));
 

@@ -19,7 +19,7 @@ pub struct HotList {
 pub struct HotListGame {
     /// The ID of the game.
     pub id: u64,
-    /// The rank within the hotlist, should be ordered from 1 to 50.
+    /// The rank within the hot list, should be ordered from 1 to 50.
     pub rank: u64,
     /// A link to a jpg thumbnail image for the game.
     pub thumbnail: String,

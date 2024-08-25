@@ -14,7 +14,7 @@ use crate::NameType;
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Collection<T> {
     /// List of games, expansions, and accessories in the user's collection. Each game
-    /// is not necessarily owned but can be preowned, wishlisted etc.
+    /// is not necessarily owned but can be preowned, on the user's wishlist etc.
     ///
     /// Note that accessories and games can never be returned together in one collection,
     /// but games and game expansions can.
@@ -117,7 +117,7 @@ pub struct CollectionItemStatus {
     /// The priority of the wishlist.
     #[serde(default, rename = "wishlistpriority")]
     pub wishlist_priority: Option<WishlistPriority>,
-    /// When the collection status was last modified
+    /// When the collection status was last modified.
     #[serde(rename = "lastmodified", with = "date_deserializer")]
     pub last_modified: DateTime<Utc>,
 }
@@ -156,7 +156,7 @@ impl<'de> Deserialize<'de> for WishlistPriority {
 }
 
 /// GameVersion is information about a game which is a version or
-/// reimplementation of another game, including the link to the
+/// re-implementation of another game, including the link to the
 /// original. It is not the same as an expansion for a game.
 #[derive(Clone, Debug, PartialEq)]
 pub struct GameVersion {
@@ -468,7 +468,7 @@ impl<'de> Deserialize<'de> for GameVersion {
     }
 }
 
-/// Stats of the game such as playercount and duration. Can be omitted from the
+/// Stats of the game such as player count and duration. Can be omitted from the
 /// response. More stats can be found from the specific game endpoint.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemStatsBrief {
@@ -508,7 +508,7 @@ pub struct CollectionItemStatsBrief {
     pub rating: CollectionItemRatingBrief,
 }
 
-/// Stats of the game such as playercount and duration. Can be omitted from the
+/// Stats of the game such as the player count and duration. Can be omitted from the
 /// response. More stats can be found from the specific game endpoint.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemStats {
@@ -567,7 +567,7 @@ impl<'de> Deserialize<'de> for CollectionItemRatingBrief {
         enum Field {
             Value,
             Average,
-            Bayesaverage,
+            BayesAverage,
         }
 
         struct CollectionItemRatingBriefVisitor;
@@ -609,7 +609,7 @@ impl<'de> Deserialize<'de> for CollectionItemRatingBrief {
                             let average_xml_tag: XmlFloatValue = map.next_value()?;
                             average = Some(average_xml_tag.value);
                         },
-                        Field::Bayesaverage => {
+                        Field::BayesAverage => {
                             if bayesian_average.is_some() {
                                 return Err(serde::de::Error::duplicate_field("bayesaverage"));
                             }
@@ -664,7 +664,7 @@ impl<'de> Deserialize<'de> for CollectionItemRating {
             UsersRated,
             Average,
             Bayesaverage,
-            Stddev,
+            StdDev,
             Median,
             Ranks,
         }
@@ -726,7 +726,7 @@ impl<'de> Deserialize<'de> for CollectionItemRating {
                             let bayesian_average_xml_tag: XmlFloatValue = map.next_value()?;
                             bayesian_average = Some(bayesian_average_xml_tag.value);
                         },
-                        Field::Stddev => {
+                        Field::StdDev => {
                             if standard_deviation.is_some() {
                                 return Err(serde::de::Error::duplicate_field("stddev"));
                             }
@@ -778,7 +778,7 @@ impl<'de> Deserialize<'de> for CollectionItemRating {
     }
 }
 
-// Intermediary struct needed due to the way the XML is strcutured
+// Intermediary struct needed due to the way the XML is structured
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub(crate) struct Ranks {
     #[serde(rename = "$value")]
@@ -798,13 +798,13 @@ pub struct GameFamilyRank {
     /// Name of the game type. "boardgame" used as the generic subtype that
     /// includes all board games.
     pub name: String,
-    /// User friendly name in the foramt "GENRE game rank" e.g. "Party Game
-    /// Rank"
+    /// User friendly name in the format "GENRE game rank" e.g. "Party Game
+    /// Rank".
     #[serde(rename = "friendlyname")]
     pub friendly_name: String,
     /// The overall rank on the site within this type of game.
     pub value: RankValue,
-    /// The score out of 10, as a bayseian average.
+    /// The score out of 10, as a bayesian average.
     ///
     /// This is what boardgamegeek calls a Geek Rating. It is the average rating
     /// that the users have given it along with a few thousand 5.5 ratings added
