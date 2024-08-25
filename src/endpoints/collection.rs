@@ -420,23 +420,8 @@ impl<'builder> CollectionQueryBuilder<'builder> {
         if let Some(value) = self.params.include_wishlist {
             query_params.push(value.into_query_param("wishlist"));
         }
-        match self.params.wishlist_priority {
-            Some(WishlistPriority::DontBuyThis) => {
-                query_params.push(("wishlistpriority", "5".to_string()))
-            },
-            Some(WishlistPriority::ThinkingAboutIt) => {
-                query_params.push(("wishlistpriority", "4".to_string()))
-            },
-            Some(WishlistPriority::LikeToHave) => {
-                query_params.push(("wishlistpriority", "3".to_string()))
-            },
-            Some(WishlistPriority::LoveToHave) => {
-                query_params.push(("wishlistpriority", "2".to_string()))
-            },
-            Some(WishlistPriority::MustHave) => {
-                query_params.push(("wishlistpriority", "1".to_string()))
-            },
-            None => {},
+        if let Some(value) =  self.params.wishlist_priority {
+            query_params.push(value.into_query_param("wishlistpriority"));
         }
         if let Some(modified_since) = self.params.modified_since {
             query_params.push(modified_since.into_query_param("modifiedsince"));

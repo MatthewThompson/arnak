@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 
-use crate::ItemType;
+use crate::{ItemType, WishlistPriority};
 
 pub(crate) type QueryParam<'a> = (&'a str, String);
 
@@ -31,12 +31,6 @@ impl IntoQueryParam for &str {
     }
 }
 
-impl IntoQueryParam for ItemType {
-    fn into_query_param(self, key: &str) -> QueryParam<'_> {
-        (key, self.to_string())
-    }
-}
-
 impl IntoQueryParam for u64 {
     fn into_query_param(self, key: &str) -> QueryParam<'_> {
         (key, self.to_string())
@@ -52,5 +46,23 @@ impl IntoQueryParam for f32 {
 impl IntoQueryParam for NaiveDate {
     fn into_query_param(self, key: &str) -> QueryParam<'_> {
         (key, self.format("%y-%m-%d").to_string())
+    }
+}
+
+impl IntoQueryParam for ItemType {
+    fn into_query_param(self, key: &str) -> QueryParam<'_> {
+        (key, self.to_string())
+    }
+}
+
+impl IntoQueryParam for WishlistPriority {
+    fn into_query_param(self, key: &str) -> QueryParam<'_> {
+        match self {
+            WishlistPriority::DontBuyThis => (key, "5".to_owned()),
+            WishlistPriority::ThinkingAboutIt => (key, "4".to_owned()),
+            WishlistPriority::LikeToHave => (key, "3".to_owned()),
+            WishlistPriority::LoveToHave => (key, "2".to_owned()),
+            WishlistPriority::MustHave => (key, "1".to_owned()),
+        }
     }
 }
