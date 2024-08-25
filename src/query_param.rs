@@ -5,3 +5,12 @@ pub(crate) type QueryParam<'a> = (&'a str, String);
 pub(crate) trait IntoQueryParam {
     fn into_query_param(self, key: &str) -> QueryParam<'_>;
 }
+
+impl IntoQueryParam for bool {
+    fn into_query_param(self, key: &str) -> QueryParam<'_> {
+        match self {
+            true => (key, "1".to_owned()),
+            false => (key, "0".to_owned()),
+        }
+    }
+}

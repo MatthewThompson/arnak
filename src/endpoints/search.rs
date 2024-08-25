@@ -1,5 +1,5 @@
 use super::{ItemType, SearchResults};
-use crate::{BoardGameGeekApi, QueryParam, Result};
+use crate::{BoardGameGeekApi, IntoQueryParam, QueryParam, Result};
 
 /// All optional query parameters for making a request to the
 /// search endpoint.
@@ -70,10 +70,8 @@ impl<'builder> SearchQueryBuilder<'builder> {
         let mut query_params: Vec<_> = vec![];
         query_params.push(("query", self.search_query.to_string()));
 
-        match self.params.exact {
-            Some(true) => query_params.push(("exact", "1".to_string())),
-            Some(false) => query_params.push(("exact", "0".to_string())),
-            None => {},
+        if let Some(value) = self.params.exact {
+            query_params.push(value.into_query_param("exact"));
         }
         match self.params.item_type {
             Some(ItemType::BoardGame) => query_params.push(("type", "boardgame".to_string())),

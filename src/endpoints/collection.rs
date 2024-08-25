@@ -6,7 +6,7 @@ use serde::de::DeserializeOwned;
 use crate::api::BoardGameGeekApi;
 use crate::{
     Collection, CollectionItem, CollectionItemBrief, CollectionItemRatingBrief,
-    CollectionItemStatsBrief, ItemType, QueryParam, Result, WishlistPriority,
+    CollectionItemStatsBrief, IntoQueryParam, ItemType, QueryParam, Result, WishlistPriority,
 };
 
 /// Trait for a type that the collection endpoint can return. Allows us to get
@@ -370,16 +370,13 @@ impl<'builder> CollectionQueryBuilder<'builder> {
     // key value pairs that reqwest can use as HTTP query parameters.
     fn build(self) -> Vec<QueryParam<'builder>> {
         let mut query_params: Vec<_> = vec![];
-        query_params.push(("username", self.base.username.to_string()));
+        query_params.push(("username", self.base.username.to_owned()));
         // The API is inconsistent with whether stats are returned or not when this is
         // omitted. Set it to always true to avoid any problems with this and
         // avoid the need for the type to be an optional.
-        query_params.push(("stats", "1".to_string()));
-
-        match self.base.brief {
-            true => query_params.push(("brief", "1".to_string())),
-            false => query_params.push(("brief", "0".to_string())),
-        }
+        let include_stats = true;
+        query_params.push(include_stats.into_query_param("stats"));
+        query_params.push(self.base.brief.into_query_param("brief"));
 
         let id_list_string = self
             .params
@@ -412,50 +409,32 @@ impl<'builder> CollectionQueryBuilder<'builder> {
             },
             None => {},
         }
-        match self.params.include_version_info {
-            Some(true) => query_params.push(("version", "1".to_string())),
-            Some(false) => query_params.push(("version", "0".to_string())),
-            None => {},
+        if let Some(value) = self.params.include_version_info {
+            query_params.push(value.into_query_param("version"));
         }
-        match self.params.include_owned {
-            Some(true) => query_params.push(("own", "1".to_string())),
-            Some(false) => query_params.push(("own", "0".to_string())),
-            None => {},
+        if let Some(value) = self.params.include_owned {
+            query_params.push(value.into_query_param("own"));
         }
-        match self.params.include_previously_owned {
-            Some(true) => query_params.push(("prevowned", "1".to_string())),
-            Some(false) => query_params.push(("prevowned", "0".to_string())),
-            None => {},
+        if let Some(value) = self.params.include_previously_owned {
+            query_params.push(value.into_query_param("prevowned"));
         }
-        match self.params.include_for_trade {
-            Some(true) => query_params.push(("trade", "1".to_string())),
-            Some(false) => query_params.push(("trade", "0".to_string())),
-            None => {},
+        if let Some(value) = self.params.include_for_trade {
+            query_params.push(value.into_query_param("trade"));
         }
-        match self.params.include_want_in_trade {
-            Some(true) => query_params.push(("want", "1".to_string())),
-            Some(false) => query_params.push(("want", "0".to_string())),
-            None => {},
+        if let Some(value) = self.params.include_want_in_trade {
+            query_params.push(value.into_query_param("want"));
         }
-        match self.params.include_want_to_play {
-            Some(true) => query_params.push(("wanttoplay", "1".to_string())),
-            Some(false) => query_params.push(("wanttoplay", "0".to_string())),
-            None => {},
+        if let Some(value) = self.params.include_want_to_play {
+            query_params.push(value.into_query_param("wanttoplay"));
         }
-        match self.params.include_want_to_buy {
-            Some(true) => query_params.push(("wanttobuy", "1".to_string())),
-            Some(false) => query_params.push(("wanttobuy", "0".to_string())),
-            None => {},
+        if let Some(value) = self.params.include_want_to_buy {
+            query_params.push(value.into_query_param("wanttobuy"));
         }
-        match self.params.include_preordered {
-            Some(true) => query_params.push(("preordered", "1".to_string())),
-            Some(false) => query_params.push(("preordered", "0".to_string())),
-            None => {},
+        if let Some(value) = self.params.include_preordered {
+            query_params.push(value.into_query_param("preordered"));
         }
-        match self.params.include_wishlist {
-            Some(true) => query_params.push(("wishlist", "1".to_string())),
-            Some(false) => query_params.push(("wishlist", "0".to_string())),
-            None => {},
+        if let Some(value) = self.params.include_wishlist {
+            query_params.push(value.into_query_param("wishlist"));
         }
         match self.params.wishlist_priority {
             Some(WishlistPriority::DontBuyThis) => {
@@ -481,30 +460,20 @@ impl<'builder> CollectionQueryBuilder<'builder> {
                 modified_since.format("%y-%m-%d").to_string(),
             ));
         }
-        match self.params.include_rated_by_user {
-            Some(true) => query_params.push(("rated", "1".to_string())),
-            Some(false) => query_params.push(("rated", "0".to_string())),
-            None => {},
+        if let Some(value) = self.params.include_rated_by_user {
+            query_params.push(value.into_query_param("rated"));
         }
-        match self.params.include_played_by_user {
-            Some(true) => query_params.push(("played", "1".to_string())),
-            Some(false) => query_params.push(("played", "0".to_string())),
-            None => {},
+        if let Some(value) = self.params.include_played_by_user {
+            query_params.push(value.into_query_param("played"));
         }
-        match self.params.include_commented {
-            Some(true) => query_params.push(("comment", "1".to_string())),
-            Some(false) => query_params.push(("comment", "0".to_string())),
-            None => {},
+        if let Some(value) = self.params.include_commented {
+            query_params.push(value.into_query_param("comment"));
         }
-        match self.params.has_parts {
-            Some(true) => query_params.push(("hasparts", "1".to_string())),
-            Some(false) => query_params.push(("hasparts", "0".to_string())),
-            None => {},
+        if let Some(value) = self.params.has_parts {
+            query_params.push(value.into_query_param("hasparts"));
         }
-        match self.params.want_parts {
-            Some(true) => query_params.push(("wantparts", "1".to_string())),
-            Some(false) => query_params.push(("wantparts", "0".to_string())),
-            None => {},
+        if let Some(value) = self.params.want_parts {
+            query_params.push(value.into_query_param("wantparts"));
         }
         if let Some(min_rating) = self.params.min_rating {
             query_params.push(("minrating", min_rating.to_string()));
@@ -524,10 +493,8 @@ impl<'builder> CollectionQueryBuilder<'builder> {
         if let Some(max_plays) = self.params.max_plays {
             query_params.push(("maxplays", max_plays.to_string()));
         }
-        match self.params.show_private {
-            Some(true) => query_params.push(("showprivate", "1".to_string())),
-            Some(false) => query_params.push(("showprivate", "0".to_string())),
-            None => {},
+        if let Some(value) = self.params.show_private {
+            query_params.push(value.into_query_param("showprivate"));
         }
         if let Some(collection_id) = self.params.collection_id {
             query_params.push(("collid", collection_id.to_string()));
