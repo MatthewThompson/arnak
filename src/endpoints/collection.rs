@@ -537,7 +537,7 @@ impl<'a> CollectionQueryBuilder<'a> {
 }
 
 /// Collection endpoint of the API. Used for returning user's collections
-/// of games by their username. Filtering by [CollectionItemStatus], rating,
+/// of games by their username. Filtering by [crate::CollectionItemStatus], rating,
 /// recorded plays.
 pub struct CollectionApi<'api, T: CollectionType<'api>> {
     pub(crate) api: &'api BoardGameGeekApi,
