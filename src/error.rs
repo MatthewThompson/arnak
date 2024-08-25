@@ -7,8 +7,8 @@ use serde::Deserialize;
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// An error returned by the API. This is an enum representing
-/// either an http error (reqwest::Error), or an error parsing the
-/// output (serde_xml_rs::Error), or finally just a string. Which
+/// either an http error [reqwest::Error], or an error parsing the
+/// output [serde_xml_rs::Error], or finally just a string. Which
 /// is typically returned in some case an error shouldn't happen.
 #[derive(Debug)]
 pub enum Error {
@@ -20,7 +20,7 @@ pub enum Error {
     UnexpectedResponseError(serde_xml_rs::Error),
     /// The request tried too many times and timed out before the
     /// data was ready to be returned by the API. Includes the total
-    /// number of times retried.
+    /// number of times tried.
     MaxRetryError(u32),
     /// The username requested was not found.
     UnknownUsernameError,

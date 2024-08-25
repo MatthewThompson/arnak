@@ -138,7 +138,7 @@ impl BoardGameGeekApi {
                 };
                 if response.status() == reqwest::StatusCode::ACCEPTED {
                     if retries >= 4 {
-                        break Err(Error::MaxRetryError(retries));
+                        break Err(Error::MaxRetryError(retries + 1));
                     }
                     // Request has been accepted but the data isn't ready yet, we wait a short
                     // amount of time before trying again, with exponential
