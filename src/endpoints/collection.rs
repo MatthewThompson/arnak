@@ -387,59 +387,59 @@ impl<'builder> CollectionQueryBuilder<'builder> {
             .join(",");
         query_params.push(("id", id_list_string));
 
-        if let Some(value) = self.params.item_type {
-            query_params.push(value.into_query_param("subtype"));
+        if let Some(item_type) = self.params.item_type {
+            query_params.push(item_type.into_query_param("subtype"));
         }
-        if let Some(value) = self.params.exclude_item_type {
-            query_params.push(value.into_query_param("excludesubtype"));
+        if let Some(exclude_item_type) = self.params.exclude_item_type {
+            query_params.push(exclude_item_type.into_query_param("excludesubtype"));
         }
-        if let Some(value) = self.params.include_version_info {
-            query_params.push(value.into_query_param("version"));
+        if let Some(include_version_info) = self.params.include_version_info {
+            query_params.push(include_version_info.into_query_param("version"));
         }
-        if let Some(value) = self.params.include_owned {
-            query_params.push(value.into_query_param("own"));
+        if let Some(include_owned) = self.params.include_owned {
+            query_params.push(include_owned.into_query_param("own"));
         }
-        if let Some(value) = self.params.include_previously_owned {
-            query_params.push(value.into_query_param("prevowned"));
+        if let Some(include_previously_owned) = self.params.include_previously_owned {
+            query_params.push(include_previously_owned.into_query_param("prevowned"));
         }
-        if let Some(value) = self.params.include_for_trade {
-            query_params.push(value.into_query_param("trade"));
+        if let Some(include_for_trade) = self.params.include_for_trade {
+            query_params.push(include_for_trade.into_query_param("trade"));
         }
-        if let Some(value) = self.params.include_want_in_trade {
-            query_params.push(value.into_query_param("want"));
+        if let Some(include_want_in_trade) = self.params.include_want_in_trade {
+            query_params.push(include_want_in_trade.into_query_param("want"));
         }
-        if let Some(value) = self.params.include_want_to_play {
-            query_params.push(value.into_query_param("wanttoplay"));
+        if let Some(include_want_to_play) = self.params.include_want_to_play {
+            query_params.push(include_want_to_play.into_query_param("wanttoplay"));
         }
-        if let Some(value) = self.params.include_want_to_buy {
-            query_params.push(value.into_query_param("wanttobuy"));
+        if let Some(include_want_to_buy) = self.params.include_want_to_buy {
+            query_params.push(include_want_to_buy.into_query_param("wanttobuy"));
         }
-        if let Some(value) = self.params.include_preordered {
-            query_params.push(value.into_query_param("preordered"));
+        if let Some(include_preordered) = self.params.include_preordered {
+            query_params.push(include_preordered.into_query_param("preordered"));
         }
-        if let Some(value) = self.params.include_wishlist {
-            query_params.push(value.into_query_param("wishlist"));
+        if let Some(include_wishlist) = self.params.include_wishlist {
+            query_params.push(include_wishlist.into_query_param("wishlist"));
         }
-        if let Some(value) =  self.params.wishlist_priority {
-            query_params.push(value.into_query_param("wishlistpriority"));
+        if let Some(wishlist_priority) = self.params.wishlist_priority {
+            query_params.push(wishlist_priority.into_query_param("wishlistpriority"));
         }
         if let Some(modified_since) = self.params.modified_since {
             query_params.push(modified_since.into_query_param("modifiedsince"));
         }
-        if let Some(value) = self.params.include_rated_by_user {
-            query_params.push(value.into_query_param("rated"));
+        if let Some(include_rated_by_user) = self.params.include_rated_by_user {
+            query_params.push(include_rated_by_user.into_query_param("rated"));
         }
-        if let Some(value) = self.params.include_played_by_user {
-            query_params.push(value.into_query_param("played"));
+        if let Some(include_played_by_user) = self.params.include_played_by_user {
+            query_params.push(include_played_by_user.into_query_param("played"));
         }
-        if let Some(value) = self.params.include_commented {
-            query_params.push(value.into_query_param("comment"));
+        if let Some(include_commented) = self.params.include_commented {
+            query_params.push(include_commented.into_query_param("comment"));
         }
-        if let Some(value) = self.params.has_parts {
-            query_params.push(value.into_query_param("hasparts"));
+        if let Some(has_parts) = self.params.has_parts {
+            query_params.push(has_parts.into_query_param("hasparts"));
         }
-        if let Some(value) = self.params.want_parts {
-            query_params.push(value.into_query_param("wantparts"));
+        if let Some(want_parts) = self.params.want_parts {
+            query_params.push(want_parts.into_query_param("wantparts"));
         }
         if let Some(min_rating) = self.params.min_rating {
             query_params.push(min_rating.into_query_param("minrating"));
@@ -459,8 +459,8 @@ impl<'builder> CollectionQueryBuilder<'builder> {
         if let Some(max_plays) = self.params.max_plays {
             query_params.push(max_plays.into_query_param("maxplays"));
         }
-        if let Some(value) = self.params.show_private {
-            query_params.push(value.into_query_param("showprivate"));
+        if let Some(show_private) = self.params.show_private {
+            query_params.push(show_private.into_query_param("showprivate"));
         }
         if let Some(collection_id) = self.params.collection_id {
             query_params.push(collection_id.into_query_param("collid"));
