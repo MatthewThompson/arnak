@@ -6,7 +6,7 @@ use serde::de::DeserializeOwned;
 use crate::api::BoardGameGeekApi;
 use crate::{
     Collection, CollectionItem, CollectionItemBrief, CollectionItemRatingBrief,
-    CollectionItemStatsBrief, ItemType, Result, WishlistPriority,
+    CollectionItemStatsBrief, IntoQueryParam, ItemType, QueryParam, Result, WishlistPriority,
 };
 
 /// Trait for a type that the collection endpoint can return. Allows us to get
@@ -359,178 +359,105 @@ struct CollectionQueryBuilder<'q> {
     params: CollectionQueryParams,
 }
 
-impl<'a> CollectionQueryBuilder<'a> {
+impl<'builder> CollectionQueryBuilder<'builder> {
     // Constructs a new query builder from a base query, and the rest of the
     // parameters.
-    fn new(base: BaseCollectionQuery<'a>, params: CollectionQueryParams) -> Self {
+    fn new(base: BaseCollectionQuery<'builder>, params: CollectionQueryParams) -> Self {
         Self { base, params }
     }
 
     // Converts the list of parameters into a vector of
     // key value pairs that reqwest can use as HTTP query parameters.
-    fn build(self) -> Vec<(&'a str, String)> {
+    fn build(self) -> Vec<QueryParam<'builder>> {
         let mut query_params: Vec<_> = vec![];
-        query_params.push(("username", self.base.username.to_string()));
+        query_params.push(self.base.username.into_query_param("username"));
         // The API is inconsistent with whether stats are returned or not when this is
         // omitted. Set it to always true to avoid any problems with this and
         // avoid the need for the type to be an optional.
-        query_params.push(("stats", "1".to_string()));
+        let include_stats = true;
+        query_params.push(include_stats.into_query_param("stats"));
+        query_params.push(self.base.brief.into_query_param("brief"));
 
-        match self.base.brief {
-            true => query_params.push(("brief", "1".to_string())),
-            false => query_params.push(("brief", "0".to_string())),
+        if !self.params.item_ids.is_empty() {
+            query_params.push(self.params.item_ids.into_query_param("id"));
         }
-
-        let id_list_string = self
-            .params
-            .item_ids
-            .iter()
-            .map(u64::to_string)
-            .collect::<Vec<String>>()
-            .join(",");
-        query_params.push(("id", id_list_string));
-
-        match self.params.item_type {
-            Some(ItemType::BoardGame) => query_params.push(("subtype", "boardgame".to_string())),
-            Some(ItemType::BoardGameExpansion) => {
-                query_params.push(("subtype", "boardgameexpansion".to_string()))
-            },
-            Some(ItemType::BoardGameAccessory) => {
-                query_params.push(("subtype", "boardgameaccessory".to_string()))
-            },
-            None => {},
+        if let Some(item_type) = self.params.item_type {
+            query_params.push(item_type.into_query_param("subtype"));
         }
-        match self.params.exclude_item_type {
-            Some(ItemType::BoardGame) => {
-                query_params.push(("excludesubtype", "boardgame".to_string()))
-            },
-            Some(ItemType::BoardGameExpansion) => {
-                query_params.push(("excludesubtype", "boardgameexpansion".to_string()))
-            },
-            Some(ItemType::BoardGameAccessory) => {
-                query_params.push(("excludesubtype", "boardgameaccessory".to_string()))
-            },
-            None => {},
+        if let Some(exclude_item_type) = self.params.exclude_item_type {
+            query_params.push(exclude_item_type.into_query_param("excludesubtype"));
         }
-        match self.params.include_version_info {
-            Some(true) => query_params.push(("version", "1".to_string())),
-            Some(false) => query_params.push(("version", "0".to_string())),
-            None => {},
+        if let Some(include_version_info) = self.params.include_version_info {
+            query_params.push(include_version_info.into_query_param("version"));
         }
-        match self.params.include_owned {
-            Some(true) => query_params.push(("own", "1".to_string())),
-            Some(false) => query_params.push(("own", "0".to_string())),
-            None => {},
+        if let Some(include_owned) = self.params.include_owned {
+            query_params.push(include_owned.into_query_param("own"));
         }
-        match self.params.include_previously_owned {
-            Some(true) => query_params.push(("prevowned", "1".to_string())),
-            Some(false) => query_params.push(("prevowned", "0".to_string())),
-            None => {},
+        if let Some(include_previously_owned) = self.params.include_previously_owned {
+            query_params.push(include_previously_owned.into_query_param("prevowned"));
         }
-        match self.params.include_for_trade {
-            Some(true) => query_params.push(("trade", "1".to_string())),
-            Some(false) => query_params.push(("trade", "0".to_string())),
-            None => {},
+        if let Some(include_for_trade) = self.params.include_for_trade {
+            query_params.push(include_for_trade.into_query_param("trade"));
         }
-        match self.params.include_want_in_trade {
-            Some(true) => query_params.push(("want", "1".to_string())),
-            Some(false) => query_params.push(("want", "0".to_string())),
-            None => {},
+        if let Some(include_want_in_trade) = self.params.include_want_in_trade {
+            query_params.push(include_want_in_trade.into_query_param("want"));
         }
-        match self.params.include_want_to_play {
-            Some(true) => query_params.push(("wanttoplay", "1".to_string())),
-            Some(false) => query_params.push(("wanttoplay", "0".to_string())),
-            None => {},
+        if let Some(include_want_to_play) = self.params.include_want_to_play {
+            query_params.push(include_want_to_play.into_query_param("wanttoplay"));
         }
-        match self.params.include_want_to_buy {
-            Some(true) => query_params.push(("wanttobuy", "1".to_string())),
-            Some(false) => query_params.push(("wanttobuy", "0".to_string())),
-            None => {},
+        if let Some(include_want_to_buy) = self.params.include_want_to_buy {
+            query_params.push(include_want_to_buy.into_query_param("wanttobuy"));
         }
-        match self.params.include_preordered {
-            Some(true) => query_params.push(("preordered", "1".to_string())),
-            Some(false) => query_params.push(("preordered", "0".to_string())),
-            None => {},
+        if let Some(include_preordered) = self.params.include_preordered {
+            query_params.push(include_preordered.into_query_param("preordered"));
         }
-        match self.params.include_wishlist {
-            Some(true) => query_params.push(("wishlist", "1".to_string())),
-            Some(false) => query_params.push(("wishlist", "0".to_string())),
-            None => {},
+        if let Some(include_wishlist) = self.params.include_wishlist {
+            query_params.push(include_wishlist.into_query_param("wishlist"));
         }
-        match self.params.wishlist_priority {
-            Some(WishlistPriority::DontBuyThis) => {
-                query_params.push(("wishlistpriority", "5".to_string()))
-            },
-            Some(WishlistPriority::ThinkingAboutIt) => {
-                query_params.push(("wishlistpriority", "4".to_string()))
-            },
-            Some(WishlistPriority::LikeToHave) => {
-                query_params.push(("wishlistpriority", "3".to_string()))
-            },
-            Some(WishlistPriority::LoveToHave) => {
-                query_params.push(("wishlistpriority", "2".to_string()))
-            },
-            Some(WishlistPriority::MustHave) => {
-                query_params.push(("wishlistpriority", "1".to_string()))
-            },
-            None => {},
+        if let Some(wishlist_priority) = self.params.wishlist_priority {
+            query_params.push(wishlist_priority.into_query_param("wishlistpriority"));
         }
         if let Some(modified_since) = self.params.modified_since {
-            query_params.push((
-                "modifiedsince",
-                modified_since.format("%y-%m-%d").to_string(),
-            ));
+            query_params.push(modified_since.into_query_param("modifiedsince"));
         }
-        match self.params.include_rated_by_user {
-            Some(true) => query_params.push(("rated", "1".to_string())),
-            Some(false) => query_params.push(("rated", "0".to_string())),
-            None => {},
+        if let Some(include_rated_by_user) = self.params.include_rated_by_user {
+            query_params.push(include_rated_by_user.into_query_param("rated"));
         }
-        match self.params.include_played_by_user {
-            Some(true) => query_params.push(("played", "1".to_string())),
-            Some(false) => query_params.push(("played", "0".to_string())),
-            None => {},
+        if let Some(include_played_by_user) = self.params.include_played_by_user {
+            query_params.push(include_played_by_user.into_query_param("played"));
         }
-        match self.params.include_commented {
-            Some(true) => query_params.push(("comment", "1".to_string())),
-            Some(false) => query_params.push(("comment", "0".to_string())),
-            None => {},
+        if let Some(include_commented) = self.params.include_commented {
+            query_params.push(include_commented.into_query_param("comment"));
         }
-        match self.params.has_parts {
-            Some(true) => query_params.push(("hasparts", "1".to_string())),
-            Some(false) => query_params.push(("hasparts", "0".to_string())),
-            None => {},
+        if let Some(has_parts) = self.params.has_parts {
+            query_params.push(has_parts.into_query_param("hasparts"));
         }
-        match self.params.want_parts {
-            Some(true) => query_params.push(("wantparts", "1".to_string())),
-            Some(false) => query_params.push(("wantparts", "0".to_string())),
-            None => {},
+        if let Some(want_parts) = self.params.want_parts {
+            query_params.push(want_parts.into_query_param("wantparts"));
         }
         if let Some(min_rating) = self.params.min_rating {
-            query_params.push(("minrating", min_rating.to_string()));
+            query_params.push(min_rating.into_query_param("minrating"));
         }
         if let Some(max_rating) = self.params.max_rating {
-            query_params.push(("rating", max_rating.to_string()));
+            query_params.push(max_rating.into_query_param("rating"));
         }
         if let Some(min_bgg_rating) = self.params.min_bgg_rating {
-            query_params.push(("minbggrating", min_bgg_rating.to_string()));
+            query_params.push(min_bgg_rating.into_query_param("minbggrating"));
         }
         if let Some(max_bgg_rating) = self.params.max_bgg_rating {
-            query_params.push(("bggrating", max_bgg_rating.to_string()));
+            query_params.push(max_bgg_rating.into_query_param("bggrating"));
         }
         if let Some(min_plays) = self.params.min_plays {
-            query_params.push(("minplays", min_plays.to_string()));
+            query_params.push(min_plays.into_query_param("minplays"));
         }
         if let Some(max_plays) = self.params.max_plays {
-            query_params.push(("maxplays", max_plays.to_string()));
+            query_params.push(max_plays.into_query_param("maxplays"));
         }
-        match self.params.show_private {
-            Some(true) => query_params.push(("showprivate", "1".to_string())),
-            Some(false) => query_params.push(("showprivate", "0".to_string())),
-            None => {},
+        if let Some(show_private) = self.params.show_private {
+            query_params.push(show_private.into_query_param("showprivate"));
         }
         if let Some(collection_id) = self.params.collection_id {
-            query_params.push(("collid", collection_id.to_string()));
+            query_params.push(collection_id.into_query_param("collid"));
         }
         query_params
     }

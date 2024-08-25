@@ -1,3 +1,5 @@
+use core::fmt::Display;
+
 use serde::Deserialize;
 
 /// The type of the item. Either a board game, a board game expansion, or board game accessory.
@@ -12,6 +14,20 @@ pub enum ItemType {
     /// An accessory for a board game. This can include things such as playmats
     /// and miniatures.
     BoardGameAccessory,
+}
+
+// TODO: is there a nice way to have a separate display and to_string implementation?
+// to_string is needed for converting this type into query params, but it would be good
+// to have a separate user facing display that would look like "board game" instead of
+// "boardgame" for example.
+impl Display for ItemType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ItemType::BoardGame => write!(f, "boardgame"),
+            ItemType::BoardGameExpansion => write!(f, "boardgameexpansion"),
+            ItemType::BoardGameAccessory => write!(f, "boardgameaccessory"),
+        }
+    }
 }
 
 /// The type of game, board game or expansion.

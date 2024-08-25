@@ -1,5 +1,5 @@
 use super::{ItemType, SearchResults};
-use crate::{BoardGameGeekApi, Result};
+use crate::{BoardGameGeekApi, IntoQueryParam, QueryParam, Result};
 
 /// All optional query parameters for making a request to the
 /// search endpoint.
@@ -66,24 +66,15 @@ impl<'builder> SearchQueryBuilder<'builder> {
 
     // Converts the list of parameters into a vector of
     // key value pairs that reqwest can use as HTTP query parameters.
-    fn build(self) -> Vec<(&'builder str, String)> {
+    fn build(self) -> Vec<QueryParam<'builder>> {
         let mut query_params: Vec<_> = vec![];
-        query_params.push(("query", self.search_query.to_string()));
+        query_params.push(self.search_query.into_query_param("query"));
 
-        match self.params.exact {
-            Some(true) => query_params.push(("exact", "1".to_string())),
-            Some(false) => query_params.push(("exact", "0".to_string())),
-            None => {},
+        if let Some(value) = self.params.exact {
+            query_params.push(value.into_query_param("exact"));
         }
-        match self.params.item_type {
-            Some(ItemType::BoardGame) => query_params.push(("type", "boardgame".to_string())),
-            Some(ItemType::BoardGameExpansion) => {
-                query_params.push(("type", "boardgameexpansion".to_string()))
-            },
-            Some(ItemType::BoardGameAccessory) => {
-                query_params.push(("type", "boardgameaccessory".to_string()))
-            },
-            None => {},
+        if let Some(value) = self.params.item_type {
+            query_params.push(value.into_query_param("type"));
         }
         query_params
     }
