@@ -96,7 +96,11 @@ impl<'builder> SearchQueryBuilder<'builder> {
     }
 }
 
-/// Search endpoint of the API. Used for searching for games by name.
+/// Search endpoint of the API. Used for searching for games and other items by name.
+/// 
+/// A maximum of 500 items will be returned by the API per type provided, with no option
+/// for pagination. So if the page doesn't include the desired item the query must be made
+/// more specific.
 pub struct SearchApi<'api> {
     pub(crate) api: &'api BoardGameGeekApi,
     endpoint: &'static str,
