@@ -3,7 +3,7 @@ use core::fmt;
 use chrono::{DateTime, Duration, Utc};
 use serde::Deserialize;
 
-use super::{Dimensions, Game, GameArtist, GamePublisher, ItemType, Language};
+use super::{Dimensions, Game, GameArtist, GamePublisher, CollectionItemType, Language};
 use crate::utils::{
     date_deserializer, deserialize_1_0_bool, deserialize_minutes, LinkType, XmlFloatValue,
     XmlIntValue, XmlLink, XmlName, XmlSignedValue, XmlStringValue,
@@ -37,7 +37,7 @@ pub struct CollectionItemBrief {
     pub collection_id: u64,
     /// The type of collection item, which will either be boardgame, expansion, or accessory.
     #[serde(rename = "subtype")]
-    pub item_type: ItemType,
+    pub item_type: CollectionItemType,
     /// The name of the item.
     pub name: String,
     /// Status of the item in this collection, such as own, preowned, wishlist.
@@ -62,7 +62,7 @@ pub struct CollectionItem {
     pub collection_id: u64,
     /// The type of collection item, which will either be boardgame, expansion, or accessory.
     #[serde(rename = "subtype")]
-    pub item_type: ItemType,
+    pub item_type: CollectionItemType,
     /// The name of the item.
     pub name: String,
     /// The year the item was first published.

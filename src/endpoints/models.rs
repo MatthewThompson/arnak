@@ -14,6 +14,13 @@ pub enum ItemType {
     /// An accessory for a board game. This can include things such as playmats
     /// and miniatures.
     BoardGameAccessory,
+    /// A publisher of a board game.
+    BoardGamePublisher,
+    /// An artist of a board game.
+    BoardGameArtist,
+    /// A group of games. A family of games might be all games that fall under a certain
+    /// IP, or grouped by some other criteria such as game mechanic.
+    BoardGameFamily,
 }
 
 // TODO: is there a nice way to have a separate display and to_string implementation?
@@ -26,6 +33,39 @@ impl Display for ItemType {
             ItemType::BoardGame => write!(f, "boardgame"),
             ItemType::BoardGameExpansion => write!(f, "boardgameexpansion"),
             ItemType::BoardGameAccessory => write!(f, "boardgameaccessory"),
+            ItemType::BoardGamePublisher => write!(f, "boardgamepublisher"),
+            ItemType::BoardGameArtist => write!(f, "boardgameartist"),
+            ItemType::BoardGameFamily => write!(f, "boardgamefamily"),
+        }
+    }
+}
+
+/// The type of an item that can be returned from the collections endpoint.
+/// Either a board game, a board game expansion, or board game accessory, a subset ot
+/// [ItemType].
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum CollectionItemType {
+    /// A board game. In many cases the underlying API will also include
+    /// board game expansions under this type, unless explicitly excluded.
+    BoardGame,
+    /// A board game expansion.
+    BoardGameExpansion,
+    /// An accessory for a board game. This can include things such as playmats
+    /// and miniatures.
+    BoardGameAccessory,
+}
+
+// TODO: is there a nice way to have a separate display and to_string implementation?
+// to_string is needed for converting this type into query params, but it would be good
+// to have a separate user facing display that would look like "board game" instead of
+// "boardgame" for example.
+impl Display for CollectionItemType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CollectionItemType::BoardGame => write!(f, "boardgame"),
+            CollectionItemType::BoardGameExpansion => write!(f, "boardgameexpansion"),
+            CollectionItemType::BoardGameAccessory => write!(f, "boardgameaccessory"),
         }
     }
 }

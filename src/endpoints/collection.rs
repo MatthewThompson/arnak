@@ -6,7 +6,7 @@ use serde::de::DeserializeOwned;
 use crate::api::BoardGameGeekApi;
 use crate::{
     Collection, CollectionItem, CollectionItemBrief, CollectionItemRatingBrief,
-    CollectionItemStatsBrief, IntoQueryParam, ItemType, QueryParam, Result, WishlistPriority,
+    CollectionItemStatsBrief, IntoQueryParam, CollectionItemType, QueryParam, Result, WishlistPriority,
 };
 
 /// Trait for a type that the collection endpoint can return. Allows us to get
@@ -80,13 +80,13 @@ pub struct CollectionQueryParams {
     item_ids: Vec<u64>,
     /// Include only results for this item type.
     ///
-    /// Note, if this is set to [ItemType::BoardGame] then it will include both
+    /// Note, if this is set to [CollectionItemType::BoardGame] then it will include both
     /// board games and expansions, but set the type of all of them to be
-    /// [ItemType::BoardGame] in the results. Explicitly exclude
-    /// [ItemType::BoardGameExpansion] to avoid this.
-    item_type: Option<ItemType>,
+    /// [CollectionItemType::BoardGame] in the results. Explicitly exclude
+    /// [CollectionItemType::BoardGameExpansion] to avoid this.
+    item_type: Option<CollectionItemType>,
     /// Exclude results for this item type.
-    exclude_item_type: Option<ItemType>,
+    exclude_item_type: Option<CollectionItemType>,
     /// Include the version information for this item, if applicable.
     include_version_info: Option<bool>,
     /// Include games the user owns if true, exclude if false.
@@ -158,14 +158,14 @@ impl CollectionQueryParams {
 
     /// Sets the item_type field, so that only that type of game will be
     /// returned.
-    pub fn item_type(mut self, item_type: ItemType) -> Self {
+    pub fn item_type(mut self, item_type: CollectionItemType) -> Self {
         self.item_type = Some(item_type);
         self
     }
 
     /// Set the exclude_item_type field, so that that type of game will be
     /// excluded from. the results.
-    pub fn exclude_item_type(mut self, exclude_item_type: ItemType) -> Self {
+    pub fn exclude_item_type(mut self, exclude_item_type: CollectionItemType) -> Self {
         self.exclude_item_type = Some(exclude_item_type);
         self
     }
@@ -483,7 +483,7 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
 
     /// Makes a request to a given user's collection with no additional parameters set.
     /// This will default to including board games and board game expansions, but the
-    /// [ItemType] will be set to [ItemType::BoardGame] for all results. This is a
+    /// [CollectionItemType] will be set to [CollectionItemType::BoardGame] for all results. This is a
     /// "feature" of the underlying API.
     pub async fn get_all_games(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::new();
@@ -500,7 +500,7 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
     ) -> Result<Collection<T>> {
         self.get_from_query(
             username,
-            query_params.item_type(ItemType::BoardGameAccessory),
+            query_params.item_type(CollectionItemType::BoardGameAccessory),
         )
         .await
     }
@@ -520,7 +520,7 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
     /// Gets all the games that support any player counts in a given range.
     ///
     /// Note that the minimum and maximum player count fields are not included for
-    /// [ItemType::BoardGameAccessory], and will be defaulted to 0 in the result.
+    /// [CollectionItemType::BoardGameAccessory], and will be defaulted to 0 in the result.
     pub async fn get_by_player_counts(
         &self,
         username: &'api str,
@@ -539,7 +539,7 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
     /// Gets all the games that support the given player count.
     ///
     /// Note that the minimum and maximum player count fields are not included for
-    /// [ItemType::BoardGameAccessory], and will be defaulted to 0 in the result.
+    /// [CollectionItemType::BoardGameAccessory], and will be defaulted to 0 in the result.
     pub async fn get_by_player_count(
         &self,
         username: &'api str,
@@ -576,7 +576,7 @@ mod tests {
     use super::*;
     use crate::{
         CollectionItemRating, CollectionItemStats, CollectionItemStatus, Dimensions, Game,
-        GameArtist, GameFamilyRank, GameFamilyType, GamePublisher, GameVersion, ItemType, Language,
+        GameArtist, GameFamilyRank, GameFamilyType, GamePublisher, GameVersion, CollectionItemType, Language,
         RankValue,
     };
 
@@ -621,7 +621,7 @@ mod tests {
             CollectionItemBrief {
                 id: 131835,
                 collection_id: 118278872,
-                item_type: ItemType::BoardGame,
+                item_type: CollectionItemType::BoardGame,
                 name: "Boss Monster: The Dungeon Building Card Game".to_string(),
                 status: CollectionItemStatus {
                     own: true,
@@ -723,7 +723,7 @@ mod tests {
             CollectionItem {
                 id: 131835,
                 collection_id: 118278872,
-                item_type: ItemType::BoardGame,
+                item_type: CollectionItemType::BoardGame,
                 name: "Boss Monster: The Dungeon Building Card Game".to_string(),
                 year_published: 2013,
                 image: "https://cf.geekdo-images.com/VBwaHyx-NWL3VLcCWKRA0w__original/img/izAmJ81QELl5DoK3y2bzJw55lhA=/0x0/filters:format(jpeg)/pic1732644.jpg".to_string(),
@@ -817,7 +817,7 @@ mod tests {
             CollectionItem {
                 id: 177736,
                 collection_id: 118332974,
-                item_type: ItemType::BoardGame,
+                item_type: CollectionItemType::BoardGame,
                 name: "A Feast for Odin".to_string(),
                 year_published: 2016,
                 image: "https://domain/img.jpg".to_string(),
@@ -916,7 +916,7 @@ mod tests {
             CollectionItemBrief {
                 id: 356510,
                 collection_id: 118278786,
-                item_type: ItemType::BoardGame,
+                item_type: CollectionItemType::BoardGame,
                 name: "Spirit Island: Feather & Flame".to_string(),
                 status: CollectionItemStatus {
                     own: true,
@@ -952,7 +952,7 @@ mod tests {
             CollectionItemBrief {
                 id: 13,
                 collection_id: 122520827,
-                item_type: ItemType::BoardGame,
+                item_type: CollectionItemType::BoardGame,
                 name: "Колонизаторы".to_string(),
                 status: CollectionItemStatus {
                     own: false,
@@ -1018,7 +1018,7 @@ mod tests {
             CollectionItemBrief {
                 id: 352515,
                 collection_id: 118278970,
-                item_type: ItemType::BoardGame,
+                item_type: CollectionItemType::BoardGame,
                 name: "ナナ".to_string(),
                 status: CollectionItemStatus {
                     own: true,
@@ -1148,8 +1148,8 @@ mod tests {
             .include_want_to_play(false)
             .include_want_to_buy(false)
             .include_previously_owned(true)
-            .item_type(ItemType::BoardGameExpansion)
-            .exclude_item_type(ItemType::BoardGame)
+            .item_type(CollectionItemType::BoardGameExpansion)
+            .exclude_item_type(CollectionItemType::BoardGame)
             .item_id(13)
             .item_ids(vec![3000, 1])
             .include_rated_by_user(true)
@@ -1214,7 +1214,7 @@ mod tests {
             CollectionItem {
                 id: 2281,
                 collection_id: 118280658,
-                item_type: ItemType::BoardGame,
+                item_type: CollectionItemType::BoardGame,
                 name: "Pictionary".to_string(),
                 year_published: 1985,
                 image: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__original/img/YRJAlLzkxMuJHVPsdnBLNFpoODA=/0x0/filters:format(png)/pic5147022.png".to_string(),
@@ -1366,7 +1366,7 @@ mod tests {
             CollectionItem {
                 id: 2281,
                 collection_id: 118280658,
-                item_type: ItemType::BoardGame,
+                item_type: CollectionItemType::BoardGame,
                 name: "Pictionary".to_string(),
                 year_published: 1985,
                 image: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__original/img/YRJAlLzkxMuJHVPsdnBLNFpoODA=/0x0/filters:format(png)/pic5147022.png".to_string(),
@@ -1520,7 +1520,7 @@ mod tests {
             CollectionItem {
                 id: 142974,
                 collection_id: 122439219,
-                item_type: ItemType::BoardGameAccessory,
+                item_type: CollectionItemType::BoardGameAccessory,
                 name: "12 Realms: Buildings Pack".to_string(),
                 year_published: 2013,
                 image: "https://cf.geekdo-images.com/5fKeQe2FG2FR1W3maIj1Gw__original/img/vWskbRA9FmoLrFghnPi_5RGVMec=/0x0/filters:format(jpeg)/pic2522878.jpg".to_string(),
@@ -1573,7 +1573,7 @@ mod tests {
             CollectionItem {
                 id: 22510,
                 collection_id: 122524875,
-                item_type: ItemType::BoardGameAccessory,
+                item_type: CollectionItemType::BoardGameAccessory,
                 name: "Wings of War: Miniatures".to_string(),
                 year_published: 2007,
                 image: "https://cf.geekdo-images.com/qGV1v8Ye0FKTxZNCF1ZINw__original/img/49pxPDdA4CHNFZOMQM1UTM8FNL4=/0x0/filters:format(jpeg)/pic830522.jpg".to_string(),
