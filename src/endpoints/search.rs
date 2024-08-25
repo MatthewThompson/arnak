@@ -1,5 +1,5 @@
 use super::{ItemType, SearchResults};
-use crate::{BoardGameGeekApi, Result};
+use crate::{BoardGameGeekApi, QueryParam, Result};
 
 /// All optional query parameters for making a request to the
 /// search endpoint.
@@ -66,7 +66,7 @@ impl<'builder> SearchQueryBuilder<'builder> {
 
     // Converts the list of parameters into a vector of
     // key value pairs that reqwest can use as HTTP query parameters.
-    fn build(self) -> Vec<(&'builder str, String)> {
+    fn build(self) -> Vec<QueryParam<'builder>> {
         let mut query_params: Vec<_> = vec![];
         query_params.push(("query", self.search_query.to_string()));
 

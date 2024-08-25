@@ -6,7 +6,7 @@ use serde::de::DeserializeOwned;
 use crate::api::BoardGameGeekApi;
 use crate::{
     Collection, CollectionItem, CollectionItemBrief, CollectionItemRatingBrief,
-    CollectionItemStatsBrief, ItemType, Result, WishlistPriority,
+    CollectionItemStatsBrief, ItemType, QueryParam, Result, WishlistPriority,
 };
 
 /// Trait for a type that the collection endpoint can return. Allows us to get
@@ -359,16 +359,16 @@ struct CollectionQueryBuilder<'q> {
     params: CollectionQueryParams,
 }
 
-impl<'a> CollectionQueryBuilder<'a> {
+impl<'builder> CollectionQueryBuilder<'builder> {
     // Constructs a new query builder from a base query, and the rest of the
     // parameters.
-    fn new(base: BaseCollectionQuery<'a>, params: CollectionQueryParams) -> Self {
+    fn new(base: BaseCollectionQuery<'builder>, params: CollectionQueryParams) -> Self {
         Self { base, params }
     }
 
     // Converts the list of parameters into a vector of
     // key value pairs that reqwest can use as HTTP query parameters.
-    fn build(self) -> Vec<(&'a str, String)> {
+    fn build(self) -> Vec<QueryParam<'builder>> {
         let mut query_params: Vec<_> = vec![];
         query_params.push(("username", self.base.username.to_string()));
         // The API is inconsistent with whether stats are returned or not when this is

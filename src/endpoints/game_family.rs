@@ -1,5 +1,5 @@
 use super::GameFamilies;
-use crate::{BoardGameGeekApi, Result};
+use crate::{BoardGameGeekApi, QueryParam, Result};
 
 /// Query parameters for making a request to the game family endpoint.
 #[derive(Clone, Debug, Default)]
@@ -41,7 +41,7 @@ impl<'builder> GameFamilyQueryBuilder {
 
     // Converts the list of parameters into a vector of
     // key value pairs that reqwest can use as HTTP query parameters.
-    fn build(self) -> Vec<(&'builder str, String)> {
+    fn build(self) -> Vec<QueryParam<'builder>> {
         let mut query_params: Vec<_> = vec![];
         // Underlying endpoint supports RPG and Video game families too but we hide those.
         query_params.push(("type", "boardgamefamily".to_string()));
