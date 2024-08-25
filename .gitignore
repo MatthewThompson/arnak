@@ -11,3 +11,7 @@ target/
 
 # Personal
 notes.txt
+
+# Editor specific
+# vscode settings and config
+.vscode
