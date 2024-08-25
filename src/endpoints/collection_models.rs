@@ -3,7 +3,7 @@ use core::fmt;
 use chrono::{DateTime, Duration, Utc};
 use serde::Deserialize;
 
-use super::{Dimensions, Game, GameArtist, GamePublisher, CollectionItemType, Language};
+use super::{CollectionItemType, Dimensions, Game, GameArtist, GamePublisher, Language};
 use crate::utils::{
     date_deserializer, deserialize_1_0_bool, deserialize_minutes, LinkType, XmlFloatValue,
     XmlIntValue, XmlLink, XmlName, XmlSignedValue, XmlStringValue,

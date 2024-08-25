@@ -136,7 +136,7 @@ mod tests {
                 alternate_names: vec!["Carcassonne: Solo-Variante".into()],
                 image: "https://cf.geekdo-images.com/c_pg0WfJKn7_P33AsDS5EA__original/img/k2t0IHkPo0nzLadfSxXhtAzyU5I=/0x0/filters:format(jpeg)/pic453826.jpg".into(),
                 thumbnail: "https://cf.geekdo-images.com/c_pg0WfJKn7_P33AsDS5EA__thumb/img/8RgZmSChaxESGjIdhMeIg0C9OZk=/fit-in/200x150/filters:strip_icc()/pic453826.jpg".into(),
-                description: "Games (expansions, promos, etc.) in the \"Carcassonne\" family of games, published by Hans im GlÃ¼ck.\n\n\nSee this Carcassonne Series wiki for more details.\n\n".into(),
+                description: "Games (expansions, promos, etc.) in the \"Carcassonne\" family of games, published by Hans im GlÃ¼ck.\n\n\nSee this Carcassonne Series wiki for more details.".into(),
                 games: vec![
                     Game {
                         id: 822,
@@ -192,7 +192,7 @@ mod tests {
                 alternate_names: vec!["Carcassonne: Solo-Variante".into()],
                 image: "https://cf.geekdo-images.com/c_pg0WfJKn7_P33AsDS5EA__original/img/k2t0IHkPo0nzLadfSxXhtAzyU5I=/0x0/filters:format(jpeg)/pic453826.jpg".into(),
                 thumbnail: "https://cf.geekdo-images.com/c_pg0WfJKn7_P33AsDS5EA__thumb/img/8RgZmSChaxESGjIdhMeIg0C9OZk=/fit-in/200x150/filters:strip_icc()/pic453826.jpg".into(),
-                description: "Games (expansions, promos, etc.) in the \"Carcassonne\" family of games, published by Hans im GlÃ¼ck.\n\n\nSee this Carcassonne Series wiki for more details.\n\n".into(),
+                description: "Games (expansions, promos, etc.) in the \"Carcassonne\" family of games, published by Hans im GlÃ¼ck.\n\n\nSee this Carcassonne Series wiki for more details.".into(),
                 games: vec![
                     Game {
                         id: 822,
@@ -217,7 +217,7 @@ mod tests {
                 alternate_names: vec![],
                 image: "https://cf.geekdo-images.com/FFUKDbZw6d9mAKaL9U3ymg__original/img/rulpehNOumO24_7WzaHvl7P2aac=/0x0/filters:format(jpeg)/pic1446957.jpg".into(),
                 thumbnail: "https://cf.geekdo-images.com/FFUKDbZw6d9mAKaL9U3ymg__thumb/img/o06DBHHSC9Yck1WmSkp-rK360QI=/fit-in/200x150/filters:strip_icc()/pic1446957.jpg".into(),
-                description: "This is the family of Settlers of Catan games, meant to include any game in the Game: Catan universe.\n\nA detailed overview is given on the Catan Series wiki.\n\n".into(),
+                description: "This is the family of Settlers of Catan games, meant to include any game in the Game: Catan universe.\n\nA detailed overview is given on the Catan Series wiki.".into(),
                 games: vec![
                     Game {
                         id: 13,

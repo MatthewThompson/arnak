@@ -6,7 +6,6 @@ use serde_xml_rs::from_str;
 use tokio::time::sleep;
 
 use crate::endpoints::collection::CollectionApi;
-use crate::escape_xml::escape_xml;
 use crate::{
     ApiXmlErrors, CollectionItem, CollectionItemBrief, Error, GameFamilyApi, HotListApi, Result,
     SearchApi,
@@ -100,19 +99,14 @@ impl BoardGameGeekApi {
         let response = self.send_request(request).await?;
         let response_text = response.text().await?;
 
-        // The API doesn't sanitise string values such as the names and descriptions.
-        // So we must escape the & chars to stop this parsing from erroring on any
-        // names that include them.
-        let escaped = escape_xml(&response_text);
-
-        let parse_result = from_str(&escaped);
+        let parse_result = from_str(&response_text);
         match parse_result {
             Ok(result) => Ok(result),
             Err(e) => {
                 // The API returns a 200 but with an XML error in some cases,
                 // such as a username not found, so we try to parse that first
                 // for a more specific error.
-                let api_error = from_str::<ApiXmlErrors>(&escaped);
+                let api_error = from_str::<ApiXmlErrors>(&response_text);
                 match api_error {
                     Ok(api_error) => Err(api_error.into()),
                     // If the error cannot be parsed, that likely means it was a successful response

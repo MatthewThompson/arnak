@@ -33,6 +33,4 @@ pub use error::*;
 mod query_param;
 pub(crate) use query_param::*;
 
-mod escape_xml;
-
 mod utils;

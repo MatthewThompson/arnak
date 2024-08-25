@@ -6,7 +6,8 @@ use serde::de::DeserializeOwned;
 use crate::api::BoardGameGeekApi;
 use crate::{
     Collection, CollectionItem, CollectionItemBrief, CollectionItemRatingBrief,
-    CollectionItemStatsBrief, IntoQueryParam, CollectionItemType, QueryParam, Result, WishlistPriority,
+    CollectionItemStatsBrief, CollectionItemType, IntoQueryParam, QueryParam, Result,
+    WishlistPriority,
 };
 
 /// Trait for a type that the collection endpoint can return. Allows us to get
@@ -483,8 +484,8 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
 
     /// Makes a request to a given user's collection with no additional parameters set.
     /// This will default to including board games and board game expansions, but the
-    /// [CollectionItemType] will be set to [CollectionItemType::BoardGame] for all results. This is a
-    /// "feature" of the underlying API.
+    /// [CollectionItemType] will be set to [CollectionItemType::BoardGame] for all results. This is
+    /// a "feature" of the underlying API.
     pub async fn get_all_games(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::new();
         self.get_from_query(username, query_params).await
@@ -575,9 +576,9 @@ mod tests {
 
     use super::*;
     use crate::{
-        CollectionItemRating, CollectionItemStats, CollectionItemStatus, Dimensions, Game,
-        GameArtist, GameFamilyRank, GameFamilyType, GamePublisher, GameVersion, CollectionItemType, Language,
-        RankValue,
+        CollectionItemRating, CollectionItemStats, CollectionItemStatus, CollectionItemType,
+        Dimensions, Game, GameArtist, GameFamilyRank, GameFamilyType, GamePublisher, GameVersion,
+        Language, RankValue,
     };
 
     #[test]

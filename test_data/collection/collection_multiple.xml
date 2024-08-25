@@ -879,7 +879,7 @@
         <numplays>0</numplays>
     </item>
     <item objecttype="thing" objectid="367220" subtype="boardgame" collid="122316102">
-        <name sortindex="1">Sea Salt & Paper</name>
+        <name sortindex="1">Sea Salt &amp; Paper</name>
         <yearpublished>2022</yearpublished>
         <image>
             https://cf.geekdo-images.com/CIh_rXKoRw9z8K0PJxT8nQ__original/img/AX2wyHhWFgVh5OArXAjVHY-nFZg=/0x0/filters:format(jpeg)/pic6973911.jpg
@@ -1024,7 +1024,7 @@
         <numplays>0</numplays>
     </item>
     <item objecttype="thing" objectid="193065" subtype="boardgame" collid="118278775">
-        <name sortindex="1">Spirit Island: Branch & Claw</name>
+        <name sortindex="1">Spirit Island: Branch &amp; Claw</name>
         <yearpublished>2017</yearpublished>
         <image>
             https://cf.geekdo-images.com/l1k4gxERlIuhCNIn3TPU_g__original/img/IfWWkvqshUOSNPCOqjX7tP_iP0g=/0x0/filters:format(jpeg)/pic7010668.jpg
@@ -1053,7 +1053,7 @@
         <numplays>0</numplays>
     </item>
     <item objecttype="thing" objectid="356510" subtype="boardgame" collid="118278786">
-        <name sortindex="1">Spirit Island: Feather & Flame</name>
+        <name sortindex="1">Spirit Island: Feather &amp; Flame</name>
         <yearpublished>2022</yearpublished>
         <image>
             https://cf.geekdo-images.com/pj16t5oYcSnd4UK1HVbKwQ__original/img/ND4fk03hdv4UmZXlLnyim7RvnN0=/0x0/filters:format(jpeg)/pic7126074.jpg

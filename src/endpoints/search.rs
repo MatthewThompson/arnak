@@ -100,7 +100,10 @@ impl<'api> SearchApi<'api> {
     /// once with the type [ItemType::BoardGame] and once with the type
     /// [ItemType::BoardGameExpansion].
     pub async fn search(&self, query: &str) -> Result<SearchResults> {
-        let query = SearchQueryBuilder::new(query, SearchQueryParams::new());
+        let query = SearchQueryBuilder::new(
+            query,
+            SearchQueryParams::new().item_type(ItemType::BoardGame),
+        );
 
         let request = self.api.build_request(self.endpoint, &query.build());
         self.api.execute_request::<SearchResults>(request).await
@@ -112,7 +115,12 @@ impl<'api> SearchApi<'api> {
     /// once with the type [ItemType::BoardGame] and once with the type
     /// [ItemType::BoardGameExpansion].
     pub async fn search_exact(&self, query: &str) -> Result<SearchResults> {
-        let query = SearchQueryBuilder::new(query, SearchQueryParams::new().exact(true));
+        let query = SearchQueryBuilder::new(
+            query,
+            SearchQueryParams::new()
+                .item_type(ItemType::BoardGame)
+                .exact(true),
+        );
 
         let request = self.api.build_request(self.endpoint, &query.build());
         self.api.execute_request::<SearchResults>(request).await
@@ -173,7 +181,7 @@ mod tests {
                 id: 312484,
                 item_type: ItemType::BoardGame,
                 name: "Lost Ruins of Arnak".into(),
-                year_published: 2020,
+                year_published: Some(2020),
             },
         );
         assert_eq!(
@@ -182,7 +190,7 @@ mod tests {
                 id: 341254,
                 item_type: ItemType::BoardGameExpansion,
                 name: "Lost Ruins of Arnak: Expedition Leaders".into(),
-                year_published: 2021,
+                year_published: Some(2021),
             },
         );
     }
@@ -222,7 +230,56 @@ mod tests {
                 id: 312484,
                 item_type: ItemType::BoardGame,
                 name: "Lost Ruins of Arnak".into(),
-                year_published: 2020,
+                year_published: Some(2020),
+            },
+        );
+    }
+
+    #[tokio::test]
+    async fn search_double_quotes() {
+        let mut server = mockito::Server::new_async().await;
+        let api = BoardGameGeekApi {
+            base_url: server.url(),
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/search")
+            .match_query(Matcher::AllOf(vec![Matcher::UrlEncoded(
+                "query".into(),
+                "a".into(),
+            )]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/search/search_result_quotes.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let search_results = api.search().search("a").await;
+        mock.assert_async().await;
+
+        assert!(search_results.is_ok(), "error returned when okay expected");
+        let search_results = search_results.unwrap();
+
+        assert_eq!(search_results.results.len(), 2);
+        assert_eq!(
+            search_results.results[0],
+            SearchResult {
+                id: 12668,
+                item_type: ItemType::BoardGame,
+                name: "\"Get Smart\"".into(),
+                year_published: Some(1965),
+            },
+        );
+        assert_eq!(
+            search_results.results[1],
+            SearchResult {
+                id: 30346,
+                item_type: ItemType::BoardGame,
+                name: "\"Get Smart\" Card Game".into(),
+                year_published: None,
             },
         );
     }
@@ -271,7 +328,7 @@ mod tests {
                 id: 341254,
                 item_type: ItemType::BoardGameExpansion,
                 name: "Lost Ruins of Arnak: Expedition Leaders".into(),
-                year_published: 2021,
+                year_published: Some(2021),
             },
         );
 
@@ -311,7 +368,7 @@ mod tests {
                 id: 312484,
                 item_type: ItemType::BoardGame,
                 name: "Lost Ruins of Arnak".into(),
-                year_published: 2020,
+                year_published: Some(2020),
             },
         );
     }

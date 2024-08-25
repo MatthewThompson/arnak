@@ -25,7 +25,7 @@ pub struct SearchResult {
     /// The name of the game.
     pub name: String,
     /// The year the game was first published.
-    pub year_published: i64,
+    pub year_published: Option<i64>,
 }
 
 impl<'de> Deserialize<'de> for SearchResult {
@@ -95,8 +95,6 @@ impl<'de> Deserialize<'de> for SearchResult {
                 let item_type =
                     item_type.ok_or_else(|| serde::de::Error::missing_field("item_type"))?;
                 let name = name.ok_or_else(|| serde::de::Error::missing_field("name"))?;
-                let year_published = year_published
-                    .ok_or_else(|| serde::de::Error::missing_field("yearpublished"))?;
                 Ok(Self::Value {
                     id,
                     item_type,
