@@ -5,14 +5,14 @@ use crate::{BoardGameGeekApi, IntoQueryParam, QueryParam, Result};
 /// search endpoint.
 #[derive(Clone, Debug, Default)]
 pub struct SearchQueryParams {
-    /// Include only results for this game type. All apart from
-    /// [ItemType::BoardGameAccessory] returned if the parameter is omitted.
+    /// Include only results for the provided item types. If none are provided
+    /// then it will default to [ItemType::BoardGame].
     ///
-    /// Note, if this is set to [ItemType::BoardGame] then it will include both
+    /// Note, if this is set to [ItemType::BoardGame], or left unset, then it will include both
     /// board games and expansions, but set the type of all of them to be
     /// [ItemType::BoardGame] in the results. There does not seem to be a way
     /// around this.
-    item_type: Option<ItemType>,
+    item_types: Vec<ItemType>,
     /// Limit results to only exact matches of the search query.
     exact: Option<bool>,
 }
@@ -23,19 +23,33 @@ impl SearchQueryParams {
         Self::default()
     }
 
-    /// Sets the item_type query param, so that only a certain type of
-    /// item will be returned. It should be noted that if [ItemType::BoardGame]
+    /// Adds an item to the item_type query param, so that that type of
+    /// item will be returned from the search. It should be noted that if [ItemType::BoardGame]
     /// is chosen then this will return both board games and board game expansions,
     /// with the type set to board game for both.
     ///
-    /// If the param is omitted then all types will be returned apart from board
-    /// game accessories. If these are to be searched the type must be set explicitly.
+    /// If the parameter is omitted then it will default to [ItemType::BoardGame].
     ///
-    /// Also, if the parameter is omitted, board game expansions will be returned twice,
-    /// once with the type [ItemType::BoardGame] and once with the type
-    /// [ItemType::BoardGameExpansion].
+    /// If the parameter includes both [ItemType::BoardGame], and [ItemType::BoardGameExpansion]
+    /// then board game expansions will be returned twice, once with the type
+    /// [ItemType::BoardGame] and once with the type [ItemType::BoardGameExpansion].
     pub fn item_type(mut self, item_type: ItemType) -> Self {
-        self.item_type = Some(item_type);
+        self.item_types.push(item_type);
+        self
+    }
+
+    /// Adds a list of item types to the item_types query param, so that items of these types
+    /// will be returned from the search. It should be noted that if [ItemType::BoardGame]
+    /// is chosen then this will return both board games and board game expansions,
+    /// with the type set to board game for both.
+    ///
+    /// If the parameter is omitted then it will default to [ItemType::BoardGame].
+    ///
+    /// If the parameter includes both [ItemType::BoardGame], and [ItemType::BoardGameExpansion]
+    /// then board game expansions will be returned twice, once with the type
+    /// [ItemType::BoardGame] and once with the type [ItemType::BoardGameExpansion].
+    pub fn item_types(mut self, item_types: Vec<ItemType>) -> Self {
+        self.item_types.extend(item_types);
         self
     }
 
@@ -73,8 +87,10 @@ impl<'builder> SearchQueryBuilder<'builder> {
         if let Some(value) = self.params.exact {
             query_params.push(value.into_query_param("exact"));
         }
-        if let Some(value) = self.params.item_type {
-            query_params.push(value.into_query_param("type"));
+        if self.params.item_types.is_empty() {
+            query_params.push(ItemType::BoardGame.into_query_param("type"));
+        } else {
+            query_params.push(self.params.item_types.into_query_param("type"));
         }
         query_params
     }
@@ -364,6 +380,69 @@ mod tests {
         assert_eq!(search_results.results.len(), 1);
         assert_eq!(
             search_results.results[0],
+            SearchResult {
+                id: 312484,
+                item_type: ItemType::BoardGame,
+                name: "Lost Ruins of Arnak".into(),
+                year_published: Some(2020),
+            },
+        );
+    }
+
+    #[tokio::test]
+    async fn search_multiple_types() {
+        let mut server = mockito::Server::new_async().await;
+        let api = BoardGameGeekApi {
+            base_url: server.url(),
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/search")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("query".into(), "arnak".into()),
+                Matcher::UrlEncoded(
+                    "type".into(),
+                    "boardgame,boardgameaccessory,boardgameartist".into(),
+                ),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/search/search_game_and_accessories.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let search_results = api
+            .search()
+            .search_with_query_params(
+                "arnak",
+                SearchQueryParams::new()
+                    .item_type(ItemType::BoardGame)
+                    .item_types(vec![
+                        ItemType::BoardGameAccessory,
+                        ItemType::BoardGameArtist,
+                    ]),
+            )
+            .await;
+        mock.assert_async().await;
+
+        assert!(search_results.is_ok(), "error returned when okay expected");
+        let search_results = search_results.unwrap();
+
+        assert_eq!(search_results.results.len(), 2);
+        assert_eq!(
+            search_results.results[0],
+            SearchResult {
+                id: 403238,
+                item_type: ItemType::BoardGameAccessory,
+                name: "Lost Ruins of Arnak + Expansions: The GiftForge Insert".into(),
+                year_published: Some(2023),
+            },
+        );
+        assert_eq!(
+            search_results.results[1],
             SearchResult {
                 id: 312484,
                 item_type: ItemType::BoardGame,
