@@ -7,8 +7,8 @@ use tokio::time::sleep;
 
 use crate::endpoints::collection::CollectionApi;
 use crate::{
-    ApiXmlErrors, CollectionItem, CollectionItemBrief, Error, GameFamilyApi, HotListApi, Result,
-    SearchApi,
+    deserialise_maybe_error, CollectionItem, CollectionItemBrief, Error, GameFamilyApi, GuildApi,
+    HotListApi, Result, SearchApi,
 };
 
 /// API for making requests to the [Board Game Geek API](https://boardgamegeek.com/wiki/page/BGG_XML_API2).
@@ -66,6 +66,12 @@ impl BoardGameGeekApi {
         GameFamilyApi::new(self)
     }
 
+    /// Returns the guild endpoint of the API, which is used for querying
+    /// guilds by their IDs.
+    pub fn guild(&self) -> GuildApi {
+        GuildApi::new(self)
+    }
+
     /// Returns the hot list endpoint of the API, which is used for querying the
     /// current trending board games.
     pub fn hot_list(&self) -> HotListApi {
@@ -106,13 +112,12 @@ impl BoardGameGeekApi {
                 // The API returns a 200 but with an XML error in some cases,
                 // such as a username not found, so we try to parse that first
                 // for a more specific error.
-                let api_error = from_str::<ApiXmlErrors>(&response_text);
-                match api_error {
-                    Ok(api_error) => Err(api_error.into()),
+                match deserialise_maybe_error(&response_text) {
+                    Some(api_error) => Err(api_error),
                     // If the error cannot be parsed, that likely means it was a successful response
                     // that we failed to parse. So return an unexpected response with the original
                     // error.
-                    Err(_) => Err(Error::UnexpectedResponseError(e)),
+                    None => Err(Error::UnexpectedResponseError(e)),
                 }
             },
         }

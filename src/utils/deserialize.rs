@@ -92,3 +92,19 @@ pub(crate) mod date_deserializer {
         Ok(DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc))
     }
 }
+
+pub(crate) mod utc_date_time_deserializer {
+    use chrono::{DateTime, NaiveDateTime, Utc};
+    use serde::{self, Deserialize, Deserializer};
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        // e.g. Thu, 14 Jun 2007 01:06:46 +0000
+        let dt = NaiveDateTime::parse_from_str(&s, "%a, %d %B %Y %H:%M:%S %z")
+            .map_err(serde::de::Error::custom)?;
+        Ok(DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc))
+    }
+}
