@@ -111,11 +111,11 @@ impl<'de> Deserialize<'de> for GameFamily {
                             }
                             let description_html: String = map.next_value()?;
                             // Turn the HTML escape sequences back into characters. However the
-                            // escape sequences aren't done properly so
-                            // something like ü has been encoded as
-                            // &#195;&#188; but this decodes to Ã¼
+                            // escape sequences are done using UTF-8 so something like ü will be
+                            // encoded as&#195;&#188; but this decodes to Ã¼.
+                            // TODO find a way to decode these properly.
                             let unescaped = html_escape::decode_html_entities(&description_html);
-                            description = Some(unescaped.into_owned())
+                            description = Some(unescaped.into_owned());
                         },
                         Field::Link => {
                             let link: XmlLink = map.next_value()?;

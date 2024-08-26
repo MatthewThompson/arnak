@@ -6,10 +6,11 @@ use serde::Deserialize;
 /// A [std::result::Result] alias where the `Err` case is [Error].
 pub type Result<T> = std::result::Result<T, Error>;
 
-/// An error returned by the API. This is an enum representing
-/// either an http error [reqwest::Error], or an error parsing the
-/// output [serde_xml_rs::Error], or finally just a string. Which
-/// is typically returned in some case an error shouldn't happen.
+/// An error returned by the API.
+///
+/// This is an enum representing either an http error [reqwest::Error], or an error parsing the
+/// output [serde_xml_rs::Error], or finally just a string. Which is typically returned in some case
+/// an error shouldn't happen.
 #[derive(Debug)]
 pub enum Error {
     /// An error was returned making the HTTP request, or an error

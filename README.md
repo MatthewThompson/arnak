@@ -59,7 +59,7 @@ Returns the top 10 currently trending games.
 
 ## Known issues
 
-- In the fields that return HTML, such as descriptions, HTML escape sequences are used. However for some characters the wrong escape sequence is used. For example for ü has been encoded as `&#195;&#188;` but this decodes to Ã¼. Sorry Hans im GluÃ¼ck!
+- In the fields that return HTML, such as descriptions, HTML escape sequences are used. However UTF-8 code points are used, which means for example for ü has been encoded as `&#195;&#188;` but this decodes to Ã¼. Sorry Hans im GluÃ¼ck!
 
 ## Formatting
 

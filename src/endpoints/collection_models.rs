@@ -353,9 +353,9 @@ impl<'de> Deserialize<'de> for GameVersion {
                             }
                             let width_xml: XmlFloatValue = map.next_value()?;
                             if width_xml.value == 0.0 {
-                                width = Some(None)
+                                width = Some(None);
                             } else {
-                                width = Some(Some(width_xml.value))
+                                width = Some(Some(width_xml.value));
                             }
                         },
                         Field::Depth => {
@@ -364,9 +364,9 @@ impl<'de> Deserialize<'de> for GameVersion {
                             }
                             let depth_xml: XmlFloatValue = map.next_value()?;
                             if depth_xml.value == 0.0 {
-                                depth = Some(None)
+                                depth = Some(None);
                             } else {
-                                depth = Some(Some(depth_xml.value))
+                                depth = Some(Some(depth_xml.value));
                             }
                         },
                         Field::Length => {
@@ -375,9 +375,9 @@ impl<'de> Deserialize<'de> for GameVersion {
                             }
                             let length_xml: XmlFloatValue = map.next_value()?;
                             if length_xml.value == 0.0 {
-                                length = Some(None)
+                                length = Some(None);
                             } else {
-                                length = Some(Some(length_xml.value))
+                                length = Some(Some(length_xml.value));
                             }
                         },
                         Field::Weight => {
@@ -386,7 +386,7 @@ impl<'de> Deserialize<'de> for GameVersion {
                             }
                             let weight_xml: XmlFloatValue = map.next_value()?;
                             if weight_xml.value == 0.0 {
-                                weight = Some(None)
+                                weight = Some(None);
                             } else {
                                 weight = Some(Some(weight_xml.value));
                             }
