@@ -115,7 +115,7 @@ impl<'de> Deserialize<'de> for GameFamily {
                             // something like ü has been encoded as
                             // &#195;&#188; but this decodes to Ã¼
                             let unescaped = html_escape::decode_html_entities(&description_html);
-                            description = Some(unescaped.into_owned())
+                            description = Some(unescaped.into_owned());
                         },
                         Field::Link => {
                             let link: XmlLink = map.next_value()?;
