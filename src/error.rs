@@ -2,6 +2,7 @@ use std::error::Error as StdError;
 use std::fmt;
 
 use serde::Deserialize;
+use serde_xml_rs::from_str;
 
 /// A [std::result::Result] alias where the `Err` case is [Error].
 pub type Result<T> = std::result::Result<T, Error>;
@@ -27,6 +28,13 @@ pub enum Error {
     UnknownUsernameError,
     /// Invalid value supplied for subtype ([crate::ItemType]) query parameter.
     InvalidCollectionItemType,
+    /// No guild was found for a given ID when making a request to the guild endpoint.
+    GuildNotFound,
+    /// A generic not found error was returned from the underlying API.
+    ///
+    /// Note this is not a 404 returned from the request, rather a 200 but the content was an XML
+    /// error tag containing the message "Not Found".
+    ItemNotFound,
     /// The API returned a list of errors that we do not recognise.
     UnknownApiErrors(Vec<String>),
 }
@@ -53,6 +61,8 @@ impl fmt::Display for Error {
             },
             Error::UnknownUsernameError => write!(f, "username not found"),
             Error::InvalidCollectionItemType => write!(f, "invalid collection item type provided"),
+            Error::GuildNotFound => write!(f, "guild with requested ID not found"),
+            Error::ItemNotFound => write!(f, "requested item not found"),
             Error::UnknownApiErrors(messages) => match messages.len() {
                 0 => write!(f, "got error from API with no message"),
                 1 => write!(f, "got unknown error from API: {}", messages[0]),
@@ -70,36 +80,98 @@ impl StdError for Error {
             Error::MaxRetryError(_) => None,
             Error::UnknownUsernameError => None,
             Error::InvalidCollectionItemType => None,
+            Error::GuildNotFound => None,
+            Error::ItemNotFound => None,
             Error::UnknownApiErrors(_) => None,
         }
     }
 }
 
+// Note this should be possible by making an enum of the three and adding
+// `#[serde(untagged)]` and deriving deserialize, but it didn't work for
+// some reason.
+pub(crate) fn deserialise_maybe_error(api_response: &str) -> Option<Error> {
+    let maybe_error_list = from_str::<ApiXmlErrorList>(api_response);
+    if let Ok(error_list) = maybe_error_list {
+        return Some(error_list.into());
+    }
+    let maybe_id_error = from_str::<IdApiXmlError>(api_response);
+    if let Ok(id_error) = maybe_id_error {
+        return Some(id_error.into());
+    }
+    let maybe_single_error = from_str::<SingleApiXmlError>(api_response);
+    if let Ok(single_error) = maybe_single_error {
+        return Some(single_error.into());
+    }
+    // Couldn't pass the API response as an error. This could mean the
+    // response contained malformed data or was in an unexpected format.
+    None
+}
+
 // The XML returned by the API in case of an error is a list
 // of `message` tags. Usually with just one error inside.
 #[derive(Debug, Deserialize)]
-pub(crate) struct ApiXmlErrors {
+pub(crate) struct ApiXmlErrorList {
     #[serde(rename = "$value")]
-    pub(crate) errors: Vec<ApiXmlError>,
+    errors: Vec<ApiXmlError>,
 }
 
 #[derive(Debug, Deserialize)]
-pub(crate) struct ApiXmlError {
+struct ApiXmlError {
+    message: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct IdApiXmlError {
+    // id: u64,
+    error: String,
+}
+
+// For some endpoints an error can be returned in the form `<error message="Not Found"/>`,
+// such as for guilds with a too high ID requested.
+#[derive(Debug, Deserialize)]
+pub(crate) struct SingleApiXmlError {
     pub(crate) message: String,
 }
 
-impl From<ApiXmlErrors> for Error {
-    fn from(errors: ApiXmlErrors) -> Self {
-        let error_messages: Vec<String> = errors.errors.into_iter().map(|e| e.message).collect();
-        if error_messages.len() == 1 {
-            let error_message = &error_messages[0];
-            if error_message == "Invalid username specified" {
-                return Self::UnknownUsernameError;
-            }
-            if error_message == "Invalid collection subtype" {
-                return Self::InvalidCollectionItemType;
-            }
+impl From<SingleApiXmlError> for Error {
+    fn from(error: SingleApiXmlError) -> Self {
+        if error.message == "Not Found" {
+            return Self::ItemNotFound;
         }
-        Self::UnknownApiErrors(error_messages)
+        Self::UnknownApiErrors(vec![error.message])
     }
+}
+
+impl From<ApiXmlErrorList> for Error {
+    fn from(error_list: ApiXmlErrorList) -> Self {
+        let error_messages: Vec<String> =
+            error_list.errors.into_iter().map(|e| e.message).collect();
+        error_from_api_error_messages(error_messages)
+    }
+}
+
+impl From<IdApiXmlError> for Error {
+    fn from(error: IdApiXmlError) -> Self {
+        if error.error == "Guild not found." {
+            return Error::GuildNotFound;
+        }
+        Error::UnknownApiErrors(vec![error.error])
+    }
+}
+
+fn error_from_api_error_messages(messages: Vec<String>) -> Error {
+    if messages.len() == 1 {
+        let error_message = &messages[0];
+        if error_message == "Invalid username specified" {
+            return Error::UnknownUsernameError;
+        }
+        if error_message == "Guild not found." {
+            return Error::GuildNotFound;
+        }
+        if error_message == "Invalid collection subtype" {
+            return Error::InvalidCollectionItemType;
+        }
+    }
+    Error::UnknownApiErrors(messages)
 }

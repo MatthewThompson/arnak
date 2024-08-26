@@ -18,6 +18,11 @@ pub use game_family_models::*;
 pub(crate) mod game_family;
 pub use game_family::*;
 
+pub(crate) mod guild_models;
+pub use guild_models::*;
+pub(crate) mod guild;
+pub use guild::*;
+
 pub(crate) mod hot_list_models;
 pub use hot_list_models::*;
 pub(crate) mod hot_list;

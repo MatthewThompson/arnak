@@ -1,0 +1,17 @@
+<guild id="13" name="Con of the North" created="Thu, 14 Jun 2007 01:06:46 +0000"
+    termsofuse="https://boardgamegeek.com/xmlapi/termsofuse">
+    <category>event</category>
+    <website>http://www.website.org/</website>
+    <manager>ManagerName</manager>
+    <description>
+        A group to discuss the Con of the North, held in February in Minnesota.
+    </description>
+    <location>
+        <addr1 />
+        <addr2 />
+        <city>Saint Paul</city>
+        <stateorprovince>Minnesota</stateorprovince>
+        <postalcode />
+        <country>United States</country>
+    </location>
+</guild>
