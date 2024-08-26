@@ -120,10 +120,7 @@ impl<'api> SearchApi<'api> {
     /// once with the type [ItemType::BoardGame] and once with the type
     /// [ItemType::BoardGameExpansion].
     pub async fn search(&self, query: &str) -> Result<SearchResults> {
-        let query = SearchQueryBuilder::new(
-            query,
-            SearchQueryParams::new().item_type(ItemType::BoardGame),
-        );
+        let query = SearchQueryBuilder::new(query, SearchQueryParams::new());
 
         let request = self.api.build_request(self.endpoint, &query.build());
         self.api.execute_request::<SearchResults>(request).await
@@ -135,12 +132,7 @@ impl<'api> SearchApi<'api> {
     /// once with the type [ItemType::BoardGame] and once with the type
     /// [ItemType::BoardGameExpansion].
     pub async fn search_exact(&self, query: &str) -> Result<SearchResults> {
-        let query = SearchQueryBuilder::new(
-            query,
-            SearchQueryParams::new()
-                .item_type(ItemType::BoardGame)
-                .exact(true),
-        );
+        let query = SearchQueryBuilder::new(query, SearchQueryParams::new().exact(true));
 
         let request = self.api.build_request(self.endpoint, &query.build());
         self.api.execute_request::<SearchResults>(request).await
