@@ -3,7 +3,9 @@ use serde::Deserialize;
 
 use crate::{ItemType, NameType};
 
-pub(crate) fn deserialise_xml_string<T: serde::de::DeserializeOwned>(xml: &str) -> core::result::Result<T, serde_xml_rs::Error> {
+pub(crate) fn deserialise_xml_string<T: serde::de::DeserializeOwned>(
+    xml: &str,
+) -> core::result::Result<T, serde_xml_rs::Error> {
     // The parser config used by serde_xml
     let default_xml_reader_config = xml::ParserConfig::new()
         .trim_whitespace(true)

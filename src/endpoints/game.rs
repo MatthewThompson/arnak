@@ -93,7 +93,11 @@ mod tests {
     use mockito::Matcher;
 
     use super::*;
-    use crate::{Game, GameArtist, GameCategory, GameDesigner, GameFamilyName, GameFamilyRank, GameFamilyType, GameMechanic, GamePublisher, GameStats, GameType, Poll, PollResult, PollResults, RankValue};
+    use crate::{
+        Game, GameArtist, GameCategory, GameDesigner, GameFamilyName, GameFamilyRank,
+        GameFamilyType, GameMechanic, GamePublisher, GameStats, GameType, Poll, PollResult,
+        PollResults, RankValue,
+    };
 
     #[tokio::test]
     async fn get_by_id() {

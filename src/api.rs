@@ -113,9 +113,7 @@ impl BoardGameGeekApi {
 
         let parse_result = deserialise_xml_string(&response_text);
         match parse_result {
-            Ok(result) => {
-                Ok(result)
-            },
+            Ok(result) => Ok(result),
             Err(e) => {
                 // The API returns a 200 but with an XML error in some cases,
                 // such as a username not found, so we try to parse that first

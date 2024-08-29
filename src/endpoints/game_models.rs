@@ -4,7 +4,8 @@ use chrono::Duration;
 use serde::Deserialize;
 
 use super::{
-    Game, GameAccessory, GameArtist, GameCategory, GameCompilation, GameDesigner, GameFamilyName, GameFamilyRank, GameImplementation, GameMechanic, GamePublisher, GameType, XmlRanks
+    Game, GameAccessory, GameArtist, GameCategory, GameCompilation, GameDesigner, GameFamilyName,
+    GameFamilyRank, GameImplementation, GameMechanic, GamePublisher, GameType, XmlRanks,
 };
 use crate::utils::{XmlFloatValue, XmlIntValue, XmlLink, XmlName, XmlSignedValue};
 use crate::NameType;
