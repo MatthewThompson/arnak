@@ -3,8 +3,8 @@ use core::fmt;
 use serde::Deserialize;
 
 use super::Game;
-use crate::utils::{LinkType, XmlLink, XmlName};
-use crate::NameType;
+use crate::utils::{XmlLink, XmlName};
+use crate::{ItemType, NameType};
 
 /// A list of game families. Which are groups of games in a particular series.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
@@ -109,18 +109,12 @@ impl<'de> Deserialize<'de> for GameFamily {
                             if description.is_some() {
                                 return Err(serde::de::Error::duplicate_field("description"));
                             }
-                            let description_html: String = map.next_value()?;
-                            // Turn the HTML escape sequences back into characters. However the
-                            // escape sequences are done using UTF-8 so something like ü will be
-                            // encoded as&#195;&#188; but this decodes to Ã¼.
-                            // TODO find a way to decode these properly.
-                            let unescaped = html_escape::decode_html_entities(&description_html);
-                            description = Some(unescaped.into_owned());
+                            description = Some(map.next_value()?);
                         },
                         Field::Link => {
                             let link: XmlLink = map.next_value()?;
                             match link.link_type {
-                                LinkType::BoardGameFamily => {
+                                ItemType::BoardGameFamily => {
                                     games.push(Game {
                                         id: link.id,
                                         name: link.value,

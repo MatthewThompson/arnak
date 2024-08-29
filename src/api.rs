@@ -2,13 +2,13 @@ use std::future::Future;
 use std::time::Duration;
 
 use reqwest::{RequestBuilder, Response};
-use serde_xml_rs::from_str;
 use tokio::time::sleep;
 
 use crate::endpoints::collection::CollectionApi;
+use crate::utils::deserialise_xml_string;
 use crate::{
-    deserialise_maybe_error, CollectionItem, CollectionItemBrief, Error, GameFamilyApi, GuildApi,
-    HotListApi, Result, SearchApi,
+    deserialise_maybe_error, CollectionItem, CollectionItemBrief, Error, GameApi, GameFamilyApi,
+    GuildApi, HotListApi, Result, SearchApi,
 };
 
 /// API for making requests to the [Board Game Geek API](https://boardgamegeek.com/wiki/page/BGG_XML_API2).
@@ -66,6 +66,12 @@ impl BoardGameGeekApi {
         GameFamilyApi::new(self)
     }
 
+    /// Returns the game endpoint of the API, which is used for querying
+    /// full game details by their IDs.
+    pub fn game(&self) -> GameApi {
+        GameApi::new(self)
+    }
+
     /// Returns the guild endpoint of the API, which is used for querying
     /// guilds by their IDs.
     pub fn guild(&self) -> GuildApi {
@@ -105,7 +111,7 @@ impl BoardGameGeekApi {
         let response = self.send_request(request).await?;
         let response_text = response.text().await?;
 
-        let parse_result = from_str(&response_text);
+        let parse_result = deserialise_xml_string(&response_text);
         match parse_result {
             Ok(result) => Ok(result),
             Err(e) => {
@@ -117,7 +123,7 @@ impl BoardGameGeekApi {
                     // If the error cannot be parsed, that likely means it was a successful response
                     // that we failed to parse. So return an unexpected response with the original
                     // error.
-                    None => Err(Error::UnexpectedResponseError(e)),
+                    None => Err(Error::InvalidResponseError(e)),
                 }
             },
         }
