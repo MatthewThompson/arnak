@@ -291,7 +291,7 @@ mod tests {
                 ],
                 stats: GameStats {
                     users_rated: 45233,
-                    average: 8.07243,
+                    average_rating: 8.07243,
                     bayesian_average: 7.89555,
                     standard_deviation: 1.24187,
                     median: 0.0,

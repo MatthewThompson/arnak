@@ -109,7 +109,7 @@ pub struct GameStats {
     /// The number of users who have rated this game.
     pub users_rated: u64,
     /// The average rating from users, from 0-10.
-    pub average: f64,
+    pub average_rating: f64,
     /// The score out of 10, as a bayesian average.
     ///
     /// This is what boardgamegeek calls a Geek Rating. It is the average rating
@@ -462,7 +462,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                             let stats_xml: XmlGameStats = map.next_value()?;
                             stats = Some(GameStats {
                                 users_rated: stats_xml.ratings.usersrated.value,
-                                average: stats_xml.ratings.average.value,
+                                average_rating: stats_xml.ratings.average.value,
                                 bayesian_average: stats_xml.ratings.bayesaverage.value,
                                 standard_deviation: stats_xml.ratings.stddev.value,
                                 median: stats_xml.ratings.median.value,
