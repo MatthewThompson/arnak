@@ -3,12 +3,22 @@ use crate::{BoardGameGeekApi, Error, IntoQueryParam, QueryParam, Result};
 
 /// All optional query parameters for making a request to the game endpoint.
 #[derive(Clone, Debug, Default)]
-pub struct GameQueryParams {}
+pub struct GameQueryParams {
+    // Whether to include the version information.
+    include_versions: Option<bool>,
+}
 
 impl GameQueryParams {
     /// Constructs a new game query with parameters set to None.
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Sets the include_versions field. If set then information about different
+    /// versions of the game will be included, if applicable.
+    pub fn include_versions(mut self, include_versions: bool) -> Self {
+        self.include_versions = Some(include_versions);
+        self
     }
 }
 
@@ -35,6 +45,9 @@ impl<'builder> GameQueryBuilder {
         query_params.push(default_types.into_query_param("type"));
         query_params.push(true.into_query_param("stats"));
         query_params.push(self.game_ids.into_query_param("id"));
+        if let Some(include_versions) = self.params.include_versions {
+            query_params.push(include_versions.into_query_param("versions"));
+        }
         query_params
     }
 }
