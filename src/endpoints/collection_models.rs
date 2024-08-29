@@ -5,10 +5,10 @@ use serde::Deserialize;
 
 use super::{CollectionItemType, Dimensions, Game, GameArtist, GamePublisher, Language};
 use crate::utils::{
-    date_deserializer, deserialize_1_0_bool, deserialize_minutes, LinkType, XmlFloatValue,
-    XmlIntValue, XmlLink, XmlName, XmlSignedValue, XmlStringValue,
+    date_deserializer, deserialize_1_0_bool, deserialize_minutes, XmlFloatValue, XmlIntValue,
+    XmlLink, XmlName, XmlSignedValue, XmlStringValue,
 };
-use crate::NameType;
+use crate::{ItemType, NameType};
 
 /// A user's collection on boardgamegeek.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
@@ -310,7 +310,7 @@ impl<'de> Deserialize<'de> for GameVersion {
                         Field::Link => {
                             let link: XmlLink = map.next_value()?;
                             match link.link_type {
-                                LinkType::BoardGameVersion => {
+                                ItemType::BoardGameVersion => {
                                     if original_game.is_some() {
                                         return Err(serde::de::Error::duplicate_field(
                                             "link with type \"boardgameversion\"",
@@ -321,19 +321,19 @@ impl<'de> Deserialize<'de> for GameVersion {
                                         name: link.value,
                                     });
                                 },
-                                LinkType::BoardGamePublisher => {
+                                ItemType::BoardGamePublisher => {
                                     publishers.push(GamePublisher {
                                         id: link.id,
                                         name: link.value,
                                     });
                                 },
-                                LinkType::BoardGameArtist => {
+                                ItemType::BoardGameArtist => {
                                     artists.push(GameArtist {
                                         id: link.id,
                                         name: link.value,
                                     });
                                 },
-                                LinkType::Language => {
+                                ItemType::Language => {
                                     languages.push(Language {
                                         id: link.id,
                                         name: link.value,

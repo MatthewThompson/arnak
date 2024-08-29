@@ -1,7 +1,7 @@
 use chrono::Duration;
 use serde::Deserialize;
 
-use crate::NameType;
+use crate::{ItemType, NameType};
 
 // Types that only exist as intermediary values when deserialising more complex types.
 
@@ -35,19 +35,9 @@ pub(crate) struct XmlName {
 #[derive(Debug, Deserialize)]
 pub(crate) struct XmlLink {
     #[serde(rename = "type")]
-    pub(crate) link_type: LinkType,
+    pub(crate) link_type: ItemType,
     pub(crate) id: u64,
     pub(crate) value: String,
-}
-
-#[derive(Clone, Debug, Deserialize, PartialEq)]
-#[serde(rename_all = "lowercase")]
-pub(crate) enum LinkType {
-    BoardGameFamily,
-    BoardGameVersion,
-    BoardGamePublisher,
-    BoardGameArtist,
-    Language,
 }
 
 pub(crate) fn deserialize_1_0_bool<'de, D>(deserializer: D) -> Result<bool, D::Error>

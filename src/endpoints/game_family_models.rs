@@ -3,8 +3,8 @@ use core::fmt;
 use serde::Deserialize;
 
 use super::Game;
-use crate::utils::{LinkType, XmlLink, XmlName};
-use crate::NameType;
+use crate::utils::{XmlLink, XmlName};
+use crate::{ItemType, NameType};
 
 /// A list of game families. Which are groups of games in a particular series.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
@@ -120,7 +120,7 @@ impl<'de> Deserialize<'de> for GameFamily {
                         Field::Link => {
                             let link: XmlLink = map.next_value()?;
                             match link.link_type {
-                                LinkType::BoardGameFamily => {
+                                ItemType::BoardGameFamily => {
                                     games.push(Game {
                                         id: link.id,
                                         name: link.value,
