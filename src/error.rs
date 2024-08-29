@@ -17,25 +17,29 @@ pub enum Error {
     /// An error was returned making the HTTP request, or an error
     /// status code was returned.
     HttpError(reqwest::Error),
-    /// An error occurred attempting to parse the response from
-    /// the API into the expected type.
-    UnexpectedResponseError(serde_xml_rs::Error),
     /// The request tried too many times and timed out before the
     /// data was ready to be returned by the API. Includes the total
     /// number of times tried.
     MaxRetryError(u32),
+    /// An error occurred attempting to parse the response from
+    /// the API into the expected type.
+    InvalidResponseError(serde_xml_rs::Error),
+    /// A response was successfully retrieved and parsed from the underlying API but it wasn't what
+    /// we expected.
+    ///
+    /// This error will be returned when we expect to get exactly one of something and the API
+    /// returns multiple. Should never happen.
+    UnexpectedResponseError(String),
     /// The username requested was not found.
     UnknownUsernameError,
     /// Invalid value supplied for subtype ([crate::ItemType]) query parameter.
     InvalidCollectionItemType,
-    /// No guild was found for a given ID when making a request to the guild endpoint.
-    GuildNotFound,
     /// A generic not found error was returned from the underlying API.
     ///
     /// Note this is not a 404 returned from the request, rather a 200 but the content was an XML
     /// error tag containing the message "Not Found".
     ItemNotFound,
-    /// The API returned a list of errors that we do not recognise.
+    /// The underlying API returned a list of errors that we do not recognise.
     UnknownApiErrors(Vec<String>),
 }
 
@@ -47,7 +51,7 @@ impl From<reqwest::Error> for Error {
 
 impl From<serde_xml_rs::Error> for Error {
     fn from(err: serde_xml_rs::Error) -> Self {
-        Error::UnexpectedResponseError(err)
+        Error::InvalidResponseError(err)
     }
 }
 
@@ -55,13 +59,15 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Error::HttpError(e) => write!(f, "error making request: {}", e),
-            Error::UnexpectedResponseError(e) => write!(f, "error parsing output: {}", e),
             Error::MaxRetryError(retries) => {
                 write!(f, "data still not ready after {retries} retries, aborting")
             },
+            Error::InvalidResponseError(e) => write!(f, "error parsing output: {}", e),
+            Error::UnexpectedResponseError(reason) => {
+                write!(f, "unexpected response from API, {}", reason)
+            },
             Error::UnknownUsernameError => write!(f, "username not found"),
             Error::InvalidCollectionItemType => write!(f, "invalid collection item type provided"),
-            Error::GuildNotFound => write!(f, "guild with requested ID not found"),
             Error::ItemNotFound => write!(f, "requested item not found"),
             Error::UnknownApiErrors(messages) => match messages.len() {
                 0 => write!(f, "got error from API with no message"),
@@ -76,11 +82,11 @@ impl StdError for Error {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match &self {
             Error::HttpError(e) => Some(e),
-            Error::UnexpectedResponseError(e) => Some(e),
             Error::MaxRetryError(_) => None,
+            Error::InvalidResponseError(e) => Some(e),
+            Error::UnexpectedResponseError(_) => None,
             Error::UnknownUsernameError => None,
             Error::InvalidCollectionItemType => None,
-            Error::GuildNotFound => None,
             Error::ItemNotFound => None,
             Error::UnknownApiErrors(_) => None,
         }
@@ -154,7 +160,7 @@ impl From<ApiXmlErrorList> for Error {
 impl From<IdApiXmlError> for Error {
     fn from(error: IdApiXmlError) -> Self {
         if error.error == "Guild not found." {
-            return Error::GuildNotFound;
+            return Error::ItemNotFound;
         }
         Error::UnknownApiErrors(vec![error.error])
     }
@@ -167,7 +173,7 @@ fn error_from_api_error_messages(messages: Vec<String>) -> Error {
             return Error::UnknownUsernameError;
         }
         if error_message == "Guild not found." {
-            return Error::GuildNotFound;
+            return Error::ItemNotFound;
         }
         if error_message == "Invalid collection subtype" {
             return Error::InvalidCollectionItemType;

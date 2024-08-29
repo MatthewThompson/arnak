@@ -2,6 +2,8 @@ use core::fmt::Display;
 
 use serde::Deserialize;
 
+use super::{GameFamilyType, RankValue};
+
 /// The type of the item. Either a board game, a board game expansion, or board game accessory.
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
@@ -152,6 +154,30 @@ pub struct GameAccessory {
     pub name: String,
 }
 
+/// A game accessory with minimal information, only the name and ID.
+///
+/// More information can be retrieved from the accessory endpoint.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct GameCategory {
+    /// The ID of the game.
+    pub id: u64,
+    /// The name of the game.
+    #[serde(rename = "value")]
+    pub name: String,
+}
+
+/// A game accessory with minimal information, only the name and ID.
+///
+/// More information can be retrieved from the accessory endpoint.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct GameMechanic {
+    /// The ID of the game.
+    pub id: u64,
+    /// The name of the game.
+    #[serde(rename = "value")]
+    pub name: String,
+}
+
 /// A name and ID of a game family.
 ///
 /// More information about the game family can be retrieved from the
@@ -236,4 +262,39 @@ pub struct Dimensions {
     pub length: f64,
     /// The depth of the game, in inches.
     pub depth: f64,
+}
+
+// Intermediary struct needed due to the way the XML is structured
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub(crate) struct XmlRanks {
+    #[serde(rename = "$value")]
+    pub(crate) ranks: Vec<GameFamilyRank>,
+}
+
+/// A struct containing the game's rank within a particular type of game.
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+pub struct GameFamilyRank {
+    /// The type of this group of games. Can be `subtype` for rank within all
+    /// board games. Or it can be `family` if it is the rank within a family of games
+    /// such as party games or strategy games.
+    #[serde(rename = "type")]
+    pub game_family_type: GameFamilyType,
+    /// ID of the game family.
+    pub id: u64,
+    /// Name of the game type. "boardgame" used as the generic subtype that
+    /// includes all board games.
+    pub name: String,
+    /// User friendly name in the format "GENRE game rank" e.g. "Party Game
+    /// Rank".
+    #[serde(rename = "friendlyname")]
+    pub friendly_name: String,
+    /// The overall rank on the site within this type of game.
+    pub value: RankValue,
+    /// The score out of 10, as a bayesian average.
+    ///
+    /// This is what boardgamegeek calls a Geek Rating. It is the average rating
+    /// that the users have given it along with a few thousand 5.5 ratings added
+    /// in too.
+    #[serde(rename = "bayesaverage")]
+    pub bayesian_average: f64,
 }

@@ -109,13 +109,7 @@ impl<'de> Deserialize<'de> for GameFamily {
                             if description.is_some() {
                                 return Err(serde::de::Error::duplicate_field("description"));
                             }
-                            let description_html: String = map.next_value()?;
-                            // Turn the HTML escape sequences back into characters. However the
-                            // escape sequences are done using UTF-8 so something like ü will be
-                            // encoded as&#195;&#188; but this decodes to Ã¼.
-                            // TODO find a way to decode these properly.
-                            let unescaped = html_escape::decode_html_entities(&description_html);
-                            description = Some(unescaped.into_owned());
+                            description = Some(map.next_value()?);
                         },
                         Field::Link => {
                             let link: XmlLink = map.next_value()?;

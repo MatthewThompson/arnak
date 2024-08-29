@@ -1,0 +1,106 @@
+<items>
+    <item type="boardgame" id="341254">
+        <thumbnail>
+            https://cf.geekdo-images.com/U4aoXbKATU7YbA8bAT73FQ__thumb/img/g0aac2-OQvMbEPXv1vIvSumPmkA=/fit-in/200x150/filters:strip_icc()/pic6253876.png
+        </thumbnail>
+        <image>
+            https://cf.geekdo-images.com/U4aoXbKATU7YbA8bAT73FQ__original/img/TKJnD49aci6Soc214_MTUe1iNmg=/0x0/filters:format(png)/pic6253876.png
+        </image>
+        <name type="primary" sortindex="1" value="Lost Ruins of Arnak" />
+        <name type="alternate" sortindex="1" value="アルナックの失われし遺跡：調査隊長" />
+        <description>
+            On an uninhabited island in uncharted seas, explorers have found traces of a great civilization. Now you will lead an expedition to explore the island, find lost artifacts, and face fearsome guardians, all in a quest to learn the island's secrets.&#10;&#10;Lost Ruins of Arnak combines deck-building and worker placement in a game of exploration, resource management, and discovery. In addition to traditional deck-builder effects, cards can also be used to place workers, and new worker actions become available as players explore the island. Some of these actions require resources instead of workers, so building a solid resource base will be essential. You are limited to only one action per turn, so make your choice carefully... what action will benefit you most now? And what can you afford to do later... assuming someone else doesn't take the action first!?&#10;&#10;Decks are small, and randomness in the game is heavily mitigated by the wealth of tactical decisions offered on the game board. With a variety of worker actions, artifacts, and equipment cards, the set-up for each game will be unique, encouraging players to explore new strategies to meet the challenge.&#10;&#10;Discover the Lost Ruins of Arnak!&#10;&#10;&mdash;description from the publisher&#10;&#10;
+        </description>
+        <yearpublished value="2020" />
+        <minplayers value="1" />
+        <maxplayers value="4" />
+        <poll name="suggested_numplayers" title="User Suggested Number of Players" totalvotes="889">
+            <results numplayers="1">
+                <result value="Best" numvotes="88" />
+                <result value="Recommended" numvotes="337" />
+                <result value="Not Recommended" numvotes="126" />
+            </results>
+            <results numplayers="2">
+                <result value="Best" numvotes="225" />
+                <result value="Recommended" numvotes="506" />
+                <result value="Not Recommended" numvotes="35" />
+            </results>
+            <results numplayers="3">
+                <result value="Best" numvotes="512" />
+                <result value="Recommended" numvotes="202" />
+                <result value="Not Recommended" numvotes="12" />
+            </results>
+            <results numplayers="4">
+                <result value="Best" numvotes="176" />
+                <result value="Recommended" numvotes="385" />
+                <result value="Not Recommended" numvotes="95" />
+            </results>
+            <results numplayers="4+">
+                <result value="Best" numvotes="1" />
+                <result value="Recommended" numvotes="0" />
+                <result value="Not Recommended" numvotes="361" />
+            </results>
+        </poll>
+        <playingtime value="120" />
+        <minplaytime value="30" />
+        <maxplaytime value="120" />
+        <minage value="12" />
+        <poll name="suggested_playerage" title="User Suggested Player Age" totalvotes="178">
+            <results>
+                <result value="6" numvotes="3" />
+                <result value="8" numvotes="17" />
+                <result value="10" numvotes="75" />
+                <result value="14" numvotes="10" />
+                <result value="16" numvotes="1" />
+                <result value="18" numvotes="0" />
+                <result value="21 and up" numvotes="0" />
+            </results>
+        </poll>
+        <poll name="language_dependence" title="Language Dependence" totalvotes="39">
+            <results>
+                <result level="1" value="No necessary in-game text" numvotes="0" />
+                <result level="2" value="Some necessary text - easily memorized or small crib sheet"
+                    numvotes="4" />
+                <result level="3" value="Moderate in-game text - needs crib sheet or paste ups"
+                    numvotes="28" />
+                <result level="4"
+                    value="Extensive use of text - massive conversion needed to be playable"
+                    numvotes="5" />
+                <result level="5" value="Unplayable in another language" numvotes="2" />
+            </results>
+        </poll>
+        <link type="boardgamecategory" id="1020" value="Exploration" />
+        <link type="boardgamecategory" id="1097" value="Travel" />
+        <link type="boardgamemechanic" id="2664" value="Deck, Bag, and Pool Building" />
+        <link type="boardgamemechanic" id="2041" value="Open Drafting" />
+        <link type="boardgamemechanic" id="2082" value="Worker Placement" />
+        <link type="boardgamefamily" id="5666" value="Players: Games with Solitaire Rules" />
+        <link type="boardgamefamily" id="21940" value="Theme: Archaeology / Paleontology" />
+        <link type="boardgameexpansion" id="341254" value="Lost Ruins of Arnak: Expedition Leaders" />
+        <link type="boardgamedesigner" id="127823" value="Design" />
+        <link type="boardgamedesigner" id="127822" value="Er" />
+        <link type="boardgameartist" id="152613" value="Artist person" />
+        <link type="boardgameartist" id="115373" value="Another Artist person" />
+        <link type="boardgamepublisher" id="1391" value="Hobby Japan" />
+        <statistics page="1">
+            <ratings>
+            <usersrated value="45233"/>
+            <average value="8.07243"/>
+            <bayesaverage value="7.89555"/>
+            <ranks>
+                <rank type="subtype" id="1" name="boardgame" friendlyname="Board Game Rank" value="28" bayesaverage="7.89555"/>
+                <rank type="family" id="5497" name="strategygames" friendlyname="Strategy Game Rank" value="29" bayesaverage="7.89048"/>
+            </ranks>
+            <stddev value="1.24187"/>
+            <median value="0"/>
+            <owned value="68393"/>
+            <trading value="456"/>
+            <wanting value="1056"/>
+            <wishing value="13287"/>
+            <numcomments value="5633"/>
+            <numweights value="1466"/>
+            <averageweight value="2.9216"/>
+            </ratings>
+        </statistics>
+    </item>
+</items>
