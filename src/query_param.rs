@@ -19,11 +19,10 @@ impl IntoQueryParam for bool {
     }
 }
 
-// TODO see if there is a way to define this trait for all ToString
-// or ToString so we can define Display on enums and it'll "just work"
-// Currently doesn't work due to conflicting types with the bool implementation.
-// I think this may be solvable with the default fn feature, but this is currently
-// not stable.
+// It would be good to just define this trait for all ToString, and then specialise the bool
+// implementation. However, currently this seemingly doesn't work, the ever given being conflicting
+// types with the bool implementation. I think this may be solvable with the default fn feature, but
+// this is currently not stable.
 
 impl IntoQueryParam for &str {
     fn into_query_param(self, key: &str) -> QueryParam<'_> {

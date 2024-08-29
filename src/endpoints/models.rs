@@ -48,10 +48,6 @@ pub enum ItemType {
     Language,
 }
 
-// TODO: is there a nice way to have a separate display and to_string implementation?
-// to_string is needed for converting this type into query params, but it would be good
-// to have a separate user facing display that would look like "board game" instead of
-// "boardgame" for example.
 impl Display for ItemType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

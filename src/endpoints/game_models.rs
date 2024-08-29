@@ -100,7 +100,7 @@ pub struct GameDetails {
     ///
     /// Also includes the number of users on the site who own the game, as well
     /// as have it as other collection statuses.
-    pub stats: GameStats, // TODO type
+    pub stats: GameStats,
 }
 
 /// blah
@@ -164,14 +164,14 @@ struct StatsRatings {
     averageweight: XmlFloatValue,
 }
 
-/// A poll for
+/// A poll for users to vote on things such as the best player age and player count for the game.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Poll {
-    /// Fixed slug
+    /// Fixed slug name for the poll
     pub name: String,
-    /// Pretty title
+    /// Pretty formatted title for the poll
     pub title: String,
-    /// List of results TODO unwrap this with custom des
+    /// List of results
     pub results: Vec<PollResults>,
 }
 
@@ -429,11 +429,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                             }
                         },
                         Field::Poll => {
-                            // TODO
-                            // check name
-                            // suggested_numplayers/suggested_playerage/language_dependence
-                            // Decode as appropriate
-                            // Struct with hard coded 5 values for lang dep??
+                            // TODO split this into proper types for each of the 3 polls
                             let poll: Poll = map.next_value()?;
 
                             if poll.name == "suggested_numplayers" {
