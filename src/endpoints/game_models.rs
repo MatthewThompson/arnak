@@ -11,11 +11,57 @@ use crate::utils::{XmlFloatValue, XmlIntValue, XmlLink, XmlName, XmlSignedValue}
 use crate::NameType;
 
 /// A list of requested games with the full details.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct Games {
     /// List of games.
-    #[serde(rename = "$value")]
     pub games: Vec<GameDetails>,
+}
+
+impl<'de> Deserialize<'de> for Games {
+    fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        #[serde(field_identifier, rename_all = "lowercase")]
+        enum Field {
+            TermsOfUse,
+            Script,
+            Item,
+        }
+
+        struct GamesVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for GamesVisitor {
+            type Value = Games;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("an XML object for a list of board games returned by the `thing` endpoint from boardgamegeek")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                let mut games = vec![];
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::TermsOfUse => {
+                            // Consume and ignore
+                            map.next_value::<String>()?;
+                        },
+                        Field::Script => {
+                            // Sometimes there is an empty script tag before the list of items.
+                            // Nothing to do, skip past.
+                            map.next_value()?;
+                        },
+                        Field::Item => {
+                            games.push(map.next_value()?);
+                        },
+                    }
+                }
+                Ok(Self::Value { games })
+            }
+        }
+        deserializer.deserialize_any(GamesVisitor)
+    }
 }
 
 /// A game, or expansion, with full details.
@@ -81,6 +127,8 @@ pub struct GameDetails {
     pub game_families: Vec<GameFamilyName>,
     /// A list of expansions to this game.
     pub expansions: Vec<Game>,
+    /// A list of games that this game is an expansion for.
+    pub expansion_for: Vec<Game>,
     /// A list of accessories specific to this game.
     pub accessories: Vec<GameAccessory>,
     /// A list of compilations for this game.
@@ -247,7 +295,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                 let mut categories = vec![];
                 let mut mechanics = vec![];
                 let mut game_families = vec![];
-                let mut expansions = vec![];
+                let mut expansion_links = vec![];
                 let mut accessories = vec![];
                 let mut compilations = vec![];
                 let mut reimplementations = vec![];
@@ -361,7 +409,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                             let link: XmlLink = map.next_value()?;
                             match link.link_type {
                                 crate::ItemType::BoardGameExpansion => {
-                                    expansions.push(Game {
+                                    expansion_links.push(Game {
                                         id: link.id,
                                         name: link.value,
                                     });
@@ -513,6 +561,11 @@ impl<'de> Deserialize<'de> for GameDetails {
 
                 let stats = stats.ok_or_else(|| serde::de::Error::missing_field("stats"))?;
 
+                let (expansions, expansion_for) = match game_type {
+                    GameType::BoardGame => (expansion_links, vec![]),
+                    GameType::BoardGameExpansion => (vec![], expansion_links),
+                };
+
                 Ok(Self::Value {
                     id,
                     game_type,
@@ -535,6 +588,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                     mechanics,
                     game_families,
                     expansions,
+                    expansion_for,
                     accessories,
                     compilations,
                     reimplementations,
