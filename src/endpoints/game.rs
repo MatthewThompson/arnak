@@ -49,7 +49,7 @@ impl GameQueryParams {
     /// Sets the include_marketplace_data query parameter. If set then information about where to
     /// buy the game and for what cost will be included.
     pub fn include_marketplace_data(mut self, include_marketplace_data: bool) -> Self {
-        self.include_videos = Some(include_marketplace_data);
+        self.include_marketplace_data = Some(include_marketplace_data);
         self
     }
 
@@ -61,7 +61,7 @@ impl GameQueryParams {
     ///
     /// Note that this is not compatible with the include_rating_comments parameter.
     pub fn include_comments(mut self, include_comments: bool) -> Self {
-        self.include_videos = Some(include_comments);
+        self.include_comments = Some(include_comments);
         self
     }
 
@@ -73,7 +73,7 @@ impl GameQueryParams {
     ///
     /// Note that this is not compatible with the include_comments parameter.
     pub fn include_rating_comments(mut self, include_rating_comments: bool) -> Self {
-        self.include_videos = Some(include_rating_comments);
+        self.include_rating_comments = Some(include_rating_comments);
         self
     }
 
@@ -197,14 +197,15 @@ impl<'api> GameApi<'api> {
 
 #[cfg(test)]
 mod tests {
-    use chrono::Duration;
+    use chrono::{Duration, TimeZone, Utc};
     use mockito::Matcher;
 
     use super::*;
     use crate::{
-        Game, GameAccessory, GameArtist, GameCategory, GameDesigner, GameFamilyName,
-        GameFamilyRank, GameFamilyType, GameMechanic, GamePublisher, GameStats, GameType, Poll,
-        PollResult, PollResults, RankValue,
+        Dimensions, Game, GameAccessory, GameArtist, GameCategory, GameCondition, GameDesigner,
+        GameFamilyName, GameFamilyRank, GameFamilyType, GameMechanic, GamePublisher, GameStats,
+        GameType, GameVersion, Language, MarketplaceListing, Poll, PollResult, PollResults, Price,
+        RankValue, RatingComment, RatingCommentPage, User, Video, VideoCategory,
     };
 
     #[tokio::test]
@@ -239,7 +240,7 @@ mod tests {
         assert_eq!(
             game,
             GameDetails {
-                id:312484,
+                id: 312484,
                 game_type: GameType::BoardGame,
                 name: "Lost Ruins of Arnak".to_owned(),
                 alternate_names: vec![
@@ -431,6 +432,9 @@ mod tests {
                     weight_rating: 2.9216,
                 },
                 versions: vec![],
+                videos: vec![],
+                marketplace_listings: vec![],
+                rating_comments: None,
             },
         );
     }
@@ -460,8 +464,6 @@ mod tests {
 
         let game = api.game().get_by_id(341254, GameQueryParams::new()).await;
         mock.assert_async().await;
-
-        println!("{:?}", game);
 
         assert!(game.is_ok(), "error returned when okay expected");
         let game = game.unwrap();
@@ -661,6 +663,395 @@ mod tests {
                     weight_rating: 3.1301,
                 },
                 versions: vec![],
+                videos: vec![],
+                marketplace_listings: vec![],
+                rating_comments: None,
+            },
+        );
+    }
+
+    #[tokio::test]
+    async fn get_full_by_id() {
+        let mut server = mockito::Server::new_async().await;
+        let api = BoardGameGeekApi {
+            base_url: server.url(),
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/thing")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("type".into(), "boardgame,boardgameexpansion".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("id".into(), "312484".into()),
+                Matcher::UrlEncoded("versions".into(), "1".into()),
+                Matcher::UrlEncoded("videos".into(), "1".into()),
+                Matcher::UrlEncoded("marketplace".into(), "1".into()),
+                Matcher::UrlEncoded("comments".into(), "1".into()),
+                Matcher::UrlEncoded("page".into(), "1".into()),
+                Matcher::UrlEncoded("pagesize".into(), "3".into()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/game/game_all.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let params = GameQueryParams::new()
+            .include_versions(true)
+            .include_videos(true)
+            .include_marketplace_data(true)
+            .include_comments(true)
+            .page(1)
+            .page_size(3);
+        let game = api.game().get_by_id(312484, params).await;
+        mock.assert_async().await;
+
+        assert!(game.is_ok(), "error returned when okay expected");
+        let game = game.unwrap();
+
+        assert_eq!(
+            game,
+            GameDetails {
+                id: 312484,
+                game_type: GameType::BoardGame,
+                name: "Lost Ruins of Arnak".to_owned(),
+                alternate_names: vec![
+                    "アルナックの失われし遺跡".to_owned(),
+                ],
+                description: "On an uninhabited island in uncharted seas, explorers have found traces of a great civilization. Now you will lead an expedition to explore the island, find lost artifacts, and face fearsome guardians, all in a quest to learn the island's secrets.\n\nLost Ruins of Arnak combines deck-building and worker placement in a game of exploration, resource management, and discovery. In addition to traditional deck-builder effects, cards can also be used to place workers, and new worker actions become available as players explore the island. Some of these actions require resources instead of workers, so building a solid resource base will be essential. You are limited to only one action per turn, so make your choice carefully... what action will benefit you most now? And what can you afford to do later... assuming someone else doesn't take the action first!?\n\nDecks are small, and randomness in the game is heavily mitigated by the wealth of tactical decisions offered on the game board. With a variety of worker actions, artifacts, and equipment cards, the set-up for each game will be unique, encouraging players to explore new strategies to meet the challenge.\n\nDiscover the Lost Ruins of Arnak!\n\n—description from the publisher".to_owned(),
+                image: "https://cf.geekdo-images.com/6GqH14TJJhza86BX5HCLEQ__original/img/CXqwimJPonWy1oyXEMgPN_ZVmUI=/0x0/filters:format(jpeg)/pic5674958.jpg".to_owned(),
+                thumbnail: "https://cf.geekdo-images.com/6GqH14TJJhza86BX5HCLEQ__thumb/img/J8SVmGOJXZGxNjkT3xYNQU7Haxg=/fit-in/200x150/filters:strip_icc()/pic5674958.jpg".to_owned(),
+                year_published: 2020,
+                min_players: 1,
+                max_players: 4,
+                suggested_player_count: Poll {
+                    name: "suggested_numplayers".to_owned(),
+                    title: "User Suggested Number of Players".to_owned(),
+                    results: vec![
+                        PollResults {
+                            results: vec![
+                                PollResult { value: "Best".to_owned(), number_of_votes: 88 },
+                                PollResult { value: "Recommended".to_owned(), number_of_votes: 337 },
+                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 126 },
+                            ],
+                        },
+                        PollResults {
+                            results: vec![
+                                PollResult { value: "Best".to_owned(), number_of_votes: 225 },
+                                PollResult { value: "Recommended".to_owned(), number_of_votes: 506 },
+                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 35 },
+                            ],
+                        },
+                        PollResults {
+                            results: vec![
+                                PollResult { value: "Best".to_owned(), number_of_votes: 512},
+                                PollResult { value: "Recommended".to_owned(), number_of_votes: 202},
+                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 12},
+                            ],
+                        },
+                        PollResults {
+                            results: vec![
+                                PollResult { value: "Best".to_owned(), number_of_votes: 176 },
+                                PollResult { value: "Recommended".to_owned(), number_of_votes: 385 },
+                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 95 },
+                            ],
+                        },
+                        PollResults {
+                            results: vec![
+                                PollResult { value: "Best".to_owned(), number_of_votes: 1 },
+                                PollResult { value: "Recommended".to_owned(), number_of_votes: 0 },
+                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 361 },
+                            ],
+                        },
+                    ],
+                },
+                playing_time: Duration::minutes(120),
+                min_playtime: Duration::minutes(30),
+                max_playtime: Duration::minutes(120),
+                min_age: 12,
+                suggested_player_age: Poll {
+                    name: "suggested_playerage".to_owned(),
+                    title: "User Suggested Player Age".to_owned(),
+                    results: vec![
+                        PollResults {
+                            results: vec![
+                                PollResult { value: "6".to_owned(), number_of_votes: 3 },
+                                PollResult { value: "8".to_owned(), number_of_votes: 17 },
+                                PollResult { value: "10".to_owned(), number_of_votes: 75 },
+                                PollResult { value: "14".to_owned(), number_of_votes: 10 },
+                                PollResult { value: "16".to_owned(), number_of_votes: 1 },
+                                PollResult { value: "18".to_owned(), number_of_votes: 0 },
+                                PollResult { value: "21 and up".to_owned(), number_of_votes: 0 },
+                            ],
+                        },
+                    ],
+                },
+                suggested_language_dependence: Poll {
+                    name: "language_dependence".to_owned(),
+                    title: "Language Dependence".to_owned(),
+                    results: vec![
+                        PollResults {
+                            results: vec![
+                                PollResult { value: "No necessary in-game text".to_owned(), number_of_votes: 0 },
+                                PollResult { value: "Some necessary text - easily memorized or small crib sheet".to_owned(), number_of_votes: 4 },
+                                PollResult { value: "Moderate in-game text - needs crib sheet or paste ups".to_owned(), number_of_votes: 28 },
+                                PollResult { value: "Extensive use of text - massive conversion needed to be playable".to_owned(), number_of_votes: 5 },
+                                PollResult { value: "Unplayable in another language".to_owned(), number_of_votes: 2 },
+                            ],
+                        },
+                    ],
+                },
+                categories: vec![
+                    GameCategory {
+                        id: 1020,
+                        name: "Exploration".to_owned(),
+                    },
+                    GameCategory {
+                        id: 1097,
+                        name: "Travel".to_owned(),
+                    },
+                ],
+                mechanics: vec![
+                    GameMechanic {
+                        id: 2664,
+                        name: "Deck, Bag, and Pool Building".to_owned(),
+                    },
+                    GameMechanic {
+                        id: 2041,
+                        name: "Open Drafting".to_owned(),
+                    },
+                    GameMechanic {
+                        id: 2082,
+                        name: "Worker Placement".to_owned(),
+                    },
+                ],
+                game_families: vec![
+                    GameFamilyName {
+                        id: 5666,
+                        name: "Players: Games with Solitaire Rules".to_owned(),
+                    },
+                    GameFamilyName {
+                        id: 21940,
+                        name: "Theme: Archaeology / Paleontology".to_owned(),
+                    },
+                ],
+                expansions: vec![
+                    Game {
+                        id: 341254,
+                        name: "Lost Ruins of Arnak: Expedition Leaders".to_owned(),
+                    },
+                ],
+                expansion_for: vec![],
+                accessories: vec![],
+                compilations: vec![],
+                reimplementations: vec![],
+                designers: vec![
+                    GameDesigner {
+                        id: 127823,
+                        name: "Design".to_owned(),
+                    },
+                    GameDesigner {
+                        id: 127822,
+                        name: "Er".to_owned(),
+                    },
+                ],
+                artists: vec![
+                    GameArtist {
+                        id: 152613,
+                        name: "Artist person".to_owned(),
+                    },
+                    GameArtist {
+                        id: 115373,
+                        name: "Another Artist person".to_owned(),
+                    },
+                ],
+                publishers: vec![
+                    GamePublisher {
+                        id: 1391,
+                        name: "Hobby Japan".to_owned(),
+                    },
+                ],
+                stats: GameStats {
+                    users_rated: 45233,
+                    average_rating: 8.07243,
+                    bayesian_average: 7.89555,
+                    standard_deviation: 1.24187,
+                    median: 0.0,
+                    ranks: vec![
+                        GameFamilyRank {
+                            game_family_type: GameFamilyType::Subtype,
+                            id: 1,
+                            name: "boardgame".to_owned(),
+                            friendly_name: "Board Game Rank".to_owned(),
+                            value: RankValue::Ranked(28),
+                            bayesian_average: 7.89555,
+                        },
+                        GameFamilyRank {
+                            game_family_type: GameFamilyType::Family,
+                            id: 5497,
+                            name: "strategygames".to_owned(),
+                            friendly_name: "Strategy Game Rank".to_owned(),
+                            value: RankValue::Ranked(29),
+                            bayesian_average: 7.89048,
+                        },
+                    ],
+                    users_owned: 68393,
+                    users_trading: 456,
+                    users_want_in_trade: 1056,
+                    users_wishlisted: 13287,
+                    number_of_comments: 5633,
+                    number_of_weights: 1466,
+                    weight_rating: 2.9216,
+                },
+                versions: vec![
+                    GameVersion {
+                        id: 595583,
+                        name: "Bulgarian edition".to_owned(),
+                        alternate_names: vec![],
+                        year_published: 2021,
+                        image: "https://cf.geekdo-images.com/IE7u66EF0sVXBYFMAqu21g__original/img/M0KZEWD-IUjsvWNEpBxcrB1NmsU=/0x0/filters:format(png)/pic6622620.png".to_owned(),
+                        thumbnail: "https://cf.geekdo-images.com/IE7u66EF0sVXBYFMAqu21g__thumb/img/kd7nulur0E6B6fvMVpfRH_MxCmg=/fit-in/200x150/filters:strip_icc()/pic6622620.png".to_owned(),
+                        original_game: Game {
+                            id: 312484,
+                            name: "Lost Ruins of Arnak".to_owned(),
+                        },
+                        publishers: vec![
+                            GamePublisher {
+                                id: 7345,
+                                name: "Games".to_owned(),
+                            },
+                        ],
+                        artists: vec![
+                            GameArtist {
+                                id: 11961,
+                                name: "Art man".to_owned(),
+                            },
+                        ],
+                        languages: vec![
+                            Language {
+                                id: 2675,
+                                name: "Bulgarian".to_owned(),
+                            },
+                        ],
+                        dimensions: Some(Dimensions {
+                            width: 10.0394,
+                            length: 14.3701,
+                            depth: 2.75591,
+                        }),
+                        weight: Some(5.2448),
+                        product_code: Some("77240-BG".to_owned()),
+                    },
+                    GameVersion {
+                        id: 517374,
+                        name: "French edition".to_owned(),
+                        alternate_names: vec![],
+                        year_published: 2021,
+                        image: "https://cf.geekdo-images.com/RiyIlOey2KYj4Flwl1nOPg__original/img/IU0Aws6_XM22XdEBJJZMLzX8OuM=/0x0/filters:format(jpeg)/pic5531793.jpg".to_owned(),
+                        thumbnail: "https://cf.geekdo-images.com/RiyIlOey2KYj4Flwl1nOPg__thumb/img/I4LpDfOcfDeF5sT2f9-UpI-k9SM=/fit-in/200x150/filters:strip_icc()/pic5531793.jpg".to_owned(),
+                        original_game: Game {
+                            id: 312484,
+                            name: "Lost Ruins of Arnak".to_owned(),
+                        },
+                        publishers: vec![
+                            GamePublisher {
+                                id: 7345,
+                                name: "Games".to_owned(),
+                            },
+                        ],
+                        artists: vec![],
+                        languages: vec![
+                            Language {
+                                id: 2187,
+                                name: "French".to_owned(),
+                            },
+                        ],
+                        dimensions: None,
+                        weight: None,
+                        product_code: None,
+                    },
+                ],
+                videos: vec![
+                    Video {
+                        id: 510883,
+                        title: "Some video".to_owned(),
+                        category: VideoCategory::Other,
+                        language: "French".to_owned(),
+                        link: "http://www.youtube.com/watch?v=1".to_owned(),
+                        uploader: User {
+                            user_id: 312,
+                            username: "video_man".to_owned(),
+                        },
+                        post_date: Utc.with_ymd_and_hms(2024, 8, 25, 9, 57, 57).unwrap(),
+                    },
+                    Video {
+                        id: 504090,
+                        title: "Arnak gameplay".to_owned(),
+                        category: VideoCategory::Session,
+                        language: "Portuguese".to_owned(),
+                        link: "http://www.youtube.com/watch?v=2".to_owned(),
+                        uploader: User {
+                            user_id: 333,
+                            username: "video_man_2".to_owned(),
+                        },
+                        post_date: Utc.with_ymd_and_hms(2024, 7, 11, 16, 42, 52).unwrap(),
+                    },
+                ],
+                marketplace_listings: vec![
+                    MarketplaceListing {
+                        list_date: Utc.with_ymd_and_hms(2024, 2, 23, 22, 52, 48).unwrap(),
+                        price: Price {
+                            currency: "USD".to_owned(),
+                            value: "44.99".to_owned(),
+                        },
+                        condition: GameCondition::New,
+                        notes: "".to_owned(),
+                        link: "https://boardgamegeek.com/market/product/2408401".to_owned(),
+                    },
+                    MarketplaceListing {
+                        list_date: Utc.with_ymd_and_hms(2021, 2, 24, 13, 17, 47).unwrap(),
+                        price: Price {
+                            currency: "EUR".to_owned(),
+                            value: "68.00".to_owned(),
+                        },
+                        condition: GameCondition::LikeNew,
+                        notes: "new in shrink.".to_owned(),
+                        link: "https://boardgamegeek.com/market/product/2479138".to_owned(),
+                    },
+                    MarketplaceListing {
+                        list_date: Utc.with_ymd_and_hms(2024, 7, 4, 15, 32, 15).unwrap(),
+                        price: Price {
+                            currency: "USD".to_owned(),
+                            value: "25.00".to_owned(),
+                        },
+                        condition: GameCondition::VeryGood,
+                        notes: "Buyer to pay shipping.".to_owned(),
+                        link: "https://boardgamegeek.com/market/product/3498577".to_owned(),
+                    },
+                ],
+                rating_comments: Some(RatingCommentPage {
+                    total_items: 5648,
+                    page_number: 1,
+                    comments: vec![
+                        RatingComment {
+                            username: "u1".to_owned(),
+                            rating: Some(6.3),
+                            comment: "BGA".to_owned(),
+                        },
+                        RatingComment {
+                            username: "u2".to_owned(),
+                            rating: None,
+                            comment: "Cool game.".to_owned(),
+                        },
+                        RatingComment {
+                            username: "u3".to_owned(),
+                            rating: Some(8.5),
+                            comment: "".to_owned(),
+                        },
+                    ],
+                }),
             },
         );
     }

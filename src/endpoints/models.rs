@@ -586,3 +586,12 @@ impl<'de> Deserialize<'de> for GameVersion {
         deserializer.deserialize_any(GameVersionVisitor)
     }
 }
+
+/// A user's username and ID.
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+pub struct User {
+    /// ID for the user.
+    pub user_id: u64,
+    /// Username, used to request collection information.
+    pub username: String,
+}

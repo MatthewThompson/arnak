@@ -1,14 +1,16 @@
 use core::fmt;
 
-use chrono::Duration;
+use chrono::{DateTime, Duration, NaiveDateTime, Utc};
 use serde::Deserialize;
 
 use super::{
     Game, GameAccessory, GameArtist, GameCategory, GameCompilation, GameDesigner, GameFamilyName,
-    GameFamilyRank, GameImplementation, GameMechanic, GamePublisher, GameType, GameVersion,
+    GameFamilyRank, GameImplementation, GameMechanic, GamePublisher, GameType, GameVersion, User,
     XmlRanks,
 };
-use crate::utils::{XmlFloatValue, XmlIntValue, XmlLink, XmlName, XmlSignedValue};
+use crate::utils::{
+    XmlDateTimeValue, XmlFloatValue, XmlIntValue, XmlLink, XmlName, XmlSignedValue, XmlStringValue,
+};
 use crate::{NameType, VersionsXml};
 
 /// A list of requested games with the full details.
@@ -150,11 +152,26 @@ pub struct GameDetails {
     /// Also includes the number of users on the site who own the game, as well
     /// as have it as other collection statuses.
     pub stats: GameStats,
-    /// Information the versions of the game information.
+    /// Information for the various versions of the game.
     pub versions: Vec<GameVersion>,
+    /// User uploaded videos that relate to this game.
+    pub videos: Vec<Video>,
+    /// Information of where to buy the game and for how much.
+    pub marketplace_listings: Vec<MarketplaceListing>,
+    /// List of comments and ratings users have given to the game.
+    ///
+    /// Each comment may have a rating but no comment, a comment but no rating, or both. However
+    /// the underlying API will only return all comments, whether or not they have ratings,
+    /// with the `include_comments` query parameter. Or all ratings, whether or not they have
+    /// comments. However the same tag is used to return them so there is no way to return all
+    /// comments and ratings together.
+    ///
+    /// Page number and page size can be controlled via query parameters.
+    pub rating_comments: Option<RatingCommentPage>,
 }
 
-/// blah
+/// Various statistics for the game, including the number of users who own the game as
+/// well as the ratings.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct GameStats {
     /// The number of users who have rated this game.
@@ -192,12 +209,14 @@ pub struct GameStats {
     pub weight_rating: f64,
 }
 
+// Structure of the stats tag in the returned XML
 #[derive(Debug, Deserialize)]
 struct XmlGameStats {
     #[serde(rename = "$value")]
     ratings: StatsRatings,
 }
 
+// Structure of the ratings tag in the returned XML
 #[derive(Debug, Deserialize)]
 struct StatsRatings {
     usersrated: XmlIntValue,
@@ -244,6 +263,373 @@ pub struct PollResult {
     pub number_of_votes: u64,
 }
 
+// A list of videos. Define the type in xml that can be deserialised, but pull out the nested
+// list in the game details deserialise implementation
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+struct VideosXml {
+    // List of videos, each in an XML tag called `video`
+    #[serde(rename = "$value")]
+    videos: Vec<Video>,
+}
+
+/// A video relating to a game.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Video {
+    /// ID of the video.
+    pub id: u64,
+    /// The title of the video.
+    pub title: String,
+    /// Type of video, if it is a play-through or rules teach for example.
+    pub category: VideoCategory,
+    /// Language of the video.
+    pub language: String,
+    /// Youtube link to the video.
+    pub link: String,
+    /// Name and ID of the user who uploaded this video.
+    pub uploader: User,
+    /// The date and time the video was posted.
+    pub post_date: DateTime<Utc>,
+}
+
+/// Type of video for a video related to a particular game.
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum VideoCategory {
+    /// A video review of a game.
+    Review,
+    /// A play-through session of a game.
+    Session,
+    /// Strategy or how to play videos.
+    Instructional,
+    /// Interviews with people related to the game.
+    Interview,
+    /// Game unboxing videos.
+    Unboxing,
+    /// Miscellaneous funny videos about the game.
+    Humor,
+    /// Videos relating to the game that do not fir in any other category.
+    Other,
+}
+
+impl<'de> Deserialize<'de> for Video {
+    fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        #[serde(field_identifier, rename_all = "lowercase")]
+        enum Field {
+            Id,
+            Title,
+            Category,
+            Language,
+            Link,
+            Username,
+            UserId,
+            PostDate,
+        }
+
+        struct VideoVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for VideoVisitor {
+            type Value = Video;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("an XML object for a video returned inside the videos tag in the response to the `thing` endpoint from boardgamegeek")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                let mut id = None;
+                let mut title = None;
+                let mut category = None;
+                let mut language = None;
+                let mut link = None;
+                let mut username = None;
+                let mut user_id = None;
+                let mut post_date = None;
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::Id => {
+                            if id.is_some() {
+                                return Err(serde::de::Error::duplicate_field("id"));
+                            }
+                            id = Some(map.next_value()?);
+                        },
+                        Field::Title => {
+                            if title.is_some() {
+                                return Err(serde::de::Error::duplicate_field("title"));
+                            }
+                            title = Some(map.next_value()?);
+                        },
+                        Field::Category => {
+                            if category.is_some() {
+                                return Err(serde::de::Error::duplicate_field("category"));
+                            }
+                            category = Some(map.next_value()?);
+                        },
+                        Field::Language => {
+                            if language.is_some() {
+                                return Err(serde::de::Error::duplicate_field("language"));
+                            }
+                            language = Some(map.next_value()?);
+                        },
+                        Field::Link => {
+                            if link.is_some() {
+                                return Err(serde::de::Error::duplicate_field("link"));
+                            }
+                            link = Some(map.next_value()?);
+                        },
+                        Field::Username => {
+                            if username.is_some() {
+                                return Err(serde::de::Error::duplicate_field("username"));
+                            }
+                            username = Some(map.next_value()?);
+                        },
+                        Field::UserId => {
+                            if user_id.is_some() {
+                                return Err(serde::de::Error::duplicate_field("userid"));
+                            }
+                            user_id = Some(map.next_value()?);
+                        },
+                        Field::PostDate => {
+                            if post_date.is_some() {
+                                return Err(serde::de::Error::duplicate_field("postdate"));
+                            }
+                            let date_string: String = map.next_value()?;
+                            let dt = NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S%:z")
+                                .map_err(serde::de::Error::custom)?;
+                            post_date = Some(DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc));
+                        },
+                    }
+                }
+                let id = id.ok_or_else(|| serde::de::Error::missing_field("id"))?;
+                let title = title.ok_or_else(|| serde::de::Error::missing_field("title"))?;
+                let category =
+                    category.ok_or_else(|| serde::de::Error::missing_field("category"))?;
+                let language =
+                    language.ok_or_else(|| serde::de::Error::missing_field("language"))?;
+                let link = link.ok_or_else(|| serde::de::Error::missing_field("link"))?;
+                let username =
+                    username.ok_or_else(|| serde::de::Error::missing_field("username"))?;
+                let user_id = user_id.ok_or_else(|| serde::de::Error::missing_field("userid"))?;
+                let post_date = post_date.ok_or_else(|| serde::de::Error::missing_field("postdate"))?;
+
+                Ok(Self::Value {
+                    id,
+                    title,
+                    category,
+                    language,
+                    link,
+                    uploader: User { user_id, username },
+                    post_date,
+                })
+            }
+        }
+        deserializer.deserialize_any(VideoVisitor)
+    }
+}
+
+// A list of marketplace listings. Define the type in xml that can be deserialised, but pull out the
+// nested list in the game details deserialise implementation
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+struct MarketplaceListingsXml {
+    // List of listings, each in an XML tag called `video`
+    #[serde(rename = "$value")]
+    listings: Vec<MarketplaceListing>,
+}
+
+/// A game sale listing, for people selling games on the site.
+#[derive(Clone, Debug, PartialEq)]
+pub struct MarketplaceListing {
+    /// The date and time when this listing was listed.
+    pub list_date: DateTime<Utc>,
+    /// Price of the game.
+    pub price: Price,
+    /// The condition of the game, if it is new or used and what quality it is in if used.
+    pub condition: GameCondition,
+    /// Any custom notes about the game for sale.
+    pub notes: String,
+    /// Link to buy the game on the site.
+    pub link: String,
+}
+
+/// The price of a game in a marketplace listing.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct Price {
+    /// The name of the currency for this price value.
+    pub currency: String,
+    /// The amount the game costs, as a string so the consumer can decide
+    /// to convert to float, or a decimal, or an integer for the dollar/euro/gbp and another
+    /// integer for the cents/pence or keep as a string depending on use case.
+    pub value: String,
+}
+
+// XML representation of the market place listing link
+#[derive(Debug, Deserialize)]
+struct XmlMarketplaceLink {
+    // Link to this listing on the site.
+    href: String,
+    // Fixed at `marketlisting` so we don't include it in the proper type.
+    #[allow(dead_code)]
+    title: String,
+}
+
+/// The condition of a game for sale.
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[serde(rename_all = "lowercase")]
+pub enum GameCondition {
+    /// Condition good enough to play, but no better.
+    Acceptable,
+    /// Game is in good condition.
+    Good,
+    /// Game is in very good condition.
+    VeryGood,
+    /// Not a new, unused game, but the condition is as such.
+    LikeNew,
+    /// A new game, unused.
+    New,
+}
+
+// XML representation of the market place listing condition
+#[derive(Debug, Deserialize)]
+pub(crate) struct XmlGameCondition {
+    pub(crate) value: GameCondition,
+}
+
+impl<'de> Deserialize<'de> for MarketplaceListing {
+    fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        #[serde(field_identifier, rename_all = "lowercase")]
+        enum Field {
+            ListDate,
+            Price,
+            Condition,
+            Notes,
+            Link,
+        }
+
+        struct MarketplaceListingVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for MarketplaceListingVisitor {
+            type Value = MarketplaceListing;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("an XML object for a marketplace listing returned inside the marketplacelistings tag in the response to the `thing` endpoint from boardgamegeek")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                let mut list_date = None;
+                let mut price = None;
+                let mut condition = None;
+                let mut notes = None;
+                let mut link = None;
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::ListDate => {
+                            if list_date.is_some() {
+                                return Err(serde::de::Error::duplicate_field("listdate"));
+                            }
+                            let list_date_xml: XmlDateTimeValue = map.next_value()?;
+                            list_date = Some(list_date_xml.value);
+                        },
+                        Field::Price => {
+                            if price.is_some() {
+                                return Err(serde::de::Error::duplicate_field("price"));
+                            }
+                            price = Some(map.next_value()?);
+                        },
+                        Field::Condition => {
+                            if condition.is_some() {
+                                return Err(serde::de::Error::duplicate_field("condition"));
+                            }
+                            let condition_xml: XmlGameCondition = map.next_value()?;
+                            condition = Some(condition_xml.value);
+                        },
+                        Field::Notes => {
+                            if notes.is_some() {
+                                return Err(serde::de::Error::duplicate_field("notes"));
+                            }
+                            let notes_xml: XmlStringValue = map.next_value()?;
+                            notes = Some(notes_xml.value);
+                        },
+                        Field::Link => {
+                            if link.is_some() {
+                                return Err(serde::de::Error::duplicate_field("link"));
+                            }
+                            let link_xml: XmlMarketplaceLink = map.next_value()?;
+                            link = Some(link_xml.href);
+                        },
+                    }
+                }
+                let list_date =
+                    list_date.ok_or_else(|| serde::de::Error::missing_field("listdate"))?;
+                let price = price.ok_or_else(|| serde::de::Error::missing_field("price"))?;
+                let condition =
+                    condition.ok_or_else(|| serde::de::Error::missing_field("condition"))?;
+                let notes = notes.ok_or_else(|| serde::de::Error::missing_field("notes"))?;
+                let link = link.ok_or_else(|| serde::de::Error::missing_field("link"))?;
+
+                Ok(Self::Value {
+                    list_date,
+                    price,
+                    condition,
+                    notes,
+                    link,
+                })
+            }
+        }
+        deserializer.deserialize_any(MarketplaceListingVisitor)
+    }
+}
+
+/// A page of comments left on a game by a user. Can include a rating or a text comment or both.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct RatingCommentPage {
+    /// The total number of comments overall, not the number in this page.
+    #[serde(rename = "totalitems")]
+    pub total_items: u64,
+    /// The index of this page, starting from 1.
+    #[serde(rename = "page")]
+    pub page_number: u64,
+    /// A list of members in this guid.
+    #[serde(rename = "$value")]
+    pub comments: Vec<RatingComment>,
+}
+
+/// A comment left on a game by a user. Can include a rating or a text comment or both.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct RatingComment {
+    /// The user who left the comment.
+    pub username: String,
+    /// The rating, between 0 and 10, that the user left on the game.
+    #[serde(deserialize_with = "deserialize_rating")]
+    pub rating: Option<f64>,
+    /// The text comment the user left on this game, may be empty.
+    #[serde(rename = "value")]
+    pub comment: String,
+}
+
+fn deserialize_rating<'de, D>(deserializer: D) -> Result<Option<f64>, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    let s: String = serde::de::Deserialize::deserialize(deserializer)?;
+
+    match s.as_str() {
+        "N/A" => Ok(None),
+        val => match val.parse() {
+            Ok(rating) => Ok(Some(rating)),
+            Err(e) => Err(serde::de::Error::custom(format!(
+                "failed to parse rating \"{}\" as float: {}",
+                val, e
+            ))),
+        },
+    }
+}
+
 impl<'de> Deserialize<'de> for GameDetails {
     fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[derive(Deserialize)]
@@ -266,6 +652,9 @@ impl<'de> Deserialize<'de> for GameDetails {
             Poll,
             Statistics,
             Versions,
+            Videos,
+            MarketPlaceListings,
+            Comments,
         }
 
         struct GameDetailsVisitor;
@@ -313,6 +702,9 @@ impl<'de> Deserialize<'de> for GameDetails {
                 // Stats and optional
                 let mut stats = None;
                 let mut versions = None;
+                let mut videos = None;
+                let mut marketplace_listings = None;
+                let mut rating_comments = None;
                 while let Some(key) = map.next_key()? {
                     match key {
                         Field::Id => {
@@ -510,7 +902,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                         },
                         Field::Statistics => {
                             if stats.is_some() {
-                                return Err(serde::de::Error::duplicate_field("stats"));
+                                return Err(serde::de::Error::duplicate_field("statistics"));
                             }
                             let stats_xml: XmlGameStats = map.next_value()?;
                             stats = Some(GameStats {
@@ -535,6 +927,29 @@ impl<'de> Deserialize<'de> for GameDetails {
                             }
                             let versions_xml: VersionsXml = map.next_value()?;
                             versions = Some(versions_xml.versions);
+                        },
+                        Field::Videos => {
+                            if videos.is_some() {
+                                return Err(serde::de::Error::duplicate_field("videos"));
+                            }
+                            let videos_xml: VideosXml = map.next_value()?;
+                            videos = Some(videos_xml.videos);
+                        },
+                        Field::MarketPlaceListings => {
+                            if marketplace_listings.is_some() {
+                                return Err(serde::de::Error::duplicate_field(
+                                    "marketplacelistings",
+                                ));
+                            }
+                            let marketplace_listings_xml: MarketplaceListingsXml =
+                                map.next_value()?;
+                            marketplace_listings = Some(marketplace_listings_xml.listings);
+                        },
+                        Field::Comments => {
+                            if rating_comments.is_some() {
+                                return Err(serde::de::Error::duplicate_field("comments"));
+                            }
+                            rating_comments = Some(map.next_value()?);
                         },
                     }
                 }
@@ -571,8 +986,10 @@ impl<'de> Deserialize<'de> for GameDetails {
                         serde::de::Error::missing_field("poll name=\"language_dependence\"")
                     })?;
 
-                let stats = stats.ok_or_else(|| serde::de::Error::missing_field("stats"))?;
+                let stats = stats.ok_or_else(|| serde::de::Error::missing_field("statistics"))?;
                 let versions = versions.unwrap_or_default();
+                let videos = videos.unwrap_or_default();
+                let marketplace_listings = marketplace_listings.unwrap_or_default();
 
                 let (expansions, expansion_for) = match game_type {
                     GameType::BoardGame => (expansion_links, vec![]),
@@ -610,6 +1027,9 @@ impl<'de> Deserialize<'de> for GameDetails {
                     publishers,
                     stats,
                     versions,
+                    videos,
+                    marketplace_listings,
+                    rating_comments,
                 })
             }
         }

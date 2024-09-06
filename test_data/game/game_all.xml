@@ -1,0 +1,188 @@
+<items termsofuse="https://boardgamegeek.com/xmlapi/termsofuse">
+    <script />
+    <item type="boardgame" id="312484">
+        <thumbnail>
+            https://cf.geekdo-images.com/6GqH14TJJhza86BX5HCLEQ__thumb/img/J8SVmGOJXZGxNjkT3xYNQU7Haxg=/fit-in/200x150/filters:strip_icc()/pic5674958.jpg
+        </thumbnail>
+        <image>
+            https://cf.geekdo-images.com/6GqH14TJJhza86BX5HCLEQ__original/img/CXqwimJPonWy1oyXEMgPN_ZVmUI=/0x0/filters:format(jpeg)/pic5674958.jpg
+        </image>
+        <name type="primary" sortindex="1" value="Lost Ruins of Arnak" />
+        <name type="alternate" sortindex="1" value="アルナックの失われし遺跡" />
+        <description>
+            On an uninhabited island in uncharted seas, explorers have found traces of a great civilization. Now you will lead an expedition to explore the island, find lost artifacts, and face fearsome guardians, all in a quest to learn the island's secrets.&#10;&#10;Lost Ruins of Arnak combines deck-building and worker placement in a game of exploration, resource management, and discovery. In addition to traditional deck-builder effects, cards can also be used to place workers, and new worker actions become available as players explore the island. Some of these actions require resources instead of workers, so building a solid resource base will be essential. You are limited to only one action per turn, so make your choice carefully... what action will benefit you most now? And what can you afford to do later... assuming someone else doesn't take the action first!?&#10;&#10;Decks are small, and randomness in the game is heavily mitigated by the wealth of tactical decisions offered on the game board. With a variety of worker actions, artifacts, and equipment cards, the set-up for each game will be unique, encouraging players to explore new strategies to meet the challenge.&#10;&#10;Discover the Lost Ruins of Arnak!&#10;&#10;&mdash;description from the publisher&#10;&#10;
+        </description>
+        <yearpublished value="2020" />
+        <minplayers value="1" />
+        <maxplayers value="4" />
+        <poll name="suggested_numplayers" title="User Suggested Number of Players" totalvotes="889">
+            <results numplayers="1">
+                <result value="Best" numvotes="88" />
+                <result value="Recommended" numvotes="337" />
+                <result value="Not Recommended" numvotes="126" />
+            </results>
+            <results numplayers="2">
+                <result value="Best" numvotes="225" />
+                <result value="Recommended" numvotes="506" />
+                <result value="Not Recommended" numvotes="35" />
+            </results>
+            <results numplayers="3">
+                <result value="Best" numvotes="512" />
+                <result value="Recommended" numvotes="202" />
+                <result value="Not Recommended" numvotes="12" />
+            </results>
+            <results numplayers="4">
+                <result value="Best" numvotes="176" />
+                <result value="Recommended" numvotes="385" />
+                <result value="Not Recommended" numvotes="95" />
+            </results>
+            <results numplayers="4+">
+                <result value="Best" numvotes="1" />
+                <result value="Recommended" numvotes="0" />
+                <result value="Not Recommended" numvotes="361" />
+            </results>
+        </poll>
+        <playingtime value="120" />
+        <minplaytime value="30" />
+        <maxplaytime value="120" />
+        <minage value="12" />
+        <poll name="suggested_playerage" title="User Suggested Player Age" totalvotes="178">
+            <results>
+                <result value="6" numvotes="3" />
+                <result value="8" numvotes="17" />
+                <result value="10" numvotes="75" />
+                <result value="14" numvotes="10" />
+                <result value="16" numvotes="1" />
+                <result value="18" numvotes="0" />
+                <result value="21 and up" numvotes="0" />
+            </results>
+        </poll>
+        <poll name="language_dependence" title="Language Dependence" totalvotes="39">
+            <results>
+                <result level="1" value="No necessary in-game text" numvotes="0" />
+                <result level="2" value="Some necessary text - easily memorized or small crib sheet"
+                    numvotes="4" />
+                <result level="3" value="Moderate in-game text - needs crib sheet or paste ups"
+                    numvotes="28" />
+                <result level="4"
+                    value="Extensive use of text - massive conversion needed to be playable"
+                    numvotes="5" />
+                <result level="5" value="Unplayable in another language" numvotes="2" />
+            </results>
+        </poll>
+        <link type="boardgamecategory" id="1020" value="Exploration" />
+        <link type="boardgamecategory" id="1097" value="Travel" />
+        <link type="boardgamemechanic" id="2664" value="Deck, Bag, and Pool Building" />
+        <link type="boardgamemechanic" id="2041" value="Open Drafting" />
+        <link type="boardgamemechanic" id="2082" value="Worker Placement" />
+        <link type="boardgamefamily" id="5666" value="Players: Games with Solitaire Rules" />
+        <link type="boardgamefamily" id="21940" value="Theme: Archaeology / Paleontology" />
+        <link type="boardgameexpansion" id="341254" value="Lost Ruins of Arnak: Expedition Leaders" />
+        <link type="boardgamedesigner" id="127823" value="Design" />
+        <link type="boardgamedesigner" id="127822" value="Er" />
+        <link type="boardgameartist" id="152613" value="Artist person" />
+        <link type="boardgameartist" id="115373" value="Another Artist person" />
+        <link type="boardgamepublisher" id="1391" value="Hobby Japan" />
+        <statistics page="1">
+            <ratings>
+            <usersrated value="45233"/>
+            <average value="8.07243"/>
+            <bayesaverage value="7.89555"/>
+            <ranks>
+                <rank type="subtype" id="1" name="boardgame" friendlyname="Board Game Rank" value="28" bayesaverage="7.89555"/>
+                <rank type="family" id="5497" name="strategygames" friendlyname="Strategy Game Rank" value="29" bayesaverage="7.89048"/>
+            </ranks>
+            <stddev value="1.24187"/>
+            <median value="0"/>
+            <owned value="68393"/>
+            <trading value="456"/>
+            <wanting value="1056"/>
+            <wishing value="13287"/>
+            <numcomments value="5633"/>
+            <numweights value="1466"/>
+            <averageweight value="2.9216"/>
+            </ratings>
+        </statistics>
+        <videos total="514">
+            <video id="510883"
+                title="Some video"
+                category="other" language="French"
+                link="http://www.youtube.com/watch?v=1"
+                username="video_man" userid="312" postdate="2024-08-25T09:57:57-05:00" />
+            <video id="504090"
+                title="Arnak gameplay"
+                category="session" language="Portuguese"
+                link="http://www.youtube.com/watch?v=2"
+                username="video_man_2" userid="333" postdate="2024-07-11T16:42:52-05:00" />
+        </videos>
+        <versions>
+            <item type="boardgameversion" id="595583">
+                <thumbnail>
+                    https://cf.geekdo-images.com/IE7u66EF0sVXBYFMAqu21g__thumb/img/kd7nulur0E6B6fvMVpfRH_MxCmg=/fit-in/200x150/filters:strip_icc()/pic6622620.png
+                </thumbnail>
+                <image>
+                    https://cf.geekdo-images.com/IE7u66EF0sVXBYFMAqu21g__original/img/M0KZEWD-IUjsvWNEpBxcrB1NmsU=/0x0/filters:format(png)/pic6622620.png
+                </image>
+                <link type="boardgameversion" id="312484" value="Lost Ruins of Arnak" inbound="true" />
+                <name type="primary" sortindex="1" value="Bulgarian edition" />
+                <link type="boardgamepublisher" id="7345" value="Games" />
+                <link type="boardgameartist" id="11961" value="Art man" />
+                <yearpublished value="2021" />
+                <productcode value="77240-BG" />
+                <width value="10.0394" />
+                <length value="14.3701" />
+                <depth value="2.75591" />
+                <weight value="5.2448" />
+                <link type="language" id="2675" value="Bulgarian" />
+            </item>
+            <item type="boardgameversion" id="517374">
+                <thumbnail>
+                    https://cf.geekdo-images.com/RiyIlOey2KYj4Flwl1nOPg__thumb/img/I4LpDfOcfDeF5sT2f9-UpI-k9SM=/fit-in/200x150/filters:strip_icc()/pic5531793.jpg
+                </thumbnail>
+                <image>
+                    https://cf.geekdo-images.com/RiyIlOey2KYj4Flwl1nOPg__original/img/IU0Aws6_XM22XdEBJJZMLzX8OuM=/0x0/filters:format(jpeg)/pic5531793.jpg
+                </image>
+                <link type="boardgameversion" id="312484" value="Lost Ruins of Arnak" inbound="true" />
+                <name type="primary" sortindex="1" value="French edition" />
+                <link type="boardgamepublisher" id="7345" value="Games" />
+                <yearpublished value="2021" />
+                <productcode value="" />
+                <width value="0" />
+                <length value="0" />
+                <depth value="0" />
+                <weight value="0" />
+                <link type="language" id="2187" value="French" />
+            </item>
+        </versions>
+        <comments page="1" totalitems="5648">
+            <comment username="u1" rating="6.3" value="BGA" />
+            <comment username="u2" rating="N/A"
+                value="Cool game." />
+            <comment username="u3" rating="8.5" value="" />
+        </comments>
+        <marketplacelistings>
+            <listing>
+                <listdate value="Fri, 23 Feb 2024 22:52:48 +0000" />
+                <price currency="USD" value="44.99" />
+                <condition value="new" />
+                <notes
+                    value="" />
+                <link href="https://boardgamegeek.com/market/product/2408401" title="marketlisting" />
+            </listing>
+            <listing>
+                <listdate value="Wed, 24 Feb 2021 13:17:47 +0000" />
+                <price currency="EUR" value="68.00" />
+                <condition value="likenew" />
+                <notes value="new in shrink." />
+                <link href="https://boardgamegeek.com/market/product/2479138" title="marketlisting" />
+            </listing>
+            <listing>
+                <listdate value="Thu, 04 Jul 2024 15:32:15 +0000" />
+                <price currency="USD" value="25.00" />
+                <condition value="verygood" />
+                <notes value="Buyer to pay shipping." />
+                <link href="https://boardgamegeek.com/market/product/3498577" title="marketlisting" />
+            </listing>
+        </marketplacelistings>
+    </item>
+</items>
