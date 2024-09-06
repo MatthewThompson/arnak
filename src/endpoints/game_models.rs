@@ -5,10 +5,11 @@ use serde::Deserialize;
 
 use super::{
     Game, GameAccessory, GameArtist, GameCategory, GameCompilation, GameDesigner, GameFamilyName,
-    GameFamilyRank, GameImplementation, GameMechanic, GamePublisher, GameType, XmlRanks,
+    GameFamilyRank, GameImplementation, GameMechanic, GamePublisher, GameType, GameVersion,
+    XmlRanks,
 };
 use crate::utils::{XmlFloatValue, XmlIntValue, XmlLink, XmlName, XmlSignedValue};
-use crate::NameType;
+use crate::{NameType, VersionsXml};
 
 /// A list of requested games with the full details.
 #[derive(Clone, Debug)]
@@ -149,6 +150,8 @@ pub struct GameDetails {
     /// Also includes the number of users on the site who own the game, as well
     /// as have it as other collection statuses.
     pub stats: GameStats,
+    /// Information the versions of the game information.
+    pub versions: Vec<GameVersion>,
 }
 
 /// blah
@@ -262,6 +265,7 @@ impl<'de> Deserialize<'de> for GameDetails {
             Link,
             Poll,
             Statistics,
+            Versions,
         }
 
         struct GameDetailsVisitor;
@@ -308,6 +312,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                 let mut suggested_language_dependence = None;
                 // Stats and optional
                 let mut stats = None;
+                let mut versions = None;
                 while let Some(key) = map.next_key()? {
                     match key {
                         Field::Id => {
@@ -524,6 +529,13 @@ impl<'de> Deserialize<'de> for GameDetails {
                                 weight_rating: stats_xml.ratings.averageweight.value,
                             });
                         },
+                        Field::Versions => {
+                            if versions.is_some() {
+                                return Err(serde::de::Error::duplicate_field("versions"));
+                            }
+                            let versions_xml: VersionsXml = map.next_value()?;
+                            versions = Some(versions_xml.versions);
+                        },
                     }
                 }
                 let id = id.ok_or_else(|| serde::de::Error::missing_field("id"))?;
@@ -560,6 +572,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                     })?;
 
                 let stats = stats.ok_or_else(|| serde::de::Error::missing_field("stats"))?;
+                let versions = versions.unwrap_or_default();
 
                 let (expansions, expansion_for) = match game_type {
                     GameType::BoardGame => (expansion_links, vec![]),
@@ -596,6 +609,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                     artists,
                     publishers,
                     stats,
+                    versions,
                 })
             }
         }

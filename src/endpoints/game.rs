@@ -6,6 +6,24 @@ use crate::{BoardGameGeekApi, Error, IntoQueryParam, QueryParam, Result};
 pub struct GameQueryParams {
     // Whether to include the version information.
     include_versions: Option<bool>,
+    // Whether to include links to related videos for the game.
+    include_videos: Option<bool>,
+    // Whether to include marketplace data for the game.
+    include_marketplace_data: Option<bool>,
+    // Whether to include a page of comments for the game.
+    //
+    // Comment will include the rating too if there was one included. Sorted by username ascending.
+    // Cannot be used in conjunction with rating comments.
+    include_comments: Option<bool>,
+    // Whether to include a page of rating comments for the game.
+    //
+    // A rating comment is a rating for a game, which will also include a comment if there was one.
+    // Sorted by rating descending. Cannot be used in conjunction with comments.
+    include_rating_comments: Option<bool>,
+    // Which page of comments and videos to return. Default 1.
+    page: Option<u64>,
+    // Size of the comment and video pages, between 10 and 100.
+    page_size: Option<u64>,
 }
 
 impl GameQueryParams {
@@ -14,10 +32,61 @@ impl GameQueryParams {
         Self::default()
     }
 
-    /// Sets the include_versions field. If set then information about different
+    /// Sets the include_versions query parameter. If set then information about different
     /// versions of the game will be included, if applicable.
     pub fn include_versions(mut self, include_versions: bool) -> Self {
         self.include_versions = Some(include_versions);
+        self
+    }
+
+    /// Sets the include_videos query parameter. If set then links to related videos will be
+    /// included. Page and pagesize seem not to work for the list of videos.
+    pub fn include_videos(mut self, include_videos: bool) -> Self {
+        self.include_videos = Some(include_videos);
+        self
+    }
+
+    /// Sets the include_marketplace_data query parameter. If set then information about where to
+    /// buy the game and for what cost will be included.
+    pub fn include_marketplace_data(mut self, include_marketplace_data: bool) -> Self {
+        self.include_videos = Some(include_marketplace_data);
+        self
+    }
+
+    /// Sets the include_comments query parameter. If set then comments on the game will be
+    /// included, along with a rating if one was included with the comment.
+    ///
+    /// List of comments is paginated, where the page and page size are changed via the `page` and
+    /// `page_size` query parameters. Ordered by username ascending.
+    ///
+    /// Note that this is not compatible with the include_rating_comments parameter.
+    pub fn include_comments(mut self, include_comments: bool) -> Self {
+        self.include_videos = Some(include_comments);
+        self
+    }
+
+    /// Sets the include_rating_comments query parameter. If set then ratings on the game will be
+    /// included, along with a comment if one was included with the rating.
+    ///
+    /// List of comments is paginated, where the page and page size are changed via the `page` and
+    /// `page_size` query parameters. Ordered by rating descending.
+    ///
+    /// Note that this is not compatible with the include_comments parameter.
+    pub fn include_rating_comments(mut self, include_rating_comments: bool) -> Self {
+        self.include_videos = Some(include_rating_comments);
+        self
+    }
+
+    /// Sets the page query parameter. If set then this page of comments will be returned.
+    pub fn page(mut self, page: u64) -> Self {
+        self.page = Some(page);
+        self
+    }
+
+    /// Sets the page_size query parameter. If set then comment pages will be this size. Minimum 10
+    /// and maximum 100, if unset or out of these bounds the page size will be 100.
+    pub fn page_size(mut self, page_size: u64) -> Self {
+        self.page_size = Some(page_size);
         self
     }
 }
@@ -48,6 +117,24 @@ impl<'builder> GameQueryBuilder {
         if let Some(include_versions) = self.params.include_versions {
             query_params.push(include_versions.into_query_param("versions"));
         }
+        if let Some(include_videos) = self.params.include_videos {
+            query_params.push(include_videos.into_query_param("videos"));
+        }
+        if let Some(include_marketplace_data) = self.params.include_marketplace_data {
+            query_params.push(include_marketplace_data.into_query_param("marketplace"));
+        }
+        if let Some(include_comments) = self.params.include_comments {
+            query_params.push(include_comments.into_query_param("comments"));
+        }
+        if let Some(include_rating_comments) = self.params.include_rating_comments {
+            query_params.push(include_rating_comments.into_query_param("ratingcomments"));
+        }
+        if let Some(page) = self.params.page {
+            query_params.push(page.into_query_param("page"));
+        }
+        if let Some(page_size) = self.params.page_size {
+            query_params.push(page_size.into_query_param("pagesize"));
+        }
         query_params
     }
 }
@@ -72,6 +159,27 @@ impl<'api> GameApi<'api> {
     /// Searches for a board game or expansion by a given ID.
     pub async fn get_by_id(&self, id: u64, query_params: GameQueryParams) -> Result<GameDetails> {
         let query = GameQueryBuilder::new(vec![id], query_params);
+
+        let request = self.api.build_request(self.endpoint, &query.build());
+        let mut games = self.api.execute_request::<Games>(request).await?;
+
+        match games.games.len() {
+            0 => Err(Error::ItemNotFound),
+            1 => Ok(games.games.remove(0)),
+            len => Err(Error::UnexpectedResponseError(format!(
+                "expected 1 game but got {}",
+                len
+            ))),
+        }
+    }
+
+    /// Searches for a board game or expansion by given IDs.
+    pub async fn get_by_ids(
+        &self,
+        ids: Vec<u64>,
+        query_params: GameQueryParams,
+    ) -> Result<GameDetails> {
+        let query = GameQueryBuilder::new(ids, query_params);
 
         let request = self.api.build_request(self.endpoint, &query.build());
         let mut games = self.api.execute_request::<Games>(request).await?;
@@ -131,7 +239,7 @@ mod tests {
         assert_eq!(
             game,
             GameDetails {
-                id: 312484,
+                id:312484,
                 game_type: GameType::BoardGame,
                 name: "Lost Ruins of Arnak".to_owned(),
                 alternate_names: vec![
@@ -163,9 +271,9 @@ mod tests {
                         },
                         PollResults {
                             results: vec![
-                                PollResult { value: "Best".to_owned(), number_of_votes: 512 },
-                                PollResult { value: "Recommended".to_owned(), number_of_votes: 202 },
-                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 12 },
+                                PollResult { value: "Best".to_owned(), number_of_votes: 512},
+                                PollResult { value: "Recommended".to_owned(), number_of_votes: 202},
+                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 12},
                             ],
                         },
                         PollResults {
@@ -322,6 +430,7 @@ mod tests {
                     number_of_weights: 1466,
                     weight_rating: 2.9216,
                 },
+                versions: vec![],
             },
         );
     }
@@ -551,6 +660,7 @@ mod tests {
                     number_of_weights: 146,
                     weight_rating: 3.1301,
                 },
+                versions: vec![],
             },
         );
     }
