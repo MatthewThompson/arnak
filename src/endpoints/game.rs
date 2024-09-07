@@ -32,59 +32,59 @@ impl GameQueryParams {
         Self::default()
     }
 
-    /// Sets the include_versions query parameter. If set then information about different
+    /// Sets the `include_versions` query parameter. If set then information about different
     /// versions of the game will be included, if applicable.
     pub fn include_versions(mut self, include_versions: bool) -> Self {
         self.include_versions = Some(include_versions);
         self
     }
 
-    /// Sets the include_videos query parameter. If set then links to related videos will be
+    /// Sets the `include_videos` query parameter. If set then links to related videos will be
     /// included. Page and pagesize seem not to work for the list of videos.
     pub fn include_videos(mut self, include_videos: bool) -> Self {
         self.include_videos = Some(include_videos);
         self
     }
 
-    /// Sets the include_marketplace_data query parameter. If set then information about where to
+    /// Sets the `include_marketplace_data` query parameter. If set then information about where to
     /// buy the game and for what cost will be included.
     pub fn include_marketplace_data(mut self, include_marketplace_data: bool) -> Self {
         self.include_marketplace_data = Some(include_marketplace_data);
         self
     }
 
-    /// Sets the include_comments query parameter. If set then comments on the game will be
+    /// Sets the `include_comments` query parameter. If set then comments on the game will be
     /// included, along with a rating if one was included with the comment.
     ///
     /// List of comments is paginated, where the page and page size are changed via the `page` and
     /// `page_size` query parameters. Ordered by username ascending.
     ///
-    /// Note that this is not compatible with the include_rating_comments parameter.
+    /// Note that this is not compatible with the `include_rating_comments` parameter.
     pub fn include_comments(mut self, include_comments: bool) -> Self {
         self.include_comments = Some(include_comments);
         self
     }
 
-    /// Sets the include_rating_comments query parameter. If set then ratings on the game will be
+    /// Sets the `include_rating_comments` query parameter. If set then ratings on the game will be
     /// included, along with a comment if one was included with the rating.
     ///
     /// List of comments is paginated, where the page and page size are changed via the `page` and
     /// `page_size` query parameters. Ordered by rating descending.
     ///
-    /// Note that this is not compatible with the include_comments parameter.
+    /// Note that this is not compatible with the `include_comments` parameter.
     pub fn include_rating_comments(mut self, include_rating_comments: bool) -> Self {
         self.include_rating_comments = Some(include_rating_comments);
         self
     }
 
-    /// Sets the page query parameter. If set then this page of comments will be returned.
+    /// Sets the `page` query parameter. If set then this page of comments will be returned.
     pub fn page(mut self, page: u64) -> Self {
         self.page = Some(page);
         self
     }
 
-    /// Sets the page_size query parameter. If set then comment pages will be this size. Minimum 10
-    /// and maximum 100, if unset or out of these bounds the page size will be 100.
+    /// Sets the `page_size` query parameter. If set then comment pages will be this size. Minimum
+    /// 10 and maximum 100, if unset or out of these bounds the page size will be 100.
     pub fn page_size(mut self, page_size: u64) -> Self {
         self.page_size = Some(page_size);
         self
@@ -167,8 +167,7 @@ impl<'api> GameApi<'api> {
             0 => Err(Error::ItemNotFound),
             1 => Ok(games.games.remove(0)),
             len => Err(Error::UnexpectedResponseError(format!(
-                "expected 1 game but got {}",
-                len
+                "expected 1 game but got {len}",
             ))),
         }
     }
@@ -285,8 +284,8 @@ mod tests {
                     ],
                 },
                 playing_time: Duration::minutes(120),
-                min_playtime: Duration::minutes(30),
-                max_playtime: Duration::minutes(120),
+                min_play_time: Duration::minutes(30),
+                max_play_time: Duration::minutes(120),
                 min_age: 12,
                 suggested_player_age: SuggestedPlayerAgePoll {
                     title: "User Suggested Player Age".to_owned(),
@@ -544,8 +543,8 @@ mod tests {
                     ],
                 },
                 playing_time: Duration::minutes(120),
-                min_playtime: Duration::minutes(30),
-                max_playtime: Duration::minutes(120),
+                min_play_time: Duration::minutes(30),
+                max_play_time: Duration::minutes(120),
                 min_age: 12,
                 suggested_player_age: SuggestedPlayerAgePoll {
                     title: "User Suggested Player Age".to_owned(),
@@ -816,8 +815,8 @@ mod tests {
                     ],
                 },
                 playing_time: Duration::minutes(120),
-                min_playtime: Duration::minutes(30),
-                max_playtime: Duration::minutes(120),
+                min_play_time: Duration::minutes(30),
+                max_play_time: Duration::minutes(120),
                 min_age: 12,
                 suggested_player_age: SuggestedPlayerAgePoll {
                     title: "User Suggested Player Age".to_owned(),
@@ -1231,8 +1230,8 @@ mod tests {
                     ],
                 },
                 playing_time: Duration::minutes(120),
-                min_playtime: Duration::minutes(30),
-                max_playtime: Duration::minutes(120),
+                min_play_time: Duration::minutes(30),
+                max_play_time: Duration::minutes(120),
                 min_age: 12,
                 suggested_player_age: SuggestedPlayerAgePoll {
                     title: "User Suggested Player Age".to_owned(),
@@ -1479,8 +1478,8 @@ mod tests {
                     ],
                 },
                 playing_time: Duration::minutes(120),
-                min_playtime: Duration::minutes(30),
-                max_playtime: Duration::minutes(120),
+                min_play_time: Duration::minutes(30),
+                max_play_time: Duration::minutes(120),
                 min_age: 12,
                 suggested_player_age: SuggestedPlayerAgePoll {
                     title: "User Suggested Player Age".to_owned(),

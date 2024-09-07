@@ -6,11 +6,11 @@ use crate::{BoardGameGeekApi, IntoQueryParam, QueryParam, Result};
 #[derive(Clone, Debug, Default)]
 pub struct SearchQueryParams {
     /// Include only results for the provided item types. If none are provided
-    /// then it will default to [ItemType::BoardGame].
+    /// then it will default to [`ItemType::BoardGame`].
     ///
-    /// Note, if this is set to [ItemType::BoardGame], or left unset, then it will include both
+    /// Note, if this is set to [`ItemType::BoardGame`], or left unset, then it will include both
     /// board games and expansions, but set the type of all of them to be
-    /// [ItemType::BoardGame] in the results. There does not seem to be a way
+    /// [`ItemType::BoardGame`] in the results. There does not seem to be a way
     /// around this.
     item_types: Vec<ItemType>,
     /// Limit results to only exact matches of the search query.
@@ -23,37 +23,37 @@ impl SearchQueryParams {
         Self::default()
     }
 
-    /// Adds an item to the item_type query param, so that that type of
-    /// item will be returned from the search. It should be noted that if [ItemType::BoardGame]
+    /// Adds an item to the `item_type` query param, so that that type of
+    /// item will be returned from the search. It should be noted that if [`ItemType::BoardGame`]
     /// is chosen then this will return both board games and board game expansions,
     /// with the type set to board game for both.
     ///
-    /// If the parameter is omitted then it will default to [ItemType::BoardGame].
+    /// If the parameter is omitted then it will default to [`ItemType::BoardGame`].
     ///
-    /// If the parameter includes both [ItemType::BoardGame], and [ItemType::BoardGameExpansion]
+    /// If the parameter includes both [`ItemType::BoardGame`], and [`ItemType::BoardGameExpansion`]
     /// then board game expansions will be returned twice, once with the type
-    /// [ItemType::BoardGame] and once with the type [ItemType::BoardGameExpansion].
+    /// [`ItemType::BoardGame`] and once with the type [`ItemType::BoardGameExpansion`].
     pub fn item_type(mut self, item_type: ItemType) -> Self {
         self.item_types.push(item_type);
         self
     }
 
-    /// Adds a list of item types to the item_types query param, so that items of these types
-    /// will be returned from the search. It should be noted that if [ItemType::BoardGame]
+    /// Adds a list of item types to the `item_types` query param, so that items of these types
+    /// will be returned from the search. It should be noted that if [`ItemType::BoardGame`]
     /// is chosen then this will return both board games and board game expansions,
     /// with the type set to board game for both.
     ///
-    /// If the parameter is omitted then it will default to [ItemType::BoardGame].
+    /// If the parameter is omitted then it will default to [`ItemType::BoardGame`].
     ///
-    /// If the parameter includes both [ItemType::BoardGame], and [ItemType::BoardGameExpansion]
+    /// If the parameter includes both [`ItemType::BoardGame`], and [`ItemType::BoardGameExpansion`]
     /// then board game expansions will be returned twice, once with the type
-    /// [ItemType::BoardGame] and once with the type [ItemType::BoardGameExpansion].
+    /// [`ItemType::BoardGame`] and once with the type [`ItemType::BoardGameExpansion`].
     pub fn item_types(mut self, item_types: Vec<ItemType>) -> Self {
         self.item_types.extend(item_types);
         self
     }
 
-    /// Sets the exact query param, so that exact matches will be returned if
+    /// Sets the `exact` query param, so that exact matches will be returned if
     /// set to true.
     pub fn exact(mut self, exact: bool) -> Self {
         self.exact = Some(exact);
@@ -117,8 +117,8 @@ impl<'api> SearchApi<'api> {
     /// Searches with a given query, and no additional query parameters set.
     /// This defaults to returning only games, returning both board games
     /// and expansions. However, expansions will be included in the results twice,
-    /// once with the type [ItemType::BoardGame] and once with the type
-    /// [ItemType::BoardGameExpansion].
+    /// once with the type [`ItemType::BoardGame`] and once with the type
+    /// [`ItemType::BoardGameExpansion`].
     pub async fn search(&self, query: &str) -> Result<SearchResults> {
         let query = SearchQueryBuilder::new(query, SearchQueryParams::new());
 
@@ -129,8 +129,8 @@ impl<'api> SearchApi<'api> {
     /// Searches for exact matches to a given query, and no additional query parameters set.
     /// This defaults to returning only games, returning both board games
     /// and expansions. However, expansions will be included in the results twice,
-    /// once with the type [ItemType::BoardGame] and once with the type
-    /// [ItemType::BoardGameExpansion].
+    /// once with the type [`ItemType::BoardGame`] and once with the type
+    /// [`ItemType::BoardGameExpansion`].
     pub async fn search_exact(&self, query: &str) -> Result<SearchResults> {
         let query = SearchQueryBuilder::new(query, SearchQueryParams::new().exact(true));
 
@@ -138,7 +138,7 @@ impl<'api> SearchApi<'api> {
         self.api.execute_request::<SearchResults>(request).await
     }
 
-    /// Makes a request from a [SearchQueryParams].
+    /// Makes a request from a [`SearchQueryParams`].
     pub async fn search_with_query_params(
         &self,
         query: &str,

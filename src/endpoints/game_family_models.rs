@@ -122,8 +122,7 @@ impl<'de> Deserialize<'de> for GameFamily {
                                 },
                                 link_type => {
                                     return Err(serde::de::Error::custom(format!(
-                                        "found unexpected \"{:?}\" link in game family",
-                                        link_type
+                                        "found unexpected \"{link_type:?}\" link in game family",
                                     )));
                                 },
                             }
@@ -147,8 +146,8 @@ impl<'de> Deserialize<'de> for GameFamily {
                     id,
                     name,
                     alternate_names,
-                    thumbnail,
                     image,
+                    thumbnail,
                     description,
                     games,
                 })

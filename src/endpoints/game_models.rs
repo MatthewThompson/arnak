@@ -105,9 +105,9 @@ pub struct GameDetails {
     /// The amount of time the game is suggested to take to play.
     pub playing_time: Duration,
     /// Minimum amount of time the game is suggested to take to play.
-    pub min_playtime: Duration,
+    pub min_play_time: Duration,
     /// Maximum amount of time the game is suggested to take to play.
-    pub max_playtime: Duration,
+    pub max_play_time: Duration,
     /// The minimum suggested age suitable for playing this game.
     pub min_age: u64,
     /// The suggested number minimum suitable age for playing this game.
@@ -305,10 +305,7 @@ impl TryFrom<PollResults> for SuggestedPlayerCount {
                     not_recommended_votes = Some(vote_result.number_of_votes);
                 },
                 unexpected => {
-                    return Err(format!(
-                        "unexpected player count vote option: {}",
-                        unexpected
-                    ));
+                    return Err(format!("unexpected player count vote option: {unexpected}",));
                 },
             }
         }
@@ -409,7 +406,7 @@ impl TryFrom<Poll> for SuggestedPlayerAgePoll {
         if poll.results.len() != 1 {
             return Err(format!(
                 "expected 1 set of results but got {}",
-                poll.results.len()
+                poll.results.len(),
             ));
         }
         let results = poll.results.remove(0).results;
@@ -908,8 +905,7 @@ where
         val => match val.parse() {
             Ok(rating) => Ok(Some(rating)),
             Err(e) => Err(serde::de::Error::custom(format!(
-                "failed to parse rating \"{}\" as float: {}",
-                val, e
+                "failed to parse rating \"{val}\" as float: {e}",
             ))),
         },
     }
@@ -1142,18 +1138,17 @@ impl<'de> Deserialize<'de> for GameDetails {
                                     compilations.push(GameCompilation {
                                         id: link.id,
                                         name: link.value,
-                                    })
+                                    });
                                 },
                                 crate::ItemType::BoardGameImplementation => {
                                     reimplementations.push(GameImplementation {
                                         id: link.id,
                                         name: link.value,
-                                    })
+                                    });
                                 },
                                 link_type => {
                                     return Err(serde::de::Error::custom(format!(
-                                        "found unexpected \"{:?}\" link in game info",
-                                        link_type,
+                                        "found unexpected \"{link_type:?}\" link in game info",
                                     )));
                                 },
                             }
@@ -1261,9 +1256,9 @@ impl<'de> Deserialize<'de> for GameDetails {
                     max_players.ok_or_else(|| serde::de::Error::missing_field("maxplayers"))?;
                 let playing_time =
                     playing_time.ok_or_else(|| serde::de::Error::missing_field("playingtime"))?;
-                let min_playtime =
+                let min_play_time =
                     min_play_time.ok_or_else(|| serde::de::Error::missing_field("minplaytime"))?;
-                let max_playtime =
+                let max_play_time =
                     max_play_time.ok_or_else(|| serde::de::Error::missing_field("maxplaytime"))?;
                 let min_age = min_age.ok_or_else(|| serde::de::Error::missing_field("minage"))?;
 
@@ -1301,8 +1296,8 @@ impl<'de> Deserialize<'de> for GameDetails {
                     max_players,
                     suggested_player_count,
                     playing_time,
-                    min_playtime,
-                    max_playtime,
+                    min_play_time,
+                    max_play_time,
                     min_age,
                     suggested_player_age,
                     suggested_language_dependence,
