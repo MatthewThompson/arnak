@@ -1,4 +1,4 @@
-use chrono::Duration;
+use chrono::{DateTime, Duration, Utc};
 use serde::Deserialize;
 
 use crate::{ItemType, NameType};
@@ -44,6 +44,12 @@ pub(crate) struct XmlFloatValue {
 #[derive(Debug, Deserialize)]
 pub(crate) struct XmlStringValue {
     pub(crate) value: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct XmlDateTimeValue {
+    #[serde(with = "utc_date_time_deserializer")]
+    pub(crate) value: DateTime<Utc>,
 }
 
 #[derive(Debug, Deserialize)]

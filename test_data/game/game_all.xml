@@ -1,10 +1,11 @@
-<items>
+<items termsofuse="https://boardgamegeek.com/xmlapi/termsofuse">
+    <script />
     <item type="boardgame" id="312484">
         <thumbnail>
-            https://cf.geekdo-images.com/U4aoXbKATU7YbA8bAT73FQ__thumb/img/g0aac2-OQvMbEPXv1vIvSumPmkA=/fit-in/200x150/filters:strip_icc()/pic6253876.png
+            https://cf.geekdo-images.com/6GqH14TJJhza86BX5HCLEQ__thumb/img/J8SVmGOJXZGxNjkT3xYNQU7Haxg=/fit-in/200x150/filters:strip_icc()/pic5674958.jpg
         </thumbnail>
         <image>
-            https://cf.geekdo-images.com/U4aoXbKATU7YbA8bAT73FQ__original/img/TKJnD49aci6Soc214_MTUe1iNmg=/0x0/filters:format(png)/pic6253876.png
+            https://cf.geekdo-images.com/6GqH14TJJhza86BX5HCLEQ__original/img/CXqwimJPonWy1oyXEMgPN_ZVmUI=/0x0/filters:format(jpeg)/pic5674958.jpg
         </image>
         <name type="primary" sortindex="1" value="Lost Ruins of Arnak" />
         <name type="alternate" sortindex="1" value="アルナックの失われし遺跡" />
@@ -102,5 +103,86 @@
             <averageweight value="2.9216"/>
             </ratings>
         </statistics>
+        <videos total="514">
+            <video id="510883"
+                title="Some video"
+                category="other" language="French"
+                link="http://www.youtube.com/watch?v=1"
+                username="video_man" userid="312" postdate="2024-08-25T09:57:57-05:00" />
+            <video id="504090"
+                title="Arnak gameplay"
+                category="session" language="Portuguese"
+                link="http://www.youtube.com/watch?v=2"
+                username="video_man_2" userid="333" postdate="2024-07-11T16:42:52-05:00" />
+        </videos>
+        <versions>
+            <item type="boardgameversion" id="595583">
+                <thumbnail>
+                    https://cf.geekdo-images.com/IE7u66EF0sVXBYFMAqu21g__thumb/img/kd7nulur0E6B6fvMVpfRH_MxCmg=/fit-in/200x150/filters:strip_icc()/pic6622620.png
+                </thumbnail>
+                <image>
+                    https://cf.geekdo-images.com/IE7u66EF0sVXBYFMAqu21g__original/img/M0KZEWD-IUjsvWNEpBxcrB1NmsU=/0x0/filters:format(png)/pic6622620.png
+                </image>
+                <link type="boardgameversion" id="312484" value="Lost Ruins of Arnak" inbound="true" />
+                <name type="primary" sortindex="1" value="Bulgarian edition" />
+                <link type="boardgamepublisher" id="7345" value="Games" />
+                <link type="boardgameartist" id="11961" value="Art man" />
+                <yearpublished value="2021" />
+                <productcode value="77240-BG" />
+                <width value="10.0394" />
+                <length value="14.3701" />
+                <depth value="2.75591" />
+                <weight value="5.2448" />
+                <link type="language" id="2675" value="Bulgarian" />
+            </item>
+            <item type="boardgameversion" id="517374">
+                <thumbnail>
+                    https://cf.geekdo-images.com/RiyIlOey2KYj4Flwl1nOPg__thumb/img/I4LpDfOcfDeF5sT2f9-UpI-k9SM=/fit-in/200x150/filters:strip_icc()/pic5531793.jpg
+                </thumbnail>
+                <image>
+                    https://cf.geekdo-images.com/RiyIlOey2KYj4Flwl1nOPg__original/img/IU0Aws6_XM22XdEBJJZMLzX8OuM=/0x0/filters:format(jpeg)/pic5531793.jpg
+                </image>
+                <link type="boardgameversion" id="312484" value="Lost Ruins of Arnak" inbound="true" />
+                <name type="primary" sortindex="1" value="French edition" />
+                <link type="boardgamepublisher" id="7345" value="Games" />
+                <yearpublished value="2021" />
+                <productcode value="" />
+                <width value="0" />
+                <length value="0" />
+                <depth value="0" />
+                <weight value="0" />
+                <link type="language" id="2187" value="French" />
+            </item>
+        </versions>
+        <comments page="1" totalitems="5648">
+            <comment username="u1" rating="6.3" value="BGA" />
+            <comment username="u2" rating="N/A"
+                value="Cool game." />
+            <comment username="u3" rating="8.5" value="" />
+        </comments>
+        <marketplacelistings>
+            <listing>
+                <listdate value="Fri, 23 Feb 2024 22:52:48 +0000" />
+                <price currency="USD" value="44.99" />
+                <condition value="new" />
+                <notes
+                    value="" />
+                <link href="https://boardgamegeek.com/market/product/2408401" title="marketlisting" />
+            </listing>
+            <listing>
+                <listdate value="Wed, 24 Feb 2021 13:17:47 +0000" />
+                <price currency="EUR" value="68.00" />
+                <condition value="likenew" />
+                <notes value="new in shrink." />
+                <link href="https://boardgamegeek.com/market/product/2479138" title="marketlisting" />
+            </listing>
+            <listing>
+                <listdate value="Thu, 04 Jul 2024 15:32:15 +0000" />
+                <price currency="USD" value="25.00" />
+                <condition value="verygood" />
+                <notes value="Buyer to pay shipping." />
+                <link href="https://boardgamegeek.com/market/product/3498577" title="marketlisting" />
+            </listing>
+        </marketplacelistings>
     </item>
 </items>

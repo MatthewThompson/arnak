@@ -1,21 +1,70 @@
 use core::fmt;
 
-use chrono::Duration;
+use chrono::{DateTime, Duration, NaiveDateTime, Utc};
 use serde::Deserialize;
 
 use super::{
     Game, GameAccessory, GameArtist, GameCategory, GameCompilation, GameDesigner, GameFamilyName,
-    GameFamilyRank, GameImplementation, GameMechanic, GamePublisher, GameType, XmlRanks,
+    GameFamilyRank, GameImplementation, GameMechanic, GamePublisher, GameType, GameVersion, User,
+    XmlRanks,
 };
-use crate::utils::{XmlFloatValue, XmlIntValue, XmlLink, XmlName, XmlSignedValue};
-use crate::NameType;
+use crate::utils::{
+    XmlDateTimeValue, XmlFloatValue, XmlIntValue, XmlLink, XmlName, XmlSignedValue, XmlStringValue,
+};
+use crate::{NameType, VersionsXml};
 
-/// A list of requested games with the full details.
-#[derive(Clone, Debug, Deserialize)]
-pub struct Games {
-    /// List of games.
-    #[serde(rename = "$value")]
-    pub games: Vec<GameDetails>,
+// A struct containing the list of requested games with the full details.
+#[derive(Clone, Debug)]
+pub(crate) struct Games {
+    // List of games.
+    pub(crate) games: Vec<GameDetails>,
+}
+
+impl<'de> Deserialize<'de> for Games {
+    fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        #[serde(field_identifier, rename_all = "lowercase")]
+        enum Field {
+            TermsOfUse,
+            Script,
+            Item,
+        }
+
+        struct GamesVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for GamesVisitor {
+            type Value = Games;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("an XML object for a list of board games returned by the `thing` endpoint from boardgamegeek")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                let mut games = vec![];
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::TermsOfUse => {
+                            // Consume and ignore
+                            map.next_value::<String>()?;
+                        },
+                        Field::Script => {
+                            // Sometimes there is an empty script tag before the list of items.
+                            // Nothing to do, skip past.
+                            map.next_value::<()>()?;
+                        },
+                        Field::Item => {
+                            games.push(map.next_value()?);
+                        },
+                    }
+                }
+                Ok(Self::Value { games })
+            }
+        }
+        deserializer.deserialize_any(GamesVisitor)
+    }
 }
 
 /// A game, or expansion, with full details.
@@ -52,7 +101,7 @@ pub struct GameDetails {
     ///
     /// Poll results for whether each number of players is recommended, not recommended,
     /// or best. Includes options outside of the suggested minimum and maximum player counts.
-    pub suggested_player_count: Poll,
+    pub suggested_player_count: SuggestedPlayerCountPoll,
     /// The amount of time the game is suggested to take to play.
     pub playing_time: Duration,
     /// Minimum amount of time the game is suggested to take to play.
@@ -64,13 +113,13 @@ pub struct GameDetails {
     /// The suggested number minimum suitable age for playing this game.
     ///
     /// Poll results for at which age is a suitable minimum age for playing this game.
-    pub suggested_player_age: Poll,
+    pub suggested_player_age: SuggestedPlayerAgePoll,
     /// The suggested dependence on knowing the game's language in order to be able to play it.
     ///
     /// Poll results, with five options, for whether the game can be played without knowing the
     /// language, if it does not have much in game text. Through being completely unplayable
     /// due to extensive text in the game.
-    pub suggested_language_dependence: Poll,
+    pub suggested_language_dependence: LanguageDependencePoll,
     // Categories and mechanics have IDs too, but I don't think it would be beneficial to include
     // them over just the names.
     /// A list of category names that this game belongs to.
@@ -81,6 +130,8 @@ pub struct GameDetails {
     pub game_families: Vec<GameFamilyName>,
     /// A list of expansions to this game.
     pub expansions: Vec<Game>,
+    /// A list of games that this game is an expansion for.
+    pub expansion_for: Vec<Game>,
     /// A list of accessories specific to this game.
     pub accessories: Vec<GameAccessory>,
     /// A list of compilations for this game.
@@ -101,15 +152,32 @@ pub struct GameDetails {
     /// Also includes the number of users on the site who own the game, as well
     /// as have it as other collection statuses.
     pub stats: GameStats,
+    /// Information for the various versions of the game.
+    pub versions: Vec<GameVersion>,
+    /// User uploaded videos that relate to this game.
+    pub videos: Vec<Video>,
+    /// Information of where to buy the game and for how much.
+    pub marketplace_listings: Vec<MarketplaceListing>,
+    /// List of comments and ratings users have given to the game.
+    ///
+    /// Each comment may have a rating but no comment, a comment but no rating, or both. However
+    /// the underlying API will only return all comments, whether or not they have ratings,
+    /// with the `include_comments` query parameter. Or all ratings, whether or not they have
+    /// comments. However the same tag is used to return them so there is no way to return all
+    /// comments and ratings together.
+    ///
+    /// Page number and page size can be controlled via query parameters.
+    pub rating_comments: Option<RatingCommentPage>,
 }
 
-/// blah
+/// Various statistics for the game, including the number of users who own the game as
+/// well as the ratings.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct GameStats {
     /// The number of users who have rated this game.
     pub users_rated: u64,
     /// The average rating from users, from 0-10.
-    pub average: f64,
+    pub average_rating: f64,
     /// The score out of 10, as a bayesian average.
     ///
     /// This is what boardgamegeek calls a Geek Rating. It is the average rating
@@ -141,12 +209,14 @@ pub struct GameStats {
     pub weight_rating: f64,
 }
 
+// Structure of the stats tag in the returned XML
 #[derive(Debug, Deserialize)]
 struct XmlGameStats {
     #[serde(rename = "$value")]
     ratings: StatsRatings,
 }
 
+// Structure of the ratings tag in the returned XML
 #[derive(Debug, Deserialize)]
 struct StatsRatings {
     usersrated: XmlIntValue,
@@ -164,33 +234,685 @@ struct StatsRatings {
     averageweight: XmlFloatValue,
 }
 
-/// A poll for users to vote on things such as the best player age and player count for the game.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct Poll {
-    /// Fixed slug name for the poll
-    pub name: String,
-    /// Pretty formatted title for the poll
+/// A user answered poll for how many players this game is best suited for.
+///
+/// Options typically include all player counts from 1 (even if the minimum player count is more
+/// than 1) all the way to the max player count and then an option for playing with more than the
+/// max.
+///
+/// For each player count users can vote on whether the option is not recommended, recommended, or
+/// best.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SuggestedPlayerCountPoll {
+    /// User friendly name for the poll.
     pub title: String,
-    /// List of results
-    pub results: Vec<PollResults>,
+    /// Total number of users who voted on this poll.
+    pub total_voters: u64,
+    /// Results for this poll, contains a separate vote for each player count option, including an
+    /// option for the max player count or above.
+    pub results: Vec<SuggestedPlayerCount>,
 }
 
-/// A results for a poll
+/// A suggested player count, along with community votes as to whether it is recommended or not.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SuggestedPlayerCount {
+    /// The number of players this vote result is for.
+    pub player_count: PlayerCount,
+    /// How many users voted this player count as the best option.
+    pub best_votes: u64,
+    /// How many users voted this player count as recommended.
+    pub recommended_votes: u64,
+    /// How many users voted this player count as not recommended.
+    pub not_recommended_votes: u64,
+}
+
+impl TryFrom<Poll> for SuggestedPlayerCountPoll {
+    // String as the error type, because this will be wrapped in a serde deserialize error during
+    // the deserialise step.
+    type Error = String;
+
+    fn try_from(poll: Poll) -> Result<Self, Self::Error> {
+        Ok(SuggestedPlayerCountPoll {
+            title: poll.title,
+            total_voters: poll.total_voters,
+            results: poll
+                .results
+                .into_iter()
+                .map(SuggestedPlayerCount::try_from)
+                .collect::<Result<Vec<SuggestedPlayerCount>, Self::Error>>()?,
+        })
+    }
+}
+
+impl TryFrom<PollResults> for SuggestedPlayerCount {
+    // String as the error type, because this will be wrapped in a serde deserialize error during
+    // the deserialise step.
+    type Error = String;
+
+    fn try_from(results: PollResults) -> Result<Self, Self::Error> {
+        let mut best_votes = None;
+        let mut recommended_votes = None;
+        let mut not_recommended_votes = None;
+        for vote_result in results.results {
+            match vote_result.value.as_str() {
+                "Best" => {
+                    best_votes = Some(vote_result.number_of_votes);
+                },
+                "Recommended" => {
+                    recommended_votes = Some(vote_result.number_of_votes);
+                },
+                "Not Recommended" => {
+                    not_recommended_votes = Some(vote_result.number_of_votes);
+                },
+                unexpected => {
+                    return Err(format!(
+                        "unexpected player count vote option: {}",
+                        unexpected
+                    ));
+                },
+            }
+        }
+        Ok(SuggestedPlayerCount {
+            player_count: results
+                .number_of_players
+                .ok_or("player count was `None` when `Some` was expected")?,
+            best_votes: best_votes.ok_or("value `Best` missing for player count vote")?,
+            recommended_votes: recommended_votes
+                .ok_or("value `Recommended` missing for player count vote")?,
+            not_recommended_votes: not_recommended_votes
+                .ok_or("value `Not Recommended` missing for player count vote")?,
+        })
+    }
+}
+
+/// A number of players for the purpose of voting on what the best player count for a game may be.
+///
+/// Can be either an exact number of players or a number or above. Voting options typically contain
+/// from 1 all the way to the max player count, and then an option for max player count or above.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum PlayerCount {
+    /// An exact number of players.
+    Players(u64),
+    /// This number of players or above.
+    PlayersOrAbove(u64),
+}
+
+impl<'de> Deserialize<'de> for PlayerCount {
+    fn deserialize<D>(deserializer: D) -> Result<PlayerCount, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        let s: String = serde::de::Deserialize::deserialize(deserializer)?;
+        if s.is_empty() {
+            return Err(serde::de::Error::custom(
+                "expected player count but got empty string",
+            ));
+        }
+        match s.chars().last() {
+            Some('+') => {
+                let players = s.replace('+', "").parse::<u64>().map_err(|e| {
+                    serde::de::Error::custom(format!("unable to parse player count to u64: {e}"))
+                })?;
+                Ok(PlayerCount::PlayersOrAbove(players))
+            },
+            Some(_) => {
+                let players = s.parse::<u64>().map_err(|e| {
+                    serde::de::Error::custom(format!("unable to parse player count to u64: {e}"))
+                })?;
+                Ok(PlayerCount::Players(players))
+            },
+            None => Err(serde::de::Error::custom(
+                "expected player count but got empty string",
+            )),
+        }
+    }
+}
+
+/// A user answered poll for the minimum player age this game is best suited for.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SuggestedPlayerAgePoll {
+    /// User friendly name for the poll.
+    pub title: String,
+    /// Total number of users who voted on this poll.
+    pub total_voters: u64,
+    /// Results for this poll, contains a separate vote for each age from 2, going up in 2s from 6.
+    /// And an option for 21 and up.
+    pub results: Vec<SuggestedPlayerAge>,
+}
+
+/// A suggested minimum player age, along with how many users voted for this age.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SuggestedPlayerAge {
+    /// The number of players this vote result is for.
+    pub player_age: PlayerAge,
+    /// How many users voted this player age as the most suitable minimum age to play this game.
+    pub votes: u64,
+}
+
+/// A minimum suitable age for playing a game.
+///
+/// Can be either an exact number age or a number or above.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum PlayerAge {
+    /// An exact player age.
+    Age(u64),
+    /// This age or above.
+    AgeOrAbove(u64),
+}
+
+impl TryFrom<Poll> for SuggestedPlayerAgePoll {
+    // String as the error type, because this will be wrapped in a serde deserialize error during
+    // the deserialise step.
+    type Error = String;
+
+    fn try_from(mut poll: Poll) -> Result<Self, Self::Error> {
+        if poll.results.len() != 1 {
+            return Err(format!(
+                "expected 1 set of results but got {}",
+                poll.results.len()
+            ));
+        }
+        let results = poll.results.remove(0).results;
+        Ok(SuggestedPlayerAgePoll {
+            title: poll.title,
+            total_voters: poll.total_voters,
+            results: results
+                .into_iter()
+                .map(|result| {
+                    Ok(SuggestedPlayerAge {
+                        player_age: result.value.try_into()?,
+                        votes: result.number_of_votes,
+                    })
+                })
+                .collect::<Result<Vec<SuggestedPlayerAge>, Self::Error>>()?,
+        })
+    }
+}
+
+impl TryFrom<String> for PlayerAge {
+    // String as the error type, because this will be wrapped in a serde deserialize error during
+    // the deserialise step.
+    type Error = String;
+
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        match s.strip_suffix(" and up") {
+            Some(age_string) => {
+                let player_age = age_string
+                    .parse::<u64>()
+                    .map_err(|e| format!("unable to parse player age to u64: {e}"))?;
+                Ok(PlayerAge::AgeOrAbove(player_age))
+            },
+            None => {
+                let player_age = s
+                    .parse::<u64>()
+                    .map_err(|e| format!("unable to parse player count to u64: {e}"))?;
+                Ok(PlayerAge::Age(player_age))
+            },
+        }
+    }
+}
+
+/// A user answered poll for how playable the game would be, should the player not speak the
+/// language.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct LanguageDependencePoll {
+    /// User friendly name for the poll.
+    pub title: String,
+    /// Total number of users who voted on this poll.
+    pub total_voters: u64,
+    /// Results for this poll, contains 5 levels of severity ranging from no necessary in game text
+    /// to being unplayable in another language.
+    pub results: Vec<LanguageDependence>,
+}
+
+/// A suggested minimum player age, along with how many users voted for this age.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct LanguageDependence {
+    /// Level of dependence where the higher the value the more dependent the game is on knowing
+    /// the language.
+    pub level: u64,
+    /// Description of how dependent the game is on the language used.
+    pub dependence: String,
+    /// How many users voted that the game has this level of language dependence.
+    pub votes: u64,
+}
+
+impl TryFrom<Poll> for LanguageDependencePoll {
+    // String as the error type, because this will be wrapped in a serde deserialize error during
+    // the deserialise step.
+    type Error = String;
+
+    fn try_from(mut poll: Poll) -> Result<Self, Self::Error> {
+        if poll.results.len() != 1 {
+            return Err(format!(
+                "expected 1 set of results but got {}",
+                poll.results.len()
+            ));
+        }
+        let results = poll.results.remove(0).results;
+        Ok(LanguageDependencePoll {
+            title: poll.title,
+            total_voters: poll.total_voters,
+            results: results
+                .into_iter()
+                .map(|result| {
+                    Ok(LanguageDependence {
+                        level: result.level.ok_or("missing language dependence level")?,
+                        dependence: result.value,
+                        votes: result.number_of_votes,
+                    })
+                })
+                .collect::<Result<Vec<LanguageDependence>, Self::Error>>()?,
+        })
+    }
+}
+
+// A poll for users to vote on things such as the best player age and player count for the game.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct PollResults {
-    /// List of results
+struct Poll {
+    // Fixed slug name for the poll.
+    name: String,
+    // Pretty formatted title for the poll.
+    title: String,
+    // The total number of users who have voted on this poll.
+    #[serde(rename = "totalvotes")]
+    total_voters: u64,
+    // List of results.
+    results: Vec<PollResults>,
+}
+
+// A results for a poll.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+struct PollResults {
+    // Only included in the player count vote, the number of players this vote result is for.
+    #[serde(default, rename = "numplayers")]
+    number_of_players: Option<PlayerCount>,
+    // List of results.
     #[serde(rename = "$value")]
-    pub results: Vec<PollResult>,
+    results: Vec<PollResult>,
 }
 
-/// A result for a poll
+// A result for a poll.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct PollResult {
-    /// Name of the vote option
-    pub value: String,
-    /// How many people voted for it
+struct PollResult {
+    // Only included for language dependence poll, level of dependence where the higher the value
+    // the more dependent the game is on knowing the language.
+    #[serde(default)]
+    level: Option<u64>,
+    // Name of the vote option.
+    value: String,
+    // How many people voted for it.
     #[serde(rename = "numvotes")]
-    pub number_of_votes: u64,
+    number_of_votes: u64,
+}
+
+// A list of videos. Define the type in xml that can be deserialised, but pull out the nested
+// list in the game details deserialise implementation.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+struct VideosXml {
+    // List of videos, each in an XML tag called `video`.
+    #[serde(rename = "$value")]
+    videos: Vec<Video>,
+}
+
+/// A video relating to a game.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Video {
+    /// ID of the video.
+    pub id: u64,
+    /// The title of the video.
+    pub title: String,
+    /// Type of video, if it is a play-through or rules teach for example.
+    pub category: VideoCategory,
+    /// Language of the video.
+    pub language: String,
+    /// Youtube link to the video.
+    pub link: String,
+    /// Name and ID of the user who uploaded this video.
+    pub uploader: User,
+    /// The date and time the video was posted.
+    pub post_date: DateTime<Utc>,
+}
+
+/// Type of video for a video related to a particular game.
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum VideoCategory {
+    /// A video review of a game.
+    Review,
+    /// A play-through session of a game.
+    Session,
+    /// Strategy or how to play videos.
+    Instructional,
+    /// Interviews with people related to the game.
+    Interview,
+    /// Game unboxing videos.
+    Unboxing,
+    /// Miscellaneous funny videos about the game.
+    Humor,
+    /// Videos relating to the game that do not fir in any other category.
+    Other,
+}
+
+impl<'de> Deserialize<'de> for Video {
+    fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        #[serde(field_identifier, rename_all = "lowercase")]
+        enum Field {
+            Id,
+            Title,
+            Category,
+            Language,
+            Link,
+            Username,
+            UserId,
+            PostDate,
+        }
+
+        struct VideoVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for VideoVisitor {
+            type Value = Video;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("an XML object for a video returned inside the videos tag in the response to the `thing` endpoint from boardgamegeek")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                let mut id = None;
+                let mut title = None;
+                let mut category = None;
+                let mut language = None;
+                let mut link = None;
+                let mut username = None;
+                let mut user_id = None;
+                let mut post_date = None;
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::Id => {
+                            if id.is_some() {
+                                return Err(serde::de::Error::duplicate_field("id"));
+                            }
+                            id = Some(map.next_value()?);
+                        },
+                        Field::Title => {
+                            if title.is_some() {
+                                return Err(serde::de::Error::duplicate_field("title"));
+                            }
+                            title = Some(map.next_value()?);
+                        },
+                        Field::Category => {
+                            if category.is_some() {
+                                return Err(serde::de::Error::duplicate_field("category"));
+                            }
+                            category = Some(map.next_value()?);
+                        },
+                        Field::Language => {
+                            if language.is_some() {
+                                return Err(serde::de::Error::duplicate_field("language"));
+                            }
+                            language = Some(map.next_value()?);
+                        },
+                        Field::Link => {
+                            if link.is_some() {
+                                return Err(serde::de::Error::duplicate_field("link"));
+                            }
+                            link = Some(map.next_value()?);
+                        },
+                        Field::Username => {
+                            if username.is_some() {
+                                return Err(serde::de::Error::duplicate_field("username"));
+                            }
+                            username = Some(map.next_value()?);
+                        },
+                        Field::UserId => {
+                            if user_id.is_some() {
+                                return Err(serde::de::Error::duplicate_field("userid"));
+                            }
+                            user_id = Some(map.next_value()?);
+                        },
+                        Field::PostDate => {
+                            if post_date.is_some() {
+                                return Err(serde::de::Error::duplicate_field("postdate"));
+                            }
+                            let date_string: String = map.next_value()?;
+                            let dt =
+                                NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S%:z")
+                                    .map_err(serde::de::Error::custom)?;
+                            post_date = Some(DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc));
+                        },
+                    }
+                }
+                let id = id.ok_or_else(|| serde::de::Error::missing_field("id"))?;
+                let title = title.ok_or_else(|| serde::de::Error::missing_field("title"))?;
+                let category =
+                    category.ok_or_else(|| serde::de::Error::missing_field("category"))?;
+                let language =
+                    language.ok_or_else(|| serde::de::Error::missing_field("language"))?;
+                let link = link.ok_or_else(|| serde::de::Error::missing_field("link"))?;
+                let username =
+                    username.ok_or_else(|| serde::de::Error::missing_field("username"))?;
+                let user_id = user_id.ok_or_else(|| serde::de::Error::missing_field("userid"))?;
+                let post_date =
+                    post_date.ok_or_else(|| serde::de::Error::missing_field("postdate"))?;
+
+                Ok(Self::Value {
+                    id,
+                    title,
+                    category,
+                    language,
+                    link,
+                    uploader: User { user_id, username },
+                    post_date,
+                })
+            }
+        }
+        deserializer.deserialize_any(VideoVisitor)
+    }
+}
+
+// A list of marketplace listings. Define the type in xml that can be deserialised, but pull out the
+// nested list in the game details deserialise implementation
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+struct MarketplaceListingsXml {
+    // List of listings, each in an XML tag called `video`
+    #[serde(rename = "$value")]
+    listings: Vec<MarketplaceListing>,
+}
+
+/// A game sale listing, for people selling games on the site.
+#[derive(Clone, Debug, PartialEq)]
+pub struct MarketplaceListing {
+    /// The date and time when this listing was listed.
+    pub list_date: DateTime<Utc>,
+    /// Price of the game.
+    pub price: Price,
+    /// The condition of the game, if it is new or used and what quality it is in if used.
+    pub condition: GameCondition,
+    /// Any custom notes about the game for sale.
+    pub notes: String,
+    /// Link to buy the game on the site.
+    pub link: String,
+}
+
+/// The price of a game in a marketplace listing.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct Price {
+    /// The name of the currency for this price value.
+    pub currency: String,
+    /// The amount the game costs, as a string so the consumer can decide
+    /// to convert to float, or a decimal, or an integer for the dollar/euro/gbp and another
+    /// integer for the cents/pence or keep as a string depending on use case.
+    pub value: String,
+}
+
+// XML representation of the market place listing link
+#[derive(Debug, Deserialize)]
+struct XmlMarketplaceLink {
+    // Link to this listing on the site.
+    href: String,
+    // Fixed at `marketlisting` so we don't include it in the proper type.
+    #[allow(dead_code)]
+    title: String,
+}
+
+/// The condition of a game for sale.
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[serde(rename_all = "lowercase")]
+pub enum GameCondition {
+    /// Condition good enough to play, but no better.
+    Acceptable,
+    /// Game is in good condition.
+    Good,
+    /// Game is in very good condition.
+    VeryGood,
+    /// Not a new, unused game, but the condition is as such.
+    LikeNew,
+    /// A new game, unused.
+    New,
+}
+
+// XML representation of the market place listing condition
+#[derive(Debug, Deserialize)]
+pub(crate) struct XmlGameCondition {
+    pub(crate) value: GameCondition,
+}
+
+impl<'de> Deserialize<'de> for MarketplaceListing {
+    fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        #[serde(field_identifier, rename_all = "lowercase")]
+        enum Field {
+            ListDate,
+            Price,
+            Condition,
+            Notes,
+            Link,
+        }
+
+        struct MarketplaceListingVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for MarketplaceListingVisitor {
+            type Value = MarketplaceListing;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("an XML object for a marketplace listing returned inside the marketplacelistings tag in the response to the `thing` endpoint from boardgamegeek")
+            }
+
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                let mut list_date = None;
+                let mut price = None;
+                let mut condition = None;
+                let mut notes = None;
+                let mut link = None;
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::ListDate => {
+                            if list_date.is_some() {
+                                return Err(serde::de::Error::duplicate_field("listdate"));
+                            }
+                            let list_date_xml: XmlDateTimeValue = map.next_value()?;
+                            list_date = Some(list_date_xml.value);
+                        },
+                        Field::Price => {
+                            if price.is_some() {
+                                return Err(serde::de::Error::duplicate_field("price"));
+                            }
+                            price = Some(map.next_value()?);
+                        },
+                        Field::Condition => {
+                            if condition.is_some() {
+                                return Err(serde::de::Error::duplicate_field("condition"));
+                            }
+                            let condition_xml: XmlGameCondition = map.next_value()?;
+                            condition = Some(condition_xml.value);
+                        },
+                        Field::Notes => {
+                            if notes.is_some() {
+                                return Err(serde::de::Error::duplicate_field("notes"));
+                            }
+                            let notes_xml: XmlStringValue = map.next_value()?;
+                            notes = Some(notes_xml.value);
+                        },
+                        Field::Link => {
+                            if link.is_some() {
+                                return Err(serde::de::Error::duplicate_field("link"));
+                            }
+                            let link_xml: XmlMarketplaceLink = map.next_value()?;
+                            link = Some(link_xml.href);
+                        },
+                    }
+                }
+                let list_date =
+                    list_date.ok_or_else(|| serde::de::Error::missing_field("listdate"))?;
+                let price = price.ok_or_else(|| serde::de::Error::missing_field("price"))?;
+                let condition =
+                    condition.ok_or_else(|| serde::de::Error::missing_field("condition"))?;
+                let notes = notes.ok_or_else(|| serde::de::Error::missing_field("notes"))?;
+                let link = link.ok_or_else(|| serde::de::Error::missing_field("link"))?;
+
+                Ok(Self::Value {
+                    list_date,
+                    price,
+                    condition,
+                    notes,
+                    link,
+                })
+            }
+        }
+        deserializer.deserialize_any(MarketplaceListingVisitor)
+    }
+}
+
+/// A page of comments left on a game by a user. Can include a rating or a text comment or both.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct RatingCommentPage {
+    /// The total number of comments overall, not the number in this page.
+    #[serde(rename = "totalitems")]
+    pub total_items: u64,
+    /// The index of this page, starting from 1.
+    #[serde(rename = "page")]
+    pub page_number: u64,
+    /// A list of members in this guid.
+    #[serde(rename = "$value")]
+    pub comments: Vec<RatingComment>,
+}
+
+/// A comment left on a game by a user. Can include a rating or a text comment or both.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct RatingComment {
+    /// The user who left the comment.
+    pub username: String,
+    /// The rating, between 0 and 10, that the user left on the game.
+    #[serde(deserialize_with = "deserialize_rating")]
+    pub rating: Option<f64>,
+    /// The text comment the user left on this game, may be empty.
+    #[serde(rename = "value")]
+    pub comment: String,
+}
+
+fn deserialize_rating<'de, D>(deserializer: D) -> Result<Option<f64>, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    let s: String = serde::de::Deserialize::deserialize(deserializer)?;
+
+    match s.as_str() {
+        "N/A" => Ok(None),
+        val => match val.parse() {
+            Ok(rating) => Ok(Some(rating)),
+            Err(e) => Err(serde::de::Error::custom(format!(
+                "failed to parse rating \"{}\" as float: {}",
+                val, e
+            ))),
+        },
+    }
 }
 
 impl<'de> Deserialize<'de> for GameDetails {
@@ -214,6 +936,10 @@ impl<'de> Deserialize<'de> for GameDetails {
             Link,
             Poll,
             Statistics,
+            Versions,
+            Videos,
+            MarketPlaceListings,
+            Comments,
         }
 
         struct GameDetailsVisitor;
@@ -247,7 +973,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                 let mut categories = vec![];
                 let mut mechanics = vec![];
                 let mut game_families = vec![];
-                let mut expansions = vec![];
+                let mut expansion_links = vec![];
                 let mut accessories = vec![];
                 let mut compilations = vec![];
                 let mut reimplementations = vec![];
@@ -260,6 +986,10 @@ impl<'de> Deserialize<'de> for GameDetails {
                 let mut suggested_language_dependence = None;
                 // Stats and optional
                 let mut stats = None;
+                let mut versions = None;
+                let mut videos = None;
+                let mut marketplace_listings = None;
+                let mut rating_comments = None;
                 while let Some(key) = map.next_key()? {
                     match key {
                         Field::Id => {
@@ -361,7 +1091,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                             let link: XmlLink = map.next_value()?;
                             match link.link_type {
                                 crate::ItemType::BoardGameExpansion => {
-                                    expansions.push(Game {
+                                    expansion_links.push(Game {
                                         id: link.id,
                                         name: link.value,
                                     });
@@ -429,7 +1159,6 @@ impl<'de> Deserialize<'de> for GameDetails {
                             }
                         },
                         Field::Poll => {
-                            // TODO split this into proper types for each of the 3 polls
                             let poll: Poll = map.next_value()?;
 
                             if poll.name == "suggested_numplayers" {
@@ -438,31 +1167,39 @@ impl<'de> Deserialize<'de> for GameDetails {
                                         "poll name=\"suggested_numplayers\"",
                                     ));
                                 }
-                                suggested_player_count = Some(poll);
+                                suggested_player_count =
+                                    Some(poll.try_into().map_err(serde::de::Error::custom)?);
                             } else if poll.name == "suggested_playerage" {
                                 if suggested_player_age.is_some() {
                                     return Err(serde::de::Error::duplicate_field(
                                         "poll name=\"suggested_playerage\"",
                                     ));
                                 }
-                                suggested_player_age = Some(poll);
+                                suggested_player_age =
+                                    Some(poll.try_into().map_err(serde::de::Error::custom)?);
                             } else if poll.name == "language_dependence" {
                                 if suggested_language_dependence.is_some() {
                                     return Err(serde::de::Error::duplicate_field(
                                         "poll name=\"language_dependence\"",
                                     ));
                                 }
-                                suggested_language_dependence = Some(poll);
+                                suggested_language_dependence =
+                                    Some(poll.try_into().map_err(serde::de::Error::custom)?);
+                            } else {
+                                return Err(serde::de::Error::custom(format!(
+                                    "unexpected poll name `{}`",
+                                    poll.name
+                                )));
                             }
                         },
                         Field::Statistics => {
                             if stats.is_some() {
-                                return Err(serde::de::Error::duplicate_field("stats"));
+                                return Err(serde::de::Error::duplicate_field("statistics"));
                             }
                             let stats_xml: XmlGameStats = map.next_value()?;
                             stats = Some(GameStats {
                                 users_rated: stats_xml.ratings.usersrated.value,
-                                average: stats_xml.ratings.average.value,
+                                average_rating: stats_xml.ratings.average.value,
                                 bayesian_average: stats_xml.ratings.bayesaverage.value,
                                 standard_deviation: stats_xml.ratings.stddev.value,
                                 median: stats_xml.ratings.median.value,
@@ -475,6 +1212,36 @@ impl<'de> Deserialize<'de> for GameDetails {
                                 number_of_weights: stats_xml.ratings.numweights.value,
                                 weight_rating: stats_xml.ratings.averageweight.value,
                             });
+                        },
+                        Field::Versions => {
+                            if versions.is_some() {
+                                return Err(serde::de::Error::duplicate_field("versions"));
+                            }
+                            let versions_xml: VersionsXml = map.next_value()?;
+                            versions = Some(versions_xml.versions);
+                        },
+                        Field::Videos => {
+                            if videos.is_some() {
+                                return Err(serde::de::Error::duplicate_field("videos"));
+                            }
+                            let videos_xml: VideosXml = map.next_value()?;
+                            videos = Some(videos_xml.videos);
+                        },
+                        Field::MarketPlaceListings => {
+                            if marketplace_listings.is_some() {
+                                return Err(serde::de::Error::duplicate_field(
+                                    "marketplacelistings",
+                                ));
+                            }
+                            let marketplace_listings_xml: MarketplaceListingsXml =
+                                map.next_value()?;
+                            marketplace_listings = Some(marketplace_listings_xml.listings);
+                        },
+                        Field::Comments => {
+                            if rating_comments.is_some() {
+                                return Err(serde::de::Error::duplicate_field("comments"));
+                            }
+                            rating_comments = Some(map.next_value()?);
                         },
                     }
                 }
@@ -511,7 +1278,15 @@ impl<'de> Deserialize<'de> for GameDetails {
                         serde::de::Error::missing_field("poll name=\"language_dependence\"")
                     })?;
 
-                let stats = stats.ok_or_else(|| serde::de::Error::missing_field("stats"))?;
+                let stats = stats.ok_or_else(|| serde::de::Error::missing_field("statistics"))?;
+                let versions = versions.unwrap_or_default();
+                let videos = videos.unwrap_or_default();
+                let marketplace_listings = marketplace_listings.unwrap_or_default();
+
+                let (expansions, expansion_for) = match game_type {
+                    GameType::BoardGame => (expansion_links, vec![]),
+                    GameType::BoardGameExpansion => (vec![], expansion_links),
+                };
 
                 Ok(Self::Value {
                     id,
@@ -535,6 +1310,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                     mechanics,
                     game_families,
                     expansions,
+                    expansion_for,
                     accessories,
                     compilations,
                     reimplementations,
@@ -542,6 +1318,10 @@ impl<'de> Deserialize<'de> for GameDetails {
                     artists,
                     publishers,
                     stats,
+                    versions,
+                    videos,
+                    marketplace_listings,
+                    rating_comments,
                 })
             }
         }
