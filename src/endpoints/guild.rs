@@ -175,12 +175,12 @@ mod tests {
                     "A group to discuss the Con of the North, held in February in Minnesota."
                         .to_owned(),
                 location: Location {
-                    address_line_1: "".to_owned(),
-                    address_line_2: "".to_owned(),
+                    address_line_1: String::new(),
+                    address_line_2: String::new(),
                     city: "Saint Paul".to_owned(),
                     state: "Minnesota".to_owned(),
                     country: "United States".to_owned(),
-                    postal_code: "".to_owned(),
+                    postal_code: String::new(),
                 },
                 member_page: None,
             },
@@ -229,12 +229,12 @@ mod tests {
                     "A group to discuss the Con of the North, held in February in Minnesota."
                         .to_owned(),
                 location: Location {
-                    address_line_1: "".to_owned(),
-                    address_line_2: "".to_owned(),
+                    address_line_1: String::new(),
+                    address_line_2: String::new(),
                     city: "Saint Paul".to_owned(),
                     state: "Minnesota".to_owned(),
                     country: "United States".to_owned(),
-                    postal_code: "".to_owned(),
+                    postal_code: String::new(),
                 },
                 member_page: Some(MemberPage {
                     total_members: 27,

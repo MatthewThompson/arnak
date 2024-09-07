@@ -226,7 +226,7 @@ mod tests {
             .create_async()
             .await;
 
-        let game = api.game().get_by_id(312484, GameQueryParams::new()).await;
+        let game = api.game().get_by_id(312_484, GameQueryParams::new()).await;
         mock.assert_async().await;
 
         assert!(game.is_ok(), "error returned when okay expected");
@@ -235,7 +235,7 @@ mod tests {
         assert_eq!(
             game,
             GameDetails {
-                id: 312484,
+                id: 312_484,
                 game_type: GameType::BoardGame,
                 name: "Lost Ruins of Arnak".to_owned(),
                 alternate_names: vec![
@@ -388,7 +388,7 @@ mod tests {
                 ],
                 expansions: vec![
                     Game {
-                        id: 341254,
+                        id: 341_254,
                         name: "Lost Ruins of Arnak: Expedition Leaders".to_owned(),
                     },
                 ],
@@ -398,21 +398,21 @@ mod tests {
                 reimplementations: vec![],
                 designers: vec![
                     GameDesigner {
-                        id: 127823,
+                        id: 127_823,
                         name: "Design".to_owned(),
                     },
                     GameDesigner {
-                        id: 127822,
+                        id: 127_822,
                         name: "Er".to_owned(),
                     },
                 ],
                 artists: vec![
                     GameArtist {
-                        id: 152613,
+                        id: 152_613,
                         name: "Artist person".to_owned(),
                     },
                     GameArtist {
-                        id: 115373,
+                        id: 115_373,
                         name: "Another Artist person".to_owned(),
                     },
                 ],
@@ -485,7 +485,7 @@ mod tests {
             .create_async()
             .await;
 
-        let game = api.game().get_by_id(341254, GameQueryParams::new()).await;
+        let game = api.game().get_by_id(341_254, GameQueryParams::new()).await;
         mock.assert_async().await;
 
         assert!(game.is_ok(), "error returned when okay expected");
@@ -494,7 +494,7 @@ mod tests {
         assert_eq!(
             game,
             GameDetails {
-                id: 341254,
+                id: 341_254,
                 game_type: GameType::BoardGameExpansion,
                 name: "Lost Ruins of Arnak: Expedition Leaders".to_owned(),
                 alternate_names: vec![
@@ -652,13 +652,13 @@ mod tests {
                 expansions: vec![],
                 expansion_for: vec![
                     Game {
-                        id: 312484,
+                        id: 312_484,
                         name: "Lost Ruins of Arnak".to_owned(),
                     },
                 ],
                 accessories: vec![
                     GameAccessory {
-                        id: 363147,
+                        id: 363_147,
                         name: "Lost Ruins of Arnak + Expedition Leaders: Insert".to_owned(),
                     },
                 ],
@@ -666,11 +666,11 @@ mod tests {
                 reimplementations: vec![],
                 designers: vec![
                     GameDesigner {
-                        id: 127823,
+                        id: 127_823,
                         name: "Design".to_owned(),
                     },
                     GameDesigner {
-                        id: 127822,
+                        id: 127_822,
                         name: "Er".to_owned(),
                     },
                 ],
@@ -757,7 +757,7 @@ mod tests {
             .include_comments(true)
             .page(1)
             .page_size(3);
-        let game = api.game().get_by_id(312484, params).await;
+        let game = api.game().get_by_id(312_484, params).await;
         mock.assert_async().await;
 
         assert!(game.is_ok(), "error returned when okay expected");
@@ -766,7 +766,7 @@ mod tests {
         assert_eq!(
             game,
             GameDetails {
-                id: 312484,
+                id: 312_484,
                 game_type: GameType::BoardGame,
                 name: "Lost Ruins of Arnak".to_owned(),
                 alternate_names: vec![
@@ -919,7 +919,7 @@ mod tests {
                 ],
                 expansions: vec![
                     Game {
-                        id: 341254,
+                        id: 341_254,
                         name: "Lost Ruins of Arnak: Expedition Leaders".to_owned(),
                     },
                 ],
@@ -929,21 +929,21 @@ mod tests {
                 reimplementations: vec![],
                 designers: vec![
                     GameDesigner {
-                        id: 127823,
+                        id: 127_823,
                         name: "Design".to_owned(),
                     },
                     GameDesigner {
-                        id: 127822,
+                        id: 127_822,
                         name: "Er".to_owned(),
                     },
                 ],
                 artists: vec![
                     GameArtist {
-                        id: 152613,
+                        id: 152_613,
                         name: "Artist person".to_owned(),
                     },
                     GameArtist {
-                        id: 115373,
+                        id: 115_373,
                         name: "Another Artist person".to_owned(),
                     },
                 ],
@@ -987,14 +987,14 @@ mod tests {
                 },
                 versions: vec![
                     GameVersion {
-                        id: 595583,
+                        id: 595_583,
                         name: "Bulgarian edition".to_owned(),
                         alternate_names: vec![],
                         year_published: 2021,
                         image: "https://cf.geekdo-images.com/IE7u66EF0sVXBYFMAqu21g__original/img/M0KZEWD-IUjsvWNEpBxcrB1NmsU=/0x0/filters:format(png)/pic6622620.png".to_owned(),
                         thumbnail: "https://cf.geekdo-images.com/IE7u66EF0sVXBYFMAqu21g__thumb/img/kd7nulur0E6B6fvMVpfRH_MxCmg=/fit-in/200x150/filters:strip_icc()/pic6622620.png".to_owned(),
                         original_game: Game {
-                            id: 312484,
+                            id: 312_484,
                             name: "Lost Ruins of Arnak".to_owned(),
                         },
                         publishers: vec![
@@ -1024,14 +1024,14 @@ mod tests {
                         product_code: Some("77240-BG".to_owned()),
                     },
                     GameVersion {
-                        id: 517374,
+                        id: 517_374,
                         name: "French edition".to_owned(),
                         alternate_names: vec![],
                         year_published: 2021,
                         image: "https://cf.geekdo-images.com/RiyIlOey2KYj4Flwl1nOPg__original/img/IU0Aws6_XM22XdEBJJZMLzX8OuM=/0x0/filters:format(jpeg)/pic5531793.jpg".to_owned(),
                         thumbnail: "https://cf.geekdo-images.com/RiyIlOey2KYj4Flwl1nOPg__thumb/img/I4LpDfOcfDeF5sT2f9-UpI-k9SM=/fit-in/200x150/filters:strip_icc()/pic5531793.jpg".to_owned(),
                         original_game: Game {
-                            id: 312484,
+                            id: 312_484,
                             name: "Lost Ruins of Arnak".to_owned(),
                         },
                         publishers: vec![
@@ -1054,7 +1054,7 @@ mod tests {
                 ],
                 videos: vec![
                     Video {
-                        id: 510883,
+                        id: 510_883,
                         title: "Some video".to_owned(),
                         category: VideoCategory::Other,
                         language: "French".to_owned(),
@@ -1066,7 +1066,7 @@ mod tests {
                         post_date: Utc.with_ymd_and_hms(2024, 8, 25, 9, 57, 57).unwrap(),
                     },
                     Video {
-                        id: 504090,
+                        id: 504_090,
                         title: "Arnak gameplay".to_owned(),
                         category: VideoCategory::Session,
                         language: "Portuguese".to_owned(),
@@ -1086,7 +1086,7 @@ mod tests {
                             value: "44.99".to_owned(),
                         },
                         condition: GameCondition::New,
-                        notes: "".to_owned(),
+                        notes: String::new(),
                         link: "https://boardgamegeek.com/market/product/2408401".to_owned(),
                     },
                     MarketplaceListing {
@@ -1127,7 +1127,7 @@ mod tests {
                         RatingComment {
                             username: "u3".to_owned(),
                             rating: Some(8.5),
-                            comment: "".to_owned(),
+                            comment: String::new(),
                         },
                     ],
                 }),
@@ -1171,7 +1171,7 @@ mod tests {
             .include_rating_comments(true)
             .page(1)
             .page_size(3);
-        let games = api.game().get_by_ids(vec![312484, 341254], params).await;
+        let games = api.game().get_by_ids(vec![312_484, 341_254], params).await;
         mock.assert_async().await;
 
         assert!(games.is_ok(), "error returned when okay expected");
@@ -1181,7 +1181,7 @@ mod tests {
         assert_eq!(
             games[0],
             GameDetails {
-                id: 312484,
+                id: 312_484,
                 game_type: GameType::BoardGame,
                 name: "Lost Ruins of Arnak".to_owned(),
                 alternate_names: vec![
@@ -1334,7 +1334,7 @@ mod tests {
                 ],
                 expansions: vec![
                     Game {
-                        id: 341254,
+                        id: 341_254,
                         name: "Lost Ruins of Arnak: Expedition Leaders".to_owned(),
                     },
                 ],
@@ -1344,21 +1344,21 @@ mod tests {
                 reimplementations: vec![],
                 designers: vec![
                     GameDesigner {
-                        id: 127823,
+                        id: 127_823,
                         name: "Design".to_owned(),
                     },
                     GameDesigner {
-                        id: 127822,
+                        id: 127_822,
                         name: "Er".to_owned(),
                     },
                 ],
                 artists: vec![
                     GameArtist {
-                        id: 152613,
+                        id: 152_613,
                         name: "Artist person".to_owned(),
                     },
                     GameArtist {
-                        id: 115373,
+                        id: 115_373,
                         name: "Another Artist person".to_owned(),
                     },
                 ],
@@ -1420,7 +1420,7 @@ mod tests {
                         RatingComment {
                             username: "u3".to_owned(),
                             rating: Some(8.5),
-                            comment: "".to_owned(),
+                            comment: String::new(),
                         },
                     ],
                 }),
@@ -1429,7 +1429,7 @@ mod tests {
         assert_eq!(
             games[1],
             GameDetails {
-                id: 341254,
+                id: 341_254,
                 game_type: GameType::BoardGameExpansion,
                 name: "Lost Ruins of Arnak: Expedition Leaders".to_owned(),
                 alternate_names: vec![
@@ -1587,13 +1587,13 @@ mod tests {
                 expansions: vec![],
                 expansion_for: vec![
                     Game {
-                        id: 312484,
+                        id: 312_484,
                         name: "Lost Ruins of Arnak".to_owned(),
                     },
                 ],
                 accessories: vec![
                     GameAccessory {
-                        id: 363147,
+                        id: 363_147,
                         name: "Lost Ruins of Arnak + Expedition Leaders: Insert".to_owned(),
                     },
                 ],
@@ -1601,11 +1601,11 @@ mod tests {
                 reimplementations: vec![],
                 designers: vec![
                     GameDesigner {
-                        id: 127823,
+                        id: 127_823,
                         name: "Design".to_owned(),
                     },
                     GameDesigner {
-                        id: 127822,
+                        id: 127_822,
                         name: "Er".to_owned(),
                     },
                 ],

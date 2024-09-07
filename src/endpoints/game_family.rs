@@ -143,11 +143,11 @@ mod tests {
                         name: "Carcassonne".into(),
                     },
                     Game {
-                        id: 142057,
+                        id: 142_057,
                         name: "Carcassonne Big Box".into(),
                     },
                     Game {
-                        id: 141008,
+                        id: 141_008,
                         name: "Carcassonne Big Box 2".into(),
                     },
                 ],
@@ -199,11 +199,11 @@ mod tests {
                         name: "Carcassonne".into(),
                     },
                     Game {
-                        id: 142057,
+                        id: 142_057,
                         name: "Carcassonne Big Box".into(),
                     },
                     Game {
-                        id: 141008,
+                        id: 141_008,
                         name: "Carcassonne Big Box 2".into(),
                     },
                 ],

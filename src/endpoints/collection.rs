@@ -620,8 +620,8 @@ mod tests {
         assert_eq!(
             collection.items[0],
             CollectionItemBrief {
-                id: 131835,
-                collection_id: 118278872,
+                id: 131_835,
+                collection_id: 118_278_872,
                 item_type: CollectionItemType::BoardGame,
                 name: "Boss Monster: The Dungeon Building Card Game".to_string(),
                 status: CollectionItemStatus {
@@ -722,8 +722,8 @@ mod tests {
         assert_eq!(
             collection.items[0],
             CollectionItem {
-                id: 131835,
-                collection_id: 118278872,
+                id: 131_835,
+                collection_id: 118_278_872,
                 item_type: CollectionItemType::BoardGame,
                 name: "Boss Monster: The Dungeon Building Card Game".to_string(),
                 year_published: 2013,
@@ -816,8 +816,8 @@ mod tests {
         assert_eq!(
             collection.items[0],
             CollectionItem {
-                id: 177736,
-                collection_id: 118332974,
+                id: 177_736,
+                collection_id: 118_332_974,
                 item_type: CollectionItemType::BoardGame,
                 name: "A Feast for Odin".to_string(),
                 year_published: 2016,
@@ -915,8 +915,8 @@ mod tests {
         assert_eq!(
             collection.items[0],
             CollectionItemBrief {
-                id: 356510,
-                collection_id: 118278786,
+                id: 356_510,
+                collection_id: 118_278_786,
                 item_type: CollectionItemType::BoardGame,
                 name: "Spirit Island: Feather & Flame".to_string(),
                 status: CollectionItemStatus {
@@ -952,7 +952,7 @@ mod tests {
             collection.items[1],
             CollectionItemBrief {
                 id: 13,
-                collection_id: 122520827,
+                collection_id: 122_520_827,
                 item_type: CollectionItemType::BoardGame,
                 name: "Колонизаторы".to_string(),
                 status: CollectionItemStatus {
@@ -973,7 +973,7 @@ mod tests {
                     min_playtime: Duration::minutes(60),
                     max_playtime: Duration::minutes(120),
                     playing_time: Duration::minutes(120),
-                    owned_by: 210387,
+                    owned_by: 210_387,
                     rating: CollectionItemRatingBrief {
                         user_rating: None,
                         average: 7.09836,
@@ -981,7 +981,7 @@ mod tests {
                     },
                 },
                 version: Some(GameVersion {
-                    id: 712636,
+                    id: 712_636,
                     name: "Russian edition 2024".into(),
                     alternate_names: vec![],
                     year_published: 2024,
@@ -1017,8 +1017,8 @@ mod tests {
         assert_eq!(
             collection.items[2],
             CollectionItemBrief {
-                id: 352515,
-                collection_id: 118278970,
+                id: 352_515,
+                collection_id: 118_278_970,
                 item_type: CollectionItemType::BoardGame,
                 name: "ナナ".to_string(),
                 status: CollectionItemStatus {
@@ -1047,14 +1047,14 @@ mod tests {
                     },
                 },
                 version: Some(GameVersion {
-                    id: 590616,
+                    id: 590_616,
                     name: "English/Japanese edition".into(),
                     alternate_names: vec![],
                     year_published: 2021,
                     image: "https://cf.geekdo-images.com/rt5qzjbrXq7PgI9IaRekNA__original/img/rh02vSdTIvg-oPr4ymQETCLUEjU=/0x0/filters:format(jpeg)/pic7227031.jpg".into(),
                     thumbnail: "https://cf.geekdo-images.com/rt5qzjbrXq7PgI9IaRekNA__thumb/img/HGNVOyEKBxZVl0Ry7YDwIcQ5vVc=/fit-in/200x150/filters:strip_icc()/pic7227031.jpg".into(),
                     original_game: Game {
-                        id: 352515,
+                        id: 352_515,
                         name: "Trio".into(),
                     },
                     publishers: vec![GamePublisher {
@@ -1062,7 +1062,7 @@ mod tests {
                         name: "Mob+ (Mob Plus)".into(),
                     }],
                     artists: vec![GameArtist {
-                        id: 108040,
+                        id: 108_040,
                         name: "別府さい (Sai Beppu)".into(),
                     }],
                     languages: vec![
@@ -1214,7 +1214,7 @@ mod tests {
             collection.items[0],
             CollectionItem {
                 id: 2281,
-                collection_id: 118280658,
+                collection_id: 118_280_658,
                 item_type: CollectionItemType::BoardGame,
                 name: "Pictionary".to_string(),
                 year_published: 1985,
@@ -1366,7 +1366,7 @@ mod tests {
             collection.items[0],
             CollectionItem {
                 id: 2281,
-                collection_id: 118280658,
+                collection_id: 118_280_658,
                 item_type: CollectionItemType::BoardGame,
                 name: "Pictionary".to_string(),
                 year_published: 1985,
@@ -1450,7 +1450,7 @@ mod tests {
 
         assert_eq!(collection.items.len(), 30);
         for game in collection.items {
-            assert!(game.stats.min_players <= 2 && game.stats.max_players >= 2)
+            assert!(game.stats.min_players <= 2 && game.stats.max_players >= 2);
         }
 
         // Looking for a game that supports 17 players, not in the collection. Nothing
@@ -1519,8 +1519,8 @@ mod tests {
         assert_eq!(
             collection.items[0],
             CollectionItem {
-                id: 142974,
-                collection_id: 122439219,
+                id: 142_974,
+                collection_id: 122_439_219,
                 item_type: CollectionItemType::BoardGameAccessory,
                 name: "12 Realms: Buildings Pack".to_string(),
                 year_published: 2013,
@@ -1573,7 +1573,7 @@ mod tests {
             collection.items[1],
             CollectionItem {
                 id: 22510,
-                collection_id: 122524875,
+                collection_id: 122_524_875,
                 item_type: CollectionItemType::BoardGameAccessory,
                 name: "Wings of War: Miniatures".to_string(),
                 year_published: 2007,

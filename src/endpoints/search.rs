@@ -190,7 +190,7 @@ mod tests {
         assert_eq!(
             search_results.results[0],
             SearchResult {
-                id: 312484,
+                id: 312_484,
                 item_type: ItemType::BoardGame,
                 name: "Lost Ruins of Arnak".into(),
                 year_published: Some(2020),
@@ -199,7 +199,7 @@ mod tests {
         assert_eq!(
             search_results.results[1],
             SearchResult {
-                id: 341254,
+                id: 341_254,
                 item_type: ItemType::BoardGameExpansion,
                 name: "Lost Ruins of Arnak: Expedition Leaders".into(),
                 year_published: Some(2021),
@@ -239,7 +239,7 @@ mod tests {
         assert_eq!(
             search_results.results[0],
             SearchResult {
-                id: 312484,
+                id: 312_484,
                 item_type: ItemType::BoardGame,
                 name: "Lost Ruins of Arnak".into(),
                 year_published: Some(2020),
@@ -337,7 +337,7 @@ mod tests {
         assert_eq!(
             search_results.results[0],
             SearchResult {
-                id: 341254,
+                id: 341_254,
                 item_type: ItemType::BoardGameExpansion,
                 name: "Lost Ruins of Arnak: Expedition Leaders".into(),
                 year_published: Some(2021),
@@ -377,7 +377,7 @@ mod tests {
         assert_eq!(
             search_results.results[0],
             SearchResult {
-                id: 312484,
+                id: 312_484,
                 item_type: ItemType::BoardGame,
                 name: "Lost Ruins of Arnak".into(),
                 year_published: Some(2020),
@@ -431,7 +431,7 @@ mod tests {
         assert_eq!(
             search_results.results[0],
             SearchResult {
-                id: 403238,
+                id: 403_238,
                 item_type: ItemType::BoardGameAccessory,
                 name: "Lost Ruins of Arnak + Expansions: The GiftForge Insert".into(),
                 year_published: Some(2023),
@@ -440,7 +440,7 @@ mod tests {
         assert_eq!(
             search_results.results[1],
             SearchResult {
-                id: 312484,
+                id: 312_484,
                 item_type: ItemType::BoardGame,
                 name: "Lost Ruins of Arnak".into(),
                 year_published: Some(2020),

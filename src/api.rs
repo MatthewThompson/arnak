@@ -182,8 +182,8 @@ mod tests {
             .create_async()
             .await;
 
-        let req = api.build_request("some_endpoint", &[]);
-        let res = api.send_request(req).await;
+        let request = api.build_request("some_endpoint", &[]);
+        let res = api.send_request(request).await;
 
         mock.assert_async().await;
         assert!(res.is_ok());
@@ -204,8 +204,8 @@ mod tests {
             .create_async()
             .await;
 
-        let req = api.build_request("some_endpoint", &[]);
-        let res = api.send_request(req).await;
+        let request = api.build_request("some_endpoint", &[]);
+        let res = api.send_request(request).await;
 
         mock.assert_async().await;
         assert!(res.is_err());
@@ -225,8 +225,8 @@ mod tests {
             .create_async()
             .await;
 
-        let req = api.build_request("some_endpoint", &[]);
-        let res = api.send_request(req).await;
+        let request = api.build_request("some_endpoint", &[]);
+        let res = api.send_request(request).await;
 
         mock.expect(1);
 
