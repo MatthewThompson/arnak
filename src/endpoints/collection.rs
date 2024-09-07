@@ -1623,4 +1623,38 @@ mod tests {
             "returned collection game doesn't match expected",
         );
     }
+
+    #[tokio::test]
+    async fn test_empty_collection() {
+        let mut server = mockito::Server::new_async().await;
+        let api = BoardGameGeekApi {
+            base_url: server.url(),
+            client: reqwest::Client::new(),
+        };
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".into(), "somename".into()),
+                Matcher::UrlEncoded("stats".into(), "1".into()),
+                Matcher::UrlEncoded("brief".into(), "0".into()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/collection/empty_collection.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let collection = api
+            .collection()
+            .get_from_query("somename", CollectionQueryParams::new())
+            .await;
+        mock.assert_async().await;
+
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+
+        assert_eq!(collection.items.len(), 0);
+    }
 }

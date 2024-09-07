@@ -17,7 +17,7 @@ pub struct Collection<T> {
     ///
     /// Note that accessories and games can never be returned together in one collection,
     /// but games and game expansions can.
-    #[serde(rename = "$value")]
+    #[serde(default = "Vec::new", rename = "$value")]
     pub items: Vec<T>,
 }
 
