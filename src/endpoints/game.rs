@@ -173,7 +173,8 @@ impl<'api> GameApi<'api> {
         }
     }
 
-    /// Searches for board games or expansions by given IDs. Can return both games and expansions together.
+    /// Searches for board games or expansions by given IDs. Can return both games and expansions
+    /// together.
     pub async fn get_by_ids(
         &self,
         ids: Vec<u64>,
