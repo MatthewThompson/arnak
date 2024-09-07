@@ -63,7 +63,7 @@ impl<'a> CollectionType<'a> for CollectionItem {
 
 /// Required query parameters. Any type the collection query can implement
 /// must be able to return a base query, so valid queries can be constructed
-/// for both [CollectionItem] and [CollectionItemBrief].
+/// for both [`CollectionItem`] and [`CollectionItemBrief`].
 #[derive(Clone, Debug)]
 pub struct BaseCollectionQuery<'q> {
     pub(crate) username: &'q str,
@@ -81,10 +81,10 @@ pub struct CollectionQueryParams {
     item_ids: Vec<u64>,
     /// Include only results for this item type.
     ///
-    /// Note, if this is set to [CollectionItemType::BoardGame] then it will include both
+    /// Note, if this is set to [`CollectionItemType::BoardGame`] then it will include both
     /// board games and expansions, but set the type of all of them to be
-    /// [CollectionItemType::BoardGame] in the results. Explicitly exclude
-    /// [CollectionItemType::BoardGameExpansion] to avoid this.
+    /// [`CollectionItemType::BoardGame`] in the results. Explicitly exclude
+    /// [`CollectionItemType::BoardGameExpansion`] to avoid this.
     item_type: Option<CollectionItemType>,
     /// Exclude results for this item type.
     exclude_item_type: Option<CollectionItemType>,
@@ -157,21 +157,21 @@ impl CollectionQueryParams {
         self
     }
 
-    /// Sets the item_type field, so that only that type of game will be
+    /// Sets the `item_type` parameter, so that only that type of game will be
     /// returned.
     pub fn item_type(mut self, item_type: CollectionItemType) -> Self {
         self.item_type = Some(item_type);
         self
     }
 
-    /// Set the exclude_item_type field, so that that type of game will be
+    /// Set the `exclude_item_type` parameter, so that that type of game will be
     /// excluded from. the results.
     pub fn exclude_item_type(mut self, exclude_item_type: CollectionItemType) -> Self {
         self.exclude_item_type = Some(exclude_item_type);
         self
     }
 
-    /// Sets the include_version_info field. If true the result will include version
+    /// Sets the `include_version_info` parameter. If true the result will include version
     /// info for the games that have it. For most games this will be empty still,
     /// but it will be set for games which are an alternative or translated
     /// version of an existing game.
@@ -180,155 +180,155 @@ impl CollectionQueryParams {
         self
     }
 
-    /// Sets the include_owned field. If true the result will include games that
-    /// the user owns. Unless all status fields are kept at None, then they are
+    /// Sets the `include_owned` parameter. If true the result will include games that
+    /// the user owns. Unless all status parameters are kept at None, then they are
     /// all included.
     pub fn include_owned(mut self, include_owned: bool) -> Self {
         self.include_owned = Some(include_owned);
         self
     }
 
-    /// Sets the include_previously_owned field. If true the result will include
-    /// games that the user owns. Unless all status fields are kept at None,
+    /// Sets the `include_previously_owned` parameter. If true the result will include
+    /// games that the user owns. Unless all status parameters are kept at None,
     /// then they are all included.
     pub fn include_previously_owned(mut self, include_previously_owned: bool) -> Self {
         self.include_previously_owned = Some(include_previously_owned);
         self
     }
 
-    /// Sets the include_for_trade field. If true the result will include games
-    /// that the user wants to trade away. Unless all status fields are kept
+    /// Sets the `include_for_trade` parameter. If true the result will include games
+    /// that the user wants to trade away. Unless all status parameters are kept
     /// at None, then they are all included.
     pub fn include_for_trade(mut self, include_for_trade: bool) -> Self {
         self.include_for_trade = Some(include_for_trade);
         self
     }
 
-    /// Sets the include_want_in_trade field. If true the result will include
+    /// Sets the `include_want_in_trade` parameter. If true the result will include
     /// games that the user wants to receive in a trade. Unless all status
-    /// fields are kept at None, then they are all included.
+    /// parameters are kept at None, then they are all included.
     pub fn include_want_in_trade(mut self, include_want_in_trade: bool) -> Self {
         self.include_want_in_trade = Some(include_want_in_trade);
         self
     }
 
-    /// Sets the include_want_to_play field. If true the result will include
-    /// games that the user wants to play. Unless all status fields are kept
+    /// Sets the `include_want_to_play` parameter. If true the result will include
+    /// games that the user wants to play. Unless all status parameters are kept
     /// at None, then they are all included.
     pub fn include_want_to_play(mut self, include_want_to_play: bool) -> Self {
         self.include_want_to_play = Some(include_want_to_play);
         self
     }
 
-    /// Sets the include_want_to_buy field. If true the result will include
-    /// games that the user wants to buy. Unless all status fields are kept
+    /// Sets the `include_want_to_buy` parameter. If true the result will include
+    /// games that the user wants to buy. Unless all status parameters are kept
     /// at None, then they are all included.
     pub fn include_want_to_buy(mut self, include_want_to_buy: bool) -> Self {
         self.include_want_to_buy = Some(include_want_to_buy);
         self
     }
 
-    /// Sets the include_preordered field. If true the result will include games
-    /// that the user wants to buy. Unless all status fields are kept at
+    /// Sets the `include_preordered` parameter. If true the result will include games
+    /// that the user wants to buy. Unless all status parameters are kept at
     /// None, then they are all included.
     pub fn include_preordered(mut self, include_preordered: bool) -> Self {
         self.include_preordered = Some(include_preordered);
         self
     }
 
-    /// Sets the include_wishlist field. If true the result will include the
-    /// games that the user has on their wishlist. Unless all status fields
+    /// Sets the `include_wishlist` parameter. If true the result will include the
+    /// games that the user has on their wishlist. Unless all status parameters
     /// are kept at None, then they are all included.
     pub fn include_wishlist(mut self, include_wishlist: bool) -> Self {
         self.include_wishlist = Some(include_wishlist);
         self
     }
 
-    /// Sets the wishlist_priority field. If set then only results with that
+    /// Sets the `wishlist_priority` parameter. If set then only results with that
     /// wishlist priority will be returned.
     pub fn wishlist_priority(mut self, wishlist_priority: WishlistPriority) -> Self {
         self.wishlist_priority = Some(wishlist_priority);
         self
     }
 
-    /// Sets the modified_since field. If set then only results that have been
+    /// Sets the `modified_since` parameter. If set then only results that have been
     /// modified since that date and time will be returned.
     pub fn modified_since(mut self, modified_since: NaiveDate) -> Self {
         self.modified_since = Some(modified_since);
         self
     }
 
-    /// Sets the include_rated_by_user field. If set then only results that
+    /// Sets the `include_rated_by_user` parameter. If set then only results that
     /// the user has rated will be returned.
     pub fn include_rated_by_user(mut self, include_rated_by_user: bool) -> Self {
         self.include_rated_by_user = Some(include_rated_by_user);
         self
     }
 
-    /// Sets the include_played_by_user field. If set then only results that
+    /// Sets the `include_played_by_user` parameter. If set then only results that
     /// the user has marked as having played will be returned.
     pub fn include_played_by_user(mut self, include_played_by_user: bool) -> Self {
         self.include_played_by_user = Some(include_played_by_user);
         self
     }
 
-    /// Sets the include_commented field. If set then only results that
+    /// Sets the `include_commented` parameter. If set then only results that
     /// the user has commented on will be returned.
     pub fn include_commented(mut self, include_commented: bool) -> Self {
         self.include_commented = Some(include_commented);
         self
     }
 
-    /// Sets the has_parts field. If set then only results that
-    /// the user has commented on the `Has Parts` field.
+    /// Sets the `has_parts` parameter. If set then only results that
+    /// the user has commented on the `Has Parts` parameter.
     pub fn has_parts(mut self, has_parts: bool) -> Self {
         self.has_parts = Some(has_parts);
         self
     }
 
-    /// Sets the want_parts field. If set then only results that
-    /// the user has commented on the `Want Parts` field.
+    /// Sets the `want_parts` parameter. If set then only results that
+    /// the user has commented on the `Want Parts` parameter.
     pub fn want_parts(mut self, want_parts: bool) -> Self {
         self.want_parts = Some(want_parts);
         self
     }
 
-    /// Sets the min_rating field. If set then only results that
+    /// Sets the `min_rating` parameter. If set then only results that
     /// the user has rated equal or greater than that value will be returned.
     pub fn min_rating(mut self, min_rating: f32) -> Self {
         self.min_rating = Some(min_rating);
         self
     }
 
-    /// Sets the max_rating field. If set then only results that
+    /// Sets the `max_rating` parameter. If set then only results that
     /// the user has rated equal or less than that value will be returned.
     pub fn max_rating(mut self, max_rating: f32) -> Self {
         self.max_rating = Some(max_rating);
         self
     }
 
-    /// Sets the min_bgg_rating field. If set then only results that
+    /// Sets the `min_bgg_rating` parameter. If set then only results that
     /// have a "Geek rating" equal or greater than that value will be returned.
     pub fn min_bgg_rating(mut self, min_bgg_rating: f32) -> Self {
         self.min_bgg_rating = Some(min_bgg_rating);
         self
     }
 
-    /// Sets the max_bgg_rating field. If set then only results that
+    /// Sets the `max_bgg_rating` parameter. If set then only results that
     /// have a "Geek rating" equal or less than that value will be returned.
     pub fn max_bgg_rating(mut self, max_bgg_rating: f32) -> Self {
         self.max_bgg_rating = Some(max_bgg_rating);
         self
     }
 
-    /// Sets the max_plays field. If set then only results that
+    /// Sets the `max_plays` parameter. If set then only results that
     /// have this many recorded plays by the user or more will be returned.
     pub fn min_plays(mut self, min_plays: u64) -> Self {
         self.min_plays = Some(min_plays);
         self
     }
 
-    /// Sets the max_plays field. If set then only results that
+    /// Sets the `max_plays` parameter. If set then only results that
     /// have this many recorded plays by the user or less will be returned.
     pub fn max_plays(mut self, max_plays: u64) -> Self {
         self.max_plays = Some(max_plays);
@@ -336,7 +336,7 @@ impl CollectionQueryParams {
     }
 
     // NOTE currently private until logging in can be done via the API.
-    /// Sets the show_private field. If set then private information about
+    /// Sets the `show_private` parameter. If set then private information about
     /// the collection will be returned. Only works if the user is logged in
     /// and requesting their own collection.
     #[allow(dead_code)]
@@ -345,7 +345,7 @@ impl CollectionQueryParams {
         self
     }
 
-    /// Sets the collection_id field. If set then results will be filtered
+    /// Sets the `collection_id` parameter. If set then results will be filtered
     /// to get the game with the specific collection ID.
     pub fn collection_id(mut self, collection_id: u64) -> Self {
         self.collection_id = Some(collection_id);
@@ -465,7 +465,7 @@ impl<'builder> CollectionQueryBuilder<'builder> {
 }
 
 /// Collection endpoint of the API. Used for returning user's collections
-/// of games by their username. Filtering by [crate::CollectionItemStatus], rating,
+/// of games by their username. Filtering by [`crate::CollectionItemStatus`], rating,
 /// recorded plays.
 pub struct CollectionApi<'api, T: CollectionType<'api>> {
     pub(crate) api: &'api BoardGameGeekApi,
@@ -484,8 +484,8 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
 
     /// Makes a request to a given user's collection with no additional parameters set.
     /// This will default to including board games and board game expansions, but the
-    /// [CollectionItemType] will be set to [CollectionItemType::BoardGame] for all results. This is
-    /// a "feature" of the underlying API.
+    /// [`CollectionItemType`] will be set to [`CollectionItemType::BoardGame`] for all results.
+    /// This is a "feature" of the underlying API.
     pub async fn get_all_games(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::new();
         self.get_from_query(username, query_params).await
@@ -520,8 +520,8 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
 
     /// Gets all the games that support any player counts in a given range.
     ///
-    /// Note that the minimum and maximum player count fields are not included for
-    /// [CollectionItemType::BoardGameAccessory], and will be defaulted to 0 in the result.
+    /// Note that the minimum and maximum player count parameters are not included for
+    /// [`CollectionItemType::BoardGameAccessory`], and will be defaulted to 0 in the result.
     pub async fn get_by_player_counts(
         &self,
         username: &'api str,
@@ -539,8 +539,8 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
 
     /// Gets all the games that support the given player count.
     ///
-    /// Note that the minimum and maximum player count fields are not included for
-    /// [CollectionItemType::BoardGameAccessory], and will be defaulted to 0 in the result.
+    /// Note that the minimum and maximum player count parameters are not included for
+    /// [`CollectionItemType::BoardGameAccessory`], and will be defaulted to 0 in the result.
     pub async fn get_by_player_count(
         &self,
         username: &'api str,
@@ -556,7 +556,7 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
         Ok(collection)
     }
 
-    /// Makes a request from a [CollectionQueryParams].
+    /// Makes a request from a [`CollectionQueryParams`].
     pub async fn get_from_query(
         &self,
         username: &'api str,

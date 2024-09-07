@@ -92,7 +92,7 @@ where
             "unable to parse duration minutes string to u32: {e}"
         ))
     });
-    minutes.map(|m| Duration::minutes(m as i64))
+    minutes.map(|m| Duration::minutes(i64::from(m)))
 }
 
 pub(crate) mod date_deserializer {

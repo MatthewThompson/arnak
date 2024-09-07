@@ -4,14 +4,14 @@ use std::fmt;
 use serde::Deserialize;
 use serde_xml_rs::from_str;
 
-/// A [std::result::Result] alias where the `Err` case is [Error].
+/// A [`std::result::Result`] alias where the `Err` case is [`Error`].
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// An error returned by the API.
 ///
-/// This is an enum representing either an http error [reqwest::Error], or an error parsing the
-/// output [serde_xml_rs::Error], or finally just a string. Which is typically returned in some case
-/// an error shouldn't happen.
+/// This is an enum representing either an http error [`reqwest::Error`], or an error parsing the
+/// output [`serde_xml_rs::Error`], or finally just a string. Which is typically returned in some
+/// case an error shouldn't happen.
 #[derive(Debug)]
 pub enum Error {
     /// An error was returned making the HTTP request, or an error
@@ -32,7 +32,7 @@ pub enum Error {
     UnexpectedResponseError(String),
     /// The username requested was not found.
     UnknownUsernameError,
-    /// Invalid value supplied for subtype ([crate::ItemType]) query parameter.
+    /// Invalid value supplied for subtype ([`crate::ItemType`]) query parameter.
     InvalidCollectionItemType,
     /// A generic not found error was returned from the underlying API.
     ///
@@ -58,13 +58,13 @@ impl From<serde_xml_rs::Error> for Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::HttpError(e) => write!(f, "error making request: {}", e),
+            Error::HttpError(e) => write!(f, "error making request: {e}"),
             Error::MaxRetryError(retries) => {
                 write!(f, "data still not ready after {retries} retries, aborting")
             },
-            Error::InvalidResponseError(e) => write!(f, "error parsing output: {}", e),
+            Error::InvalidResponseError(e) => write!(f, "error parsing output: {e}"),
             Error::UnexpectedResponseError(reason) => {
-                write!(f, "unexpected response from API, {}", reason)
+                write!(f, "unexpected response from API, {reason}")
             },
             Error::UnknownUsernameError => write!(f, "username not found"),
             Error::InvalidCollectionItemType => write!(f, "invalid collection item type provided"),

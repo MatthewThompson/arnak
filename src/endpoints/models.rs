@@ -71,7 +71,7 @@ impl Display for ItemType {
 
 /// The type of an item that can be returned from the collections endpoint.
 /// Either a board game, a board game expansion, or board game accessory, a subset ot
-/// [ItemType].
+/// [`ItemType`].
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum CollectionItemType {
@@ -97,7 +97,7 @@ impl Display for CollectionItemType {
 
 /// The type of a game.
 ///
-/// Either [GameType::BoardGame] for a normal board game or [GameType::BoardGameExpansion]
+/// Either [`GameType::BoardGame`] for a normal board game or [`GameType::BoardGameExpansion`]
 /// for an expansion of another existing board game.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
@@ -460,8 +460,7 @@ impl<'de> Deserialize<'de> for GameVersion {
                                 },
                                 link_type => {
                                     return Err(serde::de::Error::custom(format!(
-                                        "found unexpected \"{:?}\" link in version",
-                                        link_type
+                                        "found unexpected \"{link_type:?}\" link in version",
                                     )));
                                 },
                             }

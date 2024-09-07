@@ -36,13 +36,13 @@ impl GuildQueryParams {
         Self::default()
     }
 
-    /// Sets the include_member_page query parameter.
+    /// Sets the `include_member_page` query parameter.
     pub fn include_member_page(mut self, member_page: u64) -> Self {
         self.include_member_page = Some(member_page);
         self
     }
 
-    /// Sets the sort_by query parameter.
+    /// Sets the `sort_by` query parameter.
     pub fn sort_by(mut self, sort_by: GuildMemberSortBy) -> Self {
         self.sort_by = Some(sort_by);
         self

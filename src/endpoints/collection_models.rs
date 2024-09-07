@@ -487,9 +487,10 @@ impl<'de> Deserialize<'de> for CollectionItemRating {
     }
 }
 
-/// Type of game family,  [GameFamilyType::Subtype] is used for the `boardgame` family that includes
-/// all games. [GameFamilyType::Family] is used for everything else. Such as party games
-/// or strategy games.
+/// Type of game family.
+///
+/// [`GameFamilyType::Subtype`] is used for the `boardgame` family that includes all games.
+/// [`GameFamilyType::Family`] is used for everything else. Such as party games or strategy games.
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub enum GameFamilyType {
     /// Used only for the generic `boardgame` family that includes all games.
@@ -501,7 +502,7 @@ pub enum GameFamilyType {
 }
 
 /// A rank a particular board game has on the site, within a subtype. Can be
-/// either Ranked with a u64 for the rank, Or NotRanked.
+/// either Ranked with a u64 for the rank, Or `NotRanked`.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum RankValue {
     /// The rank of a game within a particular family of games, or all games. Where
