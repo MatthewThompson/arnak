@@ -101,7 +101,7 @@ pub struct GameDetails {
     ///
     /// Poll results for whether each number of players is recommended, not recommended,
     /// or best. Includes options outside of the suggested minimum and maximum player counts.
-    pub suggested_player_count: Poll,
+    pub suggested_player_count: SuggestedPlayerCountPoll,
     /// The amount of time the game is suggested to take to play.
     pub playing_time: Duration,
     /// Minimum amount of time the game is suggested to take to play.
@@ -113,13 +113,13 @@ pub struct GameDetails {
     /// The suggested number minimum suitable age for playing this game.
     ///
     /// Poll results for at which age is a suitable minimum age for playing this game.
-    pub suggested_player_age: Poll,
+    pub suggested_player_age: SuggestedPlayerAgePoll,
     /// The suggested dependence on knowing the game's language in order to be able to play it.
     ///
     /// Poll results, with five options, for whether the game can be played without knowing the
     /// language, if it does not have much in game text. Through being completely unplayable
     /// due to extensive text in the game.
-    pub suggested_language_dependence: Poll,
+    pub suggested_language_dependence: LanguageDependencePoll,
     // Categories and mechanics have IDs too, but I don't think it would be beneficial to include
     // them over just the names.
     /// A list of category names that this game belongs to.
@@ -234,40 +234,323 @@ struct StatsRatings {
     averageweight: XmlFloatValue,
 }
 
-/// A poll for users to vote on things such as the best player age and player count for the game.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct Poll {
-    /// Fixed slug name for the poll
-    pub name: String,
-    /// Pretty formatted title for the poll
+/// A user answered poll for how many players this game is best suited for.
+///
+/// Options typically include all player counts from 1 (even if the minimum player count is more
+/// than 1) all the way to the max player count and then an option for playing with more than the
+/// max.
+///
+/// For each player count users can vote on whether the option is not recommended, recommended, or
+/// best.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SuggestedPlayerCountPoll {
+    /// User friendly name for the poll.
     pub title: String,
-    /// List of results
-    pub results: Vec<PollResults>,
+    /// Total number of users who voted on this poll.
+    pub total_voters: u64,
+    /// Results for this poll, contains a separate vote for each player count option, including an
+    /// option for the max player count or above.
+    pub results: Vec<SuggestedPlayerCount>,
 }
 
-/// A results for a poll
+/// A suggested player count, along with community votes as to whether it is recommended or not.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SuggestedPlayerCount {
+    /// The number of players this vote result is for.
+    pub player_count: PlayerCount,
+    /// How many users voted this player count as the best option.
+    pub best_votes: u64,
+    /// How many users voted this player count as recommended.
+    pub recommended_votes: u64,
+    /// How many users voted this player count as not recommended.
+    pub not_recommended_votes: u64,
+}
+
+impl TryFrom<Poll> for SuggestedPlayerCountPoll {
+    // String as the error type, because this will be wrapped in a serde deserialize error during
+    // the deserialise step.
+    type Error = String;
+
+    fn try_from(poll: Poll) -> Result<Self, Self::Error> {
+        Ok(SuggestedPlayerCountPoll {
+            title: poll.title,
+            total_voters: poll.total_voters,
+            results: poll
+                .results
+                .into_iter()
+                .map(SuggestedPlayerCount::try_from)
+                .collect::<Result<Vec<SuggestedPlayerCount>, Self::Error>>()?,
+        })
+    }
+}
+
+impl TryFrom<PollResults> for SuggestedPlayerCount {
+    // String as the error type, because this will be wrapped in a serde deserialize error during
+    // the deserialise step.
+    type Error = String;
+
+    fn try_from(results: PollResults) -> Result<Self, Self::Error> {
+        let mut best_votes = None;
+        let mut recommended_votes = None;
+        let mut not_recommended_votes = None;
+        for vote_result in results.results {
+            match vote_result.value.as_str() {
+                "Best" => {
+                    best_votes = Some(vote_result.number_of_votes);
+                },
+                "Recommended" => {
+                    recommended_votes = Some(vote_result.number_of_votes);
+                },
+                "Not Recommended" => {
+                    not_recommended_votes = Some(vote_result.number_of_votes);
+                },
+                unexpected => {
+                    return Err(format!(
+                        "unexpected player count vote option: {}",
+                        unexpected
+                    ));
+                },
+            }
+        }
+        Ok(SuggestedPlayerCount {
+            player_count: results
+                .number_of_players
+                .ok_or("player count was `None` when `Some` was expected")?,
+            best_votes: best_votes.ok_or("value `Best` missing for player count vote")?,
+            recommended_votes: recommended_votes
+                .ok_or("value `Recommended` missing for player count vote")?,
+            not_recommended_votes: not_recommended_votes
+                .ok_or("value `Not Recommended` missing for player count vote")?,
+        })
+    }
+}
+
+/// A number of players for the purpose of voting on what the best player count for a game may be.
+///
+/// Can be either an exact number of players or a number or above. Voting options typically contain
+/// from 1 all the way to the max player count, and then an option for max player count or above.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum PlayerCount {
+    /// An exact number of players.
+    Players(u64),
+    /// This number of players or above.
+    PlayersOrAbove(u64),
+}
+
+impl<'de> Deserialize<'de> for PlayerCount {
+    fn deserialize<D>(deserializer: D) -> Result<PlayerCount, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        let s: String = serde::de::Deserialize::deserialize(deserializer)?;
+        if s.is_empty() {
+            return Err(serde::de::Error::custom(
+                "expected player count but got empty string",
+            ));
+        }
+        match s.chars().last() {
+            Some('+') => {
+                let players = s.replace('+', "").parse::<u64>().map_err(|e| {
+                    serde::de::Error::custom(format!("unable to parse player count to u64: {e}"))
+                })?;
+                Ok(PlayerCount::PlayersOrAbove(players))
+            },
+            Some(_) => {
+                let players = s.parse::<u64>().map_err(|e| {
+                    serde::de::Error::custom(format!("unable to parse player count to u64: {e}"))
+                })?;
+                Ok(PlayerCount::Players(players))
+            },
+            None => Err(serde::de::Error::custom(
+                "expected player count but got empty string",
+            )),
+        }
+    }
+}
+
+/// A user answered poll for the minimum player age this game is best suited for.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SuggestedPlayerAgePoll {
+    /// User friendly name for the poll.
+    pub title: String,
+    /// Total number of users who voted on this poll.
+    pub total_voters: u64,
+    /// Results for this poll, contains a separate vote for each age from 2, going up in 2s from 6.
+    /// And an option for 21 and up.
+    pub results: Vec<SuggestedPlayerAge>,
+}
+
+/// A suggested minimum player age, along with how many users voted for this age.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SuggestedPlayerAge {
+    /// The number of players this vote result is for.
+    pub player_age: PlayerAge,
+    /// How many users voted this player age as the most suitable minimum age to play this game.
+    pub votes: u64,
+}
+
+/// A minimum suitable age for playing a game.
+///
+/// Can be either an exact number age or a number or above.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum PlayerAge {
+    /// An exact player age.
+    Age(u64),
+    /// This age or above.
+    AgeOrAbove(u64),
+}
+
+impl TryFrom<Poll> for SuggestedPlayerAgePoll {
+    // String as the error type, because this will be wrapped in a serde deserialize error during
+    // the deserialise step.
+    type Error = String;
+
+    fn try_from(mut poll: Poll) -> Result<Self, Self::Error> {
+        if poll.results.len() != 1 {
+            return Err(format!(
+                "expected 1 set of results but got {}",
+                poll.results.len()
+            ));
+        }
+        let results = poll.results.remove(0).results;
+        Ok(SuggestedPlayerAgePoll {
+            title: poll.title,
+            total_voters: poll.total_voters,
+            results: results
+                .into_iter()
+                .map(|result| {
+                    Ok(SuggestedPlayerAge {
+                        player_age: result.value.try_into()?,
+                        votes: result.number_of_votes,
+                    })
+                })
+                .collect::<Result<Vec<SuggestedPlayerAge>, Self::Error>>()?,
+        })
+    }
+}
+
+impl TryFrom<String> for PlayerAge {
+    // String as the error type, because this will be wrapped in a serde deserialize error during
+    // the deserialise step.
+    type Error = String;
+
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        match s.strip_suffix(" and up") {
+            Some(age_string) => {
+                let player_age = age_string
+                    .parse::<u64>()
+                    .map_err(|e| format!("unable to parse player age to u64: {e}"))?;
+                Ok(PlayerAge::AgeOrAbove(player_age))
+            },
+            None => {
+                let player_age = s
+                    .parse::<u64>()
+                    .map_err(|e| format!("unable to parse player count to u64: {e}"))?;
+                Ok(PlayerAge::Age(player_age))
+            },
+        }
+    }
+}
+
+/// A user answered poll for how playable the game would be, should the player not speak the
+/// language.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct LanguageDependencePoll {
+    /// User friendly name for the poll.
+    pub title: String,
+    /// Total number of users who voted on this poll.
+    pub total_voters: u64,
+    /// Results for this poll, contains 5 levels of severity ranging from no necessary in game text
+    /// to being unplayable in another language.
+    pub results: Vec<LanguageDependence>,
+}
+
+/// A suggested minimum player age, along with how many users voted for this age.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct LanguageDependence {
+    /// Level of dependence where the higher the value the more dependent the game is on knowing
+    /// the language.
+    pub level: u64,
+    /// Description of how dependent the game is on the language used.
+    pub dependence: String,
+    /// How many users voted that the game has this level of language dependence.
+    pub votes: u64,
+}
+
+impl TryFrom<Poll> for LanguageDependencePoll {
+    // String as the error type, because this will be wrapped in a serde deserialize error during
+    // the deserialise step.
+    type Error = String;
+
+    fn try_from(mut poll: Poll) -> Result<Self, Self::Error> {
+        if poll.results.len() != 1 {
+            return Err(format!(
+                "expected 1 set of results but got {}",
+                poll.results.len()
+            ));
+        }
+        let results = poll.results.remove(0).results;
+        Ok(LanguageDependencePoll {
+            title: poll.title,
+            total_voters: poll.total_voters,
+            results: results
+                .into_iter()
+                .map(|result| {
+                    Ok(LanguageDependence {
+                        level: result.level.ok_or("missing language dependence level")?,
+                        dependence: result.value,
+                        votes: result.number_of_votes,
+                    })
+                })
+                .collect::<Result<Vec<LanguageDependence>, Self::Error>>()?,
+        })
+    }
+}
+
+// A poll for users to vote on things such as the best player age and player count for the game.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct PollResults {
-    /// List of results
+struct Poll {
+    // Fixed slug name for the poll.
+    name: String,
+    // Pretty formatted title for the poll.
+    title: String,
+    // The total number of users who have voted on this poll.
+    #[serde(rename = "totalvotes")]
+    total_voters: u64,
+    // List of results.
+    results: Vec<PollResults>,
+}
+
+// A results for a poll.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+struct PollResults {
+    // Only included in the player count vote, the number of players this vote result is for.
+    #[serde(default, rename = "numplayers")]
+    number_of_players: Option<PlayerCount>,
+    // List of results.
     #[serde(rename = "$value")]
-    pub results: Vec<PollResult>,
+    results: Vec<PollResult>,
 }
 
-/// A result for a poll
+// A result for a poll.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct PollResult {
-    /// Name of the vote option
-    pub value: String,
-    /// How many people voted for it
+struct PollResult {
+    // Only included for language dependence poll, level of dependence where the higher the value
+    // the more dependent the game is on knowing the language.
+    #[serde(default)]
+    level: Option<u64>,
+    // Name of the vote option.
+    value: String,
+    // How many people voted for it.
     #[serde(rename = "numvotes")]
-    pub number_of_votes: u64,
+    number_of_votes: u64,
 }
 
 // A list of videos. Define the type in xml that can be deserialised, but pull out the nested
-// list in the game details deserialise implementation
+// list in the game details deserialise implementation.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 struct VideosXml {
-    // List of videos, each in an XML tag called `video`
+    // List of videos, each in an XML tag called `video`.
     #[serde(rename = "$value")]
     videos: Vec<Video>,
 }
@@ -396,8 +679,9 @@ impl<'de> Deserialize<'de> for Video {
                                 return Err(serde::de::Error::duplicate_field("postdate"));
                             }
                             let date_string: String = map.next_value()?;
-                            let dt = NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S%:z")
-                                .map_err(serde::de::Error::custom)?;
+                            let dt =
+                                NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S%:z")
+                                    .map_err(serde::de::Error::custom)?;
                             post_date = Some(DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc));
                         },
                     }
@@ -412,7 +696,8 @@ impl<'de> Deserialize<'de> for Video {
                 let username =
                     username.ok_or_else(|| serde::de::Error::missing_field("username"))?;
                 let user_id = user_id.ok_or_else(|| serde::de::Error::missing_field("userid"))?;
-                let post_date = post_date.ok_or_else(|| serde::de::Error::missing_field("postdate"))?;
+                let post_date =
+                    post_date.ok_or_else(|| serde::de::Error::missing_field("postdate"))?;
 
                 Ok(Self::Value {
                     id,
@@ -874,7 +1159,6 @@ impl<'de> Deserialize<'de> for GameDetails {
                             }
                         },
                         Field::Poll => {
-                            // TODO split this into proper types for each of the 3 polls
                             let poll: Poll = map.next_value()?;
 
                             if poll.name == "suggested_numplayers" {
@@ -883,21 +1167,29 @@ impl<'de> Deserialize<'de> for GameDetails {
                                         "poll name=\"suggested_numplayers\"",
                                     ));
                                 }
-                                suggested_player_count = Some(poll);
+                                suggested_player_count =
+                                    Some(poll.try_into().map_err(serde::de::Error::custom)?);
                             } else if poll.name == "suggested_playerage" {
                                 if suggested_player_age.is_some() {
                                     return Err(serde::de::Error::duplicate_field(
                                         "poll name=\"suggested_playerage\"",
                                     ));
                                 }
-                                suggested_player_age = Some(poll);
+                                suggested_player_age =
+                                    Some(poll.try_into().map_err(serde::de::Error::custom)?);
                             } else if poll.name == "language_dependence" {
                                 if suggested_language_dependence.is_some() {
                                     return Err(serde::de::Error::duplicate_field(
                                         "poll name=\"language_dependence\"",
                                     ));
                                 }
-                                suggested_language_dependence = Some(poll);
+                                suggested_language_dependence =
+                                    Some(poll.try_into().map_err(serde::de::Error::custom)?);
+                            } else {
+                                return Err(serde::de::Error::custom(format!(
+                                    "unexpected poll name `{}`",
+                                    poll.name
+                                )));
                             }
                         },
                         Field::Statistics => {

@@ -204,8 +204,10 @@ mod tests {
     use crate::{
         Dimensions, Game, GameAccessory, GameArtist, GameCategory, GameCondition, GameDesigner,
         GameFamilyName, GameFamilyRank, GameFamilyType, GameMechanic, GamePublisher, GameStats,
-        GameType, GameVersion, Language, MarketplaceListing, Poll, PollResult, PollResults, Price,
-        RankValue, RatingComment, RatingCommentPage, User, Video, VideoCategory,
+        GameType, GameVersion, Language, LanguageDependence, LanguageDependencePoll,
+        MarketplaceListing, PlayerAge, PlayerCount, Price, RankValue, RatingComment,
+        RatingCommentPage, SuggestedPlayerAge, SuggestedPlayerAgePoll, SuggestedPlayerCount,
+        SuggestedPlayerCountPoll, User, Video, VideoCategory,
     };
 
     #[tokio::test]
@@ -252,44 +254,39 @@ mod tests {
                 year_published: 2020,
                 min_players: 1,
                 max_players: 4,
-                suggested_player_count: Poll {
-                    name: "suggested_numplayers".to_owned(),
+                suggested_player_count: SuggestedPlayerCountPoll {
                     title: "User Suggested Number of Players".to_owned(),
+                    total_voters: 889,
                     results: vec![
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "Best".to_owned(), number_of_votes: 88 },
-                                PollResult { value: "Recommended".to_owned(), number_of_votes: 337 },
-                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 126 },
-                            ],
+                        SuggestedPlayerCount {
+                            player_count: PlayerCount::Players(1),
+                            best_votes: 88,
+                            recommended_votes: 337,
+                            not_recommended_votes: 126,
                         },
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "Best".to_owned(), number_of_votes: 225 },
-                                PollResult { value: "Recommended".to_owned(), number_of_votes: 506 },
-                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 35 },
-                            ],
+                        SuggestedPlayerCount {
+                            player_count: PlayerCount::Players(2),
+                            best_votes: 225,
+                            recommended_votes: 506,
+                            not_recommended_votes: 35,
                         },
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "Best".to_owned(), number_of_votes: 512},
-                                PollResult { value: "Recommended".to_owned(), number_of_votes: 202},
-                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 12},
-                            ],
+                        SuggestedPlayerCount {
+                            player_count: PlayerCount::Players(3),
+                            best_votes: 512,
+                            recommended_votes: 202,
+                            not_recommended_votes: 12,
                         },
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "Best".to_owned(), number_of_votes: 176 },
-                                PollResult { value: "Recommended".to_owned(), number_of_votes: 385 },
-                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 95 },
-                            ],
+                        SuggestedPlayerCount {
+                            player_count: PlayerCount::Players(4),
+                            best_votes: 176,
+                            recommended_votes: 385,
+                            not_recommended_votes: 95,
                         },
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "Best".to_owned(), number_of_votes: 1 },
-                                PollResult { value: "Recommended".to_owned(), number_of_votes: 0 },
-                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 361 },
-                            ],
+                        SuggestedPlayerCount {
+                            player_count: PlayerCount::PlayersOrAbove(4),
+                            best_votes: 1,
+                            recommended_votes: 0,
+                            not_recommended_votes: 361,
                         },
                     ],
                 },
@@ -297,35 +294,68 @@ mod tests {
                 min_playtime: Duration::minutes(30),
                 max_playtime: Duration::minutes(120),
                 min_age: 12,
-                suggested_player_age: Poll {
-                    name: "suggested_playerage".to_owned(),
+                suggested_player_age: SuggestedPlayerAgePoll {
                     title: "User Suggested Player Age".to_owned(),
+                    total_voters: 178,
                     results: vec![
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "6".to_owned(), number_of_votes: 3 },
-                                PollResult { value: "8".to_owned(), number_of_votes: 17 },
-                                PollResult { value: "10".to_owned(), number_of_votes: 75 },
-                                PollResult { value: "14".to_owned(), number_of_votes: 10 },
-                                PollResult { value: "16".to_owned(), number_of_votes: 1 },
-                                PollResult { value: "18".to_owned(), number_of_votes: 0 },
-                                PollResult { value: "21 and up".to_owned(), number_of_votes: 0 },
-                            ],
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::Age(6),
+                            votes: 3,
+                        },
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::Age(8),
+                            votes: 17,
+                        },
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::Age(10),
+                            votes: 75,
+                        },
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::Age(14),
+                            votes: 10,
+                        },
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::Age(16),
+                            votes: 1,
+                        },
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::Age(18),
+                            votes: 0,
+                        },
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::AgeOrAbove(21),
+                            votes: 0,
                         },
                     ],
                 },
-                suggested_language_dependence: Poll {
-                    name: "language_dependence".to_owned(),
+                suggested_language_dependence: LanguageDependencePoll {
                     title: "Language Dependence".to_owned(),
+                    total_voters: 39,
                     results: vec![
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "No necessary in-game text".to_owned(), number_of_votes: 0 },
-                                PollResult { value: "Some necessary text - easily memorized or small crib sheet".to_owned(), number_of_votes: 4 },
-                                PollResult { value: "Moderate in-game text - needs crib sheet or paste ups".to_owned(), number_of_votes: 28 },
-                                PollResult { value: "Extensive use of text - massive conversion needed to be playable".to_owned(), number_of_votes: 5 },
-                                PollResult { value: "Unplayable in another language".to_owned(), number_of_votes: 2 },
-                            ],
+                        LanguageDependence {
+                            level: 1,
+                            dependence: "No necessary in-game text".to_owned(),
+                            votes: 0,
+                        },
+                        LanguageDependence {
+                            level: 2,
+                            dependence: "Some necessary text - easily memorized or small crib sheet".to_owned(),
+                            votes: 4,
+                        },
+                        LanguageDependence {
+                            level: 3,
+                            dependence: "Moderate in-game text - needs crib sheet or paste ups".to_owned(),
+                            votes: 28,
+                        },
+                        LanguageDependence {
+                            level: 4,
+                            dependence: "Extensive use of text - massive conversion needed to be playable".to_owned(),
+                            votes: 5,
+                        },
+                        LanguageDependence {
+                            level: 5,
+                            dependence: "Unplayable in another language".to_owned(),
+                            votes: 2,
                         },
                     ],
                 },
@@ -483,44 +513,39 @@ mod tests {
                 year_published: 2021,
                 min_players: 1,
                 max_players: 4,
-                suggested_player_count: Poll {
-                    name: "suggested_numplayers".to_owned(),
+                suggested_player_count: SuggestedPlayerCountPoll {
                     title: "User Suggested Number of Players".to_owned(),
+                    total_voters: 87,
                     results: vec![
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "Best".to_owned(), number_of_votes: 8 },
-                                PollResult { value: "Recommended".to_owned(), number_of_votes: 45 },
-                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 16 },
-                            ],
+                        SuggestedPlayerCount {
+                            player_count: PlayerCount::Players(1),
+                            best_votes: 8,
+                            recommended_votes: 45,
+                            not_recommended_votes: 16,
                         },
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "Best".to_owned(), number_of_votes: 26 },
-                                PollResult { value: "Recommended".to_owned(), number_of_votes: 50 },
-                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 1 },
-                            ],
+                        SuggestedPlayerCount {
+                            player_count: PlayerCount::Players(2),
+                            best_votes: 26,
+                            recommended_votes: 50,
+                            not_recommended_votes: 1,
                         },
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "Best".to_owned(), number_of_votes: 53 },
-                                PollResult { value: "Recommended".to_owned(), number_of_votes: 18 },
-                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 1 },
-                            ],
+                        SuggestedPlayerCount {
+                            player_count: PlayerCount::Players(3),
+                            best_votes: 53,
+                            recommended_votes: 18,
+                            not_recommended_votes: 1,
                         },
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "Best".to_owned(), number_of_votes: 15 },
-                                PollResult { value: "Recommended".to_owned(), number_of_votes: 44 },
-                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 9 },
-                            ],
+                        SuggestedPlayerCount {
+                            player_count: PlayerCount::Players(4),
+                            best_votes: 15,
+                            recommended_votes: 44,
+                            not_recommended_votes: 9,
                         },
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "Best".to_owned(), number_of_votes: 0 },
-                                PollResult { value: "Recommended".to_owned(), number_of_votes: 1 },
-                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 42 },
-                            ],
+                        SuggestedPlayerCount {
+                            player_count: PlayerCount::PlayersOrAbove(4),
+                            best_votes: 0,
+                            recommended_votes: 1,
+                            not_recommended_votes: 42,
                         },
                     ],
                 },
@@ -528,35 +553,68 @@ mod tests {
                 min_playtime: Duration::minutes(30),
                 max_playtime: Duration::minutes(120),
                 min_age: 12,
-                suggested_player_age: Poll {
-                    name: "suggested_playerage".to_owned(),
+                suggested_player_age: SuggestedPlayerAgePoll {
                     title: "User Suggested Player Age".to_owned(),
+                    total_voters: 20,
                     results: vec![
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "6".to_owned(), number_of_votes: 0 },
-                                PollResult { value: "8".to_owned(), number_of_votes: 0 },
-                                PollResult { value: "10".to_owned(), number_of_votes: 6 },
-                                PollResult { value: "14".to_owned(), number_of_votes: 1 },
-                                PollResult { value: "16".to_owned(), number_of_votes: 0 },
-                                PollResult { value: "18".to_owned(), number_of_votes: 0 },
-                                PollResult { value: "21 and up".to_owned(), number_of_votes: 0 },
-                            ],
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::Age(6),
+                            votes: 0,
+                        },
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::Age(8),
+                            votes: 0,
+                        },
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::Age(10),
+                            votes: 6,
+                        },
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::Age(14),
+                            votes: 1,
+                        },
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::Age(16),
+                            votes: 0,
+                        },
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::Age(18),
+                            votes: 0,
+                        },
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::AgeOrAbove(21),
+                            votes: 0,
                         },
                     ],
                 },
-                suggested_language_dependence: Poll {
-                    name: "language_dependence".to_owned(),
+                suggested_language_dependence: LanguageDependencePoll {
                     title: "Language Dependence".to_owned(),
+                    total_voters: 6,
                     results: vec![
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "No necessary in-game text".to_owned(), number_of_votes: 0 },
-                                PollResult { value: "Some necessary text - easily memorized or small crib sheet".to_owned(), number_of_votes: 0 },
-                                PollResult { value: "Moderate in-game text - needs crib sheet or paste ups".to_owned(), number_of_votes: 5 },
-                                PollResult { value: "Extensive use of text - massive conversion needed to be playable".to_owned(), number_of_votes: 0 },
-                                PollResult { value: "Unplayable in another language".to_owned(), number_of_votes: 1 },
-                            ],
+                        LanguageDependence {
+                            level: 1,
+                            dependence: "No necessary in-game text".to_owned(),
+                            votes: 0,
+                        },
+                        LanguageDependence {
+                            level: 2,
+                            dependence: "Some necessary text - easily memorized or small crib sheet".to_owned(),
+                            votes: 0,
+                        },
+                        LanguageDependence {
+                            level: 3,
+                            dependence: "Moderate in-game text - needs crib sheet or paste ups".to_owned(),
+                            votes: 5,
+                        },
+                        LanguageDependence {
+                            level: 4,
+                            dependence: "Extensive use of text - massive conversion needed to be playable".to_owned(),
+                            votes: 0,
+                        },
+                        LanguageDependence {
+                            level: 5,
+                            dependence: "Unplayable in another language".to_owned(),
+                            votes: 1,
                         },
                     ],
                 },
@@ -727,44 +785,39 @@ mod tests {
                 year_published: 2020,
                 min_players: 1,
                 max_players: 4,
-                suggested_player_count: Poll {
-                    name: "suggested_numplayers".to_owned(),
+                suggested_player_count: SuggestedPlayerCountPoll {
                     title: "User Suggested Number of Players".to_owned(),
+                    total_voters: 889,
                     results: vec![
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "Best".to_owned(), number_of_votes: 88 },
-                                PollResult { value: "Recommended".to_owned(), number_of_votes: 337 },
-                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 126 },
-                            ],
+                        SuggestedPlayerCount {
+                            player_count: PlayerCount::Players(1),
+                            best_votes: 88,
+                            recommended_votes: 337,
+                            not_recommended_votes: 126,
                         },
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "Best".to_owned(), number_of_votes: 225 },
-                                PollResult { value: "Recommended".to_owned(), number_of_votes: 506 },
-                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 35 },
-                            ],
+                        SuggestedPlayerCount {
+                            player_count: PlayerCount::Players(2),
+                            best_votes: 225,
+                            recommended_votes: 506,
+                            not_recommended_votes: 35,
                         },
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "Best".to_owned(), number_of_votes: 512},
-                                PollResult { value: "Recommended".to_owned(), number_of_votes: 202},
-                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 12},
-                            ],
+                        SuggestedPlayerCount {
+                            player_count: PlayerCount::Players(3),
+                            best_votes: 512,
+                            recommended_votes: 202,
+                            not_recommended_votes: 12,
                         },
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "Best".to_owned(), number_of_votes: 176 },
-                                PollResult { value: "Recommended".to_owned(), number_of_votes: 385 },
-                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 95 },
-                            ],
+                        SuggestedPlayerCount {
+                            player_count: PlayerCount::Players(4),
+                            best_votes: 176,
+                            recommended_votes: 385,
+                            not_recommended_votes: 95,
                         },
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "Best".to_owned(), number_of_votes: 1 },
-                                PollResult { value: "Recommended".to_owned(), number_of_votes: 0 },
-                                PollResult { value: "Not Recommended".to_owned(), number_of_votes: 361 },
-                            ],
+                        SuggestedPlayerCount {
+                            player_count: PlayerCount::PlayersOrAbove(4),
+                            best_votes: 1,
+                            recommended_votes: 0,
+                            not_recommended_votes: 361,
                         },
                     ],
                 },
@@ -772,35 +825,68 @@ mod tests {
                 min_playtime: Duration::minutes(30),
                 max_playtime: Duration::minutes(120),
                 min_age: 12,
-                suggested_player_age: Poll {
-                    name: "suggested_playerage".to_owned(),
+                suggested_player_age: SuggestedPlayerAgePoll {
                     title: "User Suggested Player Age".to_owned(),
+                    total_voters: 178,
                     results: vec![
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "6".to_owned(), number_of_votes: 3 },
-                                PollResult { value: "8".to_owned(), number_of_votes: 17 },
-                                PollResult { value: "10".to_owned(), number_of_votes: 75 },
-                                PollResult { value: "14".to_owned(), number_of_votes: 10 },
-                                PollResult { value: "16".to_owned(), number_of_votes: 1 },
-                                PollResult { value: "18".to_owned(), number_of_votes: 0 },
-                                PollResult { value: "21 and up".to_owned(), number_of_votes: 0 },
-                            ],
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::Age(6),
+                            votes: 3,
+                        },
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::Age(8),
+                            votes: 17,
+                        },
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::Age(10),
+                            votes: 75,
+                        },
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::Age(14),
+                            votes: 10,
+                        },
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::Age(16),
+                            votes: 1,
+                        },
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::Age(18),
+                            votes: 0,
+                        },
+                        SuggestedPlayerAge {
+                            player_age: PlayerAge::AgeOrAbove(21),
+                            votes: 0,
                         },
                     ],
                 },
-                suggested_language_dependence: Poll {
-                    name: "language_dependence".to_owned(),
+                suggested_language_dependence: LanguageDependencePoll {
                     title: "Language Dependence".to_owned(),
+                    total_voters: 39,
                     results: vec![
-                        PollResults {
-                            results: vec![
-                                PollResult { value: "No necessary in-game text".to_owned(), number_of_votes: 0 },
-                                PollResult { value: "Some necessary text - easily memorized or small crib sheet".to_owned(), number_of_votes: 4 },
-                                PollResult { value: "Moderate in-game text - needs crib sheet or paste ups".to_owned(), number_of_votes: 28 },
-                                PollResult { value: "Extensive use of text - massive conversion needed to be playable".to_owned(), number_of_votes: 5 },
-                                PollResult { value: "Unplayable in another language".to_owned(), number_of_votes: 2 },
-                            ],
+                        LanguageDependence {
+                            level: 1,
+                            dependence: "No necessary in-game text".to_owned(),
+                            votes: 0,
+                        },
+                        LanguageDependence {
+                            level: 2,
+                            dependence: "Some necessary text - easily memorized or small crib sheet".to_owned(),
+                            votes: 4,
+                        },
+                        LanguageDependence {
+                            level: 3,
+                            dependence: "Moderate in-game text - needs crib sheet or paste ups".to_owned(),
+                            votes: 28,
+                        },
+                        LanguageDependence {
+                            level: 4,
+                            dependence: "Extensive use of text - massive conversion needed to be playable".to_owned(),
+                            votes: 5,
+                        },
+                        LanguageDependence {
+                            level: 5,
+                            dependence: "Unplayable in another language".to_owned(),
+                            votes: 2,
                         },
                     ],
                 },
