@@ -306,10 +306,10 @@ pub(crate) struct VersionsXml {
     pub(crate) versions: Vec<GameVersion>,
 }
 
-/// Information about a game which is a version or
-/// re-implementation of another game, including the link to the
-/// original. Often this may be a translated version of a game. It is not the same as an expansion
-/// for a game.
+/// Information about a game which is a version or re-implementation of another game, including the
+/// link to the original.
+///
+/// Often this may be a translated version of a game. It is not the same as an expansion for a game.
 #[derive(Clone, Debug, PartialEq)]
 pub struct GameVersion {
     /// The ID of this game.
