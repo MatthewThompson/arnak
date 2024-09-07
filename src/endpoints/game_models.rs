@@ -53,7 +53,7 @@ impl<'de> Deserialize<'de> for Games {
                         Field::Script => {
                             // Sometimes there is an empty script tag before the list of items.
                             // Nothing to do, skip past.
-                            map.next_value()?;
+                            map.next_value::<()>()?;
                         },
                         Field::Item => {
                             games.push(map.next_value()?);
