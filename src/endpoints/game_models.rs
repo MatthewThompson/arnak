@@ -13,11 +13,11 @@ use crate::utils::{
 };
 use crate::{NameType, VersionsXml};
 
-/// A list of requested games with the full details.
+// A struct containing the list of requested games with the full details.
 #[derive(Clone, Debug)]
-pub struct Games {
-    /// List of games.
-    pub games: Vec<GameDetails>,
+pub(crate) struct Games {
+    // List of games.
+    pub(crate) games: Vec<GameDetails>,
 }
 
 impl<'de> Deserialize<'de> for Games {
