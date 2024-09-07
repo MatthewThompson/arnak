@@ -59,12 +59,12 @@ mod tests {
         assert_eq!(
             hot_list.games[0],
             HotListGame {
-                id: 359871,
+                id: 359_871,
                 rank: 1,
                 thumbnail: "https://cf.geekdo-images.com/XWImAu_3RK61wbzcKboVdA__thumb/img/Ry-6KHwNgERWadyxs1X1_P3dMvY=/fit-in/200x150/filters:strip_icc()/pic8145530.png".into(),
                 name: "Arcs".into(),
                 year_published: 2024,
-            }
-        )
+            },
+        );
     }
 }

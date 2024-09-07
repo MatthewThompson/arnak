@@ -19,6 +19,7 @@
 //! })
 //! ```
 
+#![deny(clippy::pedantic, clippy::cargo)]
 #![allow(
     // Collection status would indeed be better as an enum, but the problem is that it is technically allowed for the
     // user to have a game as multiple statuses in their collection.
