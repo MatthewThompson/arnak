@@ -14,57 +14,11 @@ use crate::utils::{
 use crate::{NameType, VersionsXml};
 
 // A struct containing the list of requested games with the full details.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize)]
 pub(crate) struct Games {
     // List of games.
+    #[serde(default, rename = "item")]
     pub(crate) games: Vec<GameDetails>,
-}
-
-impl<'de> Deserialize<'de> for Games {
-    fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        #[derive(Deserialize)]
-        #[serde(field_identifier, rename_all = "lowercase")]
-        enum Field {
-            TermsOfUse,
-            Script,
-            Item,
-        }
-
-        struct GamesVisitor;
-
-        impl<'de> serde::de::Visitor<'de> for GamesVisitor {
-            type Value = Games;
-
-            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                formatter.write_str("an XML object for a list of board games returned by the `thing` endpoint from boardgamegeek")
-            }
-
-            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-            where
-                A: serde::de::MapAccess<'de>,
-            {
-                let mut games = vec![];
-                while let Some(key) = map.next_key()? {
-                    match key {
-                        Field::TermsOfUse => {
-                            // Consume and ignore
-                            map.next_value::<String>()?;
-                        },
-                        Field::Script => {
-                            // Sometimes there is an empty script tag before the list of items.
-                            // Nothing to do, skip past.
-                            map.next_value::<()>()?;
-                        },
-                        Field::Item => {
-                            games.push(map.next_value()?);
-                        },
-                    }
-                }
-                Ok(Self::Value { games })
-            }
-        }
-        deserializer.deserialize_any(GamesVisitor)
-    }
 }
 
 /// A game, or expansion, with full details.
