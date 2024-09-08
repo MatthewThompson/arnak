@@ -1,61 +1,46 @@
 use super::{ItemType, SearchResults};
 use crate::{BoardGameGeekApi, IntoQueryParam, QueryParam, Result};
 
-/// All optional query parameters for making a request to the
-/// search endpoint.
+// All optional query parameters for making a request to the
+// search endpoint.
 #[derive(Clone, Debug, Default)]
-pub struct SearchQueryParams {
-    /// Include only results for the provided item types. If none are provided
-    /// then it will default to [`ItemType::BoardGame`].
-    ///
-    /// Note, if this is set to [`ItemType::BoardGame`], or left unset, then it will include both
-    /// board games and expansions, but set the type of all of them to be
-    /// [`ItemType::BoardGame`] in the results. There does not seem to be a way
-    /// around this.
+struct SearchQueryParams {
+    // Include only results for the provided item types. If none are provided
+    // then it will default to [`ItemType::BoardGame`].
+    //
+    // Note, if this is set to [`ItemType::BoardGame`], or left unset, then it will include both
+    // board games and expansions, but set the type of all of them to be
+    // [`ItemType::BoardGame`] in the results. There does not seem to be a way
+    // around this.
     item_types: Vec<ItemType>,
-    /// Limit results to only exact matches of the search query.
+    // Limit results to only exact matches of the search query.
     exact: Option<bool>,
 }
 
 impl SearchQueryParams {
-    /// Constructs a new search query with parameters set to None.
-    pub fn new() -> Self {
+    // Constructs a new search query with parameters set to None.
+    fn new() -> Self {
         Self::default()
     }
 
-    /// Adds an item to the `item_type` query param, so that that type of
-    /// item will be returned from the search. It should be noted that if [`ItemType::BoardGame`]
-    /// is chosen then this will return both board games and board game expansions,
-    /// with the type set to board game for both.
-    ///
-    /// If the parameter is omitted then it will default to [`ItemType::BoardGame`].
-    ///
-    /// If the parameter includes both [`ItemType::BoardGame`], and [`ItemType::BoardGameExpansion`]
-    /// then board game expansions will be returned twice, once with the type
-    /// [`ItemType::BoardGame`] and once with the type [`ItemType::BoardGameExpansion`].
-    pub fn item_type(mut self, item_type: ItemType) -> Self {
-        self.item_types.push(item_type);
-        self
-    }
-
-    /// Adds a list of item types to the `item_types` query param, so that items of these types
-    /// will be returned from the search. It should be noted that if [`ItemType::BoardGame`]
-    /// is chosen then this will return both board games and board game expansions,
-    /// with the type set to board game for both.
-    ///
-    /// If the parameter is omitted then it will default to [`ItemType::BoardGame`].
-    ///
-    /// If the parameter includes both [`ItemType::BoardGame`], and [`ItemType::BoardGameExpansion`]
-    /// then board game expansions will be returned twice, once with the type
-    /// [`ItemType::BoardGame`] and once with the type [`ItemType::BoardGameExpansion`].
-    pub fn item_types(mut self, item_types: Vec<ItemType>) -> Self {
+    // Adds a list of item types to the `item_types` query param, so that items of these types
+    // will be returned from the search. It should be noted that if [`ItemType::BoardGame`]
+    // is chosen then this will return both board games and board game expansions,
+    // with the type set to board game for both.
+    //
+    // If the parameter is omitted then it will default to [`ItemType::BoardGame`].
+    //
+    // If the parameter includes both [`ItemType::BoardGame`], and [`ItemType::BoardGameExpansion`]
+    // then board game expansions will be returned twice, once with the type
+    // [`ItemType::BoardGame`] and once with the type [`ItemType::BoardGameExpansion`].
+    fn item_types(mut self, item_types: Vec<ItemType>) -> Self {
         self.item_types.extend(item_types);
         self
     }
 
-    /// Sets the `exact` query param, so that exact matches will be returned if
-    /// set to true.
-    pub fn exact(mut self, exact: bool) -> Self {
+    // Sets the `exact` query param, so that exact matches will be returned if
+    // set to true.
+    fn exact(mut self, exact: bool) -> Self {
         self.exact = Some(exact);
         self
     }
@@ -119,7 +104,7 @@ impl<'api> SearchApi<'api> {
     /// and expansions. However, expansions will be included in the results twice,
     /// once with the type [`ItemType::BoardGame`] and once with the type
     /// [`ItemType::BoardGameExpansion`].
-    pub async fn search(&self, query: &str) -> Result<SearchResults> {
+    pub async fn search_games(&self, query: &str) -> Result<SearchResults> {
         let query = SearchQueryBuilder::new(query, SearchQueryParams::new());
 
         let request = self.api.build_request(self.endpoint, &query.build());
@@ -131,7 +116,7 @@ impl<'api> SearchApi<'api> {
     /// and expansions. However, expansions will be included in the results twice,
     /// once with the type [`ItemType::BoardGame`] and once with the type
     /// [`ItemType::BoardGameExpansion`].
-    pub async fn search_exact(&self, query: &str) -> Result<SearchResults> {
+    pub async fn search_games_exact(&self, query: &str) -> Result<SearchResults> {
         let query = SearchQueryBuilder::new(query, SearchQueryParams::new().exact(true));
 
         let request = self.api.build_request(self.endpoint, &query.build());
@@ -139,12 +124,23 @@ impl<'api> SearchApi<'api> {
     }
 
     /// Makes a request from a [`SearchQueryParams`].
-    pub async fn search_with_query_params(
+    pub async fn search(&self, query: &str, item_types: Vec<ItemType>) -> Result<SearchResults> {
+        let query = SearchQueryBuilder::new(query, SearchQueryParams::new().item_types(item_types));
+
+        let request = self.api.build_request(self.endpoint, &query.build());
+        self.api.execute_request::<SearchResults>(request).await
+    }
+
+    /// Makes a request from a [`SearchQueryParams`].
+    pub async fn search_exact(
         &self,
         query: &str,
-        query_params: SearchQueryParams,
+        item_types: Vec<ItemType>,
     ) -> Result<SearchResults> {
-        let query = SearchQueryBuilder::new(query, query_params);
+        let query = SearchQueryBuilder::new(
+            query,
+            SearchQueryParams::new().item_types(item_types).exact(true),
+        );
 
         let request = self.api.build_request(self.endpoint, &query.build());
         self.api.execute_request::<SearchResults>(request).await
@@ -159,7 +155,7 @@ mod tests {
     use crate::{ItemType, SearchResult};
 
     #[tokio::test]
-    async fn search() {
+    async fn search_games() {
         let mut server = mockito::Server::new_async().await;
         let api = BoardGameGeekApi {
             base_url: server.url(),
@@ -180,7 +176,7 @@ mod tests {
             .create_async()
             .await;
 
-        let search_results = api.search().search("some search term").await;
+        let search_results = api.search().search_games("some search term").await;
         mock.assert_async().await;
 
         assert!(search_results.is_ok(), "error returned when okay expected");
@@ -208,7 +204,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn search_exact() {
+    async fn search_games_exact() {
         let mut server = mockito::Server::new_async().await;
         let api = BoardGameGeekApi {
             base_url: server.url(),
@@ -229,7 +225,7 @@ mod tests {
             .create_async()
             .await;
 
-        let search_results = api.search().search_exact("lost ruins of arnak").await;
+        let search_results = api.search().search_games_exact("lost ruins of arnak").await;
         mock.assert_async().await;
 
         assert!(search_results.is_ok(), "error returned when okay expected");
@@ -269,7 +265,7 @@ mod tests {
             .create_async()
             .await;
 
-        let search_results = api.search().search("a").await;
+        let search_results = api.search().search_games("a").await;
         mock.assert_async().await;
 
         assert!(search_results.is_ok(), "error returned when okay expected");
@@ -297,7 +293,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn search_with_query_params() {
+    async fn search() {
         let mut server = mockito::Server::new_async().await;
         let api = BoardGameGeekApi {
             base_url: server.url(),
@@ -308,7 +304,6 @@ mod tests {
             .mock("GET", "/search")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("query".into(), "arnak".into()),
-                Matcher::UrlEncoded("exact".into(), "0".into()),
                 Matcher::UrlEncoded("type".into(), "boardgameexpansion".into()),
             ]))
             .with_status(200)
@@ -321,12 +316,7 @@ mod tests {
 
         let search_results = api
             .search()
-            .search_with_query_params(
-                "arnak",
-                SearchQueryParams::new()
-                    .item_type(ItemType::BoardGameExpansion)
-                    .exact(false),
-            )
+            .search("arnak", vec![ItemType::BoardGameExpansion])
             .await;
         mock.assert_async().await;
 
@@ -343,6 +333,15 @@ mod tests {
                 year_published: Some(2021),
             },
         );
+    }
+
+    #[tokio::test]
+    async fn search_exact() {
+        let mut server = mockito::Server::new_async().await;
+        let api = BoardGameGeekApi {
+            base_url: server.url(),
+            client: reqwest::Client::new(),
+        };
 
         let mock = server
             .mock("GET", "/search")
@@ -361,12 +360,7 @@ mod tests {
 
         let search_results = api
             .search()
-            .search_with_query_params(
-                "lost ruins of arnak",
-                SearchQueryParams::new()
-                    .exact(true)
-                    .item_type(ItemType::BoardGame),
-            )
+            .search_exact("lost ruins of arnak", vec![ItemType::BoardGame])
             .await;
         mock.assert_async().await;
 
@@ -412,14 +406,13 @@ mod tests {
 
         let search_results = api
             .search()
-            .search_with_query_params(
+            .search(
                 "arnak",
-                SearchQueryParams::new()
-                    .item_type(ItemType::BoardGame)
-                    .item_types(vec![
-                        ItemType::BoardGameAccessory,
-                        ItemType::BoardGameArtist,
-                    ]),
+                vec![
+                    ItemType::BoardGame,
+                    ItemType::BoardGameAccessory,
+                    ItemType::BoardGameArtist,
+                ],
             )
             .await;
         mock.assert_async().await;
