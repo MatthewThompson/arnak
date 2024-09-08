@@ -482,13 +482,17 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
         }
     }
 
-    /// Makes a request to a given user's collection with no additional parameters set.
-    /// This will default to including board games and board game expansions, but the
-    /// [`CollectionItemType`] will be set to [`CollectionItemType::BoardGame`] for all results.
-    /// This is a "feature" of the underlying API.
-    pub async fn get_all_games(&self, username: &'api str) -> Result<Collection<T>> {
-        let query_params = CollectionQueryParams::new();
-        self.get_from_query(username, query_params).await
+    /// Makes a request for a given user's collection, with any additional
+    /// [`CollectionQueryParams`].
+    pub async fn get(
+        &self,
+        username: &'api str,
+        query_params: CollectionQueryParams,
+    ) -> Result<Collection<T>> {
+        let query = CollectionQueryBuilder::new(T::base_query(username), query_params);
+
+        let request = self.api.build_request(self.endpoint, &query.build());
+        self.api.execute_request::<Collection<T>>(request).await
     }
 
     /// Get the user's board game accessory collection. Filtering by any additional
@@ -499,7 +503,7 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
         username: &'api str,
         query_params: CollectionQueryParams,
     ) -> Result<Collection<T>> {
-        self.get_from_query(
+        self.get(
             username,
             query_params.item_type(CollectionItemType::BoardGameAccessory),
         )
@@ -509,13 +513,13 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
     /// Gets all the items in a collection that the given user owns.
     pub async fn get_owned(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::new().include_owned(true);
-        self.get_from_query(username, query_params).await
+        self.get(username, query_params).await
     }
 
     /// Gets all the items in a collection that the given user has on their wishlist.
     pub async fn get_wishlist(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::new().include_wishlist(true);
-        self.get_from_query(username, query_params).await
+        self.get(username, query_params).await
     }
 
     /// Gets all the games that support any player counts in a given range.
@@ -528,7 +532,7 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
         player_counts: RangeInclusive<u32>,
         query_params: CollectionQueryParams,
     ) -> Result<Collection<T>> {
-        let mut collection = self.get_from_query(username, query_params).await?;
+        let mut collection = self.get(username, query_params).await?;
 
         collection.items.retain(|items| {
             let stats = items.get_stats();
@@ -547,25 +551,13 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
         player_count: u32,
         query_params: CollectionQueryParams,
     ) -> Result<Collection<T>> {
-        let mut collection = self.get_from_query(username, query_params).await?;
+        let mut collection = self.get(username, query_params).await?;
 
         collection.items.retain(|items| {
             let stats = items.get_stats();
             player_count <= stats.max_players && player_count >= stats.min_players
         });
         Ok(collection)
-    }
-
-    /// Makes a request from a [`CollectionQueryParams`].
-    pub async fn get_from_query(
-        &self,
-        username: &'api str,
-        query_params: CollectionQueryParams,
-    ) -> Result<Collection<T>> {
-        let query = CollectionQueryBuilder::new(T::base_query(username), query_params);
-
-        let request = self.api.build_request(self.endpoint, &query.build());
-        self.api.execute_request::<Collection<T>>(request).await
     }
 }
 
@@ -902,10 +894,7 @@ mod tests {
 
         let query = CollectionQueryParams::new().include_version_info(true);
 
-        let collection = api
-            .collection_brief()
-            .get_from_query("somename", query)
-            .await;
+        let collection = api.collection_brief().get("somename", query).await;
         mock.assert_async().await;
 
         assert!(collection.is_ok(), "error returned when okay expected");
@@ -1173,7 +1162,7 @@ mod tests {
                     .date(),
             );
 
-        let _ = api.collection().get_from_query("someone", query).await;
+        let _ = api.collection().get("someone", query).await;
         mock.assert_async().await;
     }
 
@@ -1648,7 +1637,7 @@ mod tests {
 
         let collection = api
             .collection()
-            .get_from_query("somename", CollectionQueryParams::new())
+            .get("somename", CollectionQueryParams::new())
             .await;
         mock.assert_async().await;
 

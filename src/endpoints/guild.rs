@@ -94,31 +94,8 @@ impl<'api> GuildApi<'api> {
         }
     }
 
-    /// Gets a guild by its ID, without a member page included.
-    pub async fn get_by_id(&self, guild_id: u64) -> Result<Guild> {
-        let query = GuildQueryBuilder::new(guild_id, GuildQueryParams::new());
-
-        let request = self.api.build_request(self.endpoint, &query.build());
-        self.api.execute_request::<Guild>(request).await
-    }
-
-    /// Gets a guild by its ID, with a specific page of members included.
-    pub async fn get_with_member_page(&self, guild_id: u64, member_page: u64) -> Result<Guild> {
-        let query = GuildQueryBuilder::new(
-            guild_id,
-            GuildQueryParams::new().include_member_page(member_page),
-        );
-
-        let request = self.api.build_request(self.endpoint, &query.build());
-        self.api.execute_request::<Guild>(request).await
-    }
-
     /// Gets a guild via the provided query params.
-    pub async fn get_from_query_params(
-        &self,
-        guild_id: u64,
-        query_params: GuildQueryParams,
-    ) -> Result<Guild> {
+    pub async fn get(&self, guild_id: u64, query_params: GuildQueryParams) -> Result<Guild> {
         let query = GuildQueryBuilder::new(guild_id, query_params);
 
         let request = self.api.build_request(self.endpoint, &query.build());
@@ -156,7 +133,7 @@ mod tests {
             .create_async()
             .await;
 
-        let guild = api.guild().get_by_id(13).await;
+        let guild = api.guild().get(13, GuildQueryParams::new()).await;
         mock.assert_async().await;
 
         assert!(guild.is_ok(), "error returned when okay expected");
@@ -210,7 +187,10 @@ mod tests {
             .create_async()
             .await;
 
-        let guild = api.guild().get_with_member_page(13, 2).await;
+        let guild = api
+            .guild()
+            .get(13, GuildQueryParams::new().include_member_page(2))
+            .await;
         mock.assert_async().await;
 
         assert!(guild.is_ok(), "error returned when okay expected");
@@ -281,7 +261,7 @@ mod tests {
         let params = GuildQueryParams::new()
             .include_member_page(5)
             .sort_by(GuildMemberSortBy::DateJoined);
-        let guild = api.guild().get_from_query_params(13, params).await;
+        let guild = api.guild().get(13, params).await;
         mock.assert_async().await;
 
         assert!(guild.is_ok(), "error returned when okay expected");
