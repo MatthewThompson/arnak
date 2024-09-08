@@ -1,27 +1,27 @@
 use super::{GameFamilies, ItemType};
 use crate::{BoardGameGeekApi, IntoQueryParam, QueryParam, Result};
 
-/// Query parameters for making a request to the game family endpoint.
+// Query parameters for making a request to the game family endpoint.
 #[derive(Clone, Debug, Default)]
-pub struct GameFamilyQueryParams {
-    /// ID for the game families to retrieve.
+struct GameFamilyQueryParams {
+    // ID for the game families to retrieve.
     game_family_ids: Vec<u64>,
 }
 
 impl GameFamilyQueryParams {
-    /// Constructs a new search query with the list of family IDs empty.
-    pub fn new() -> Self {
+    // Constructs a new search query with the list of family IDs empty.
+    fn new() -> Self {
         Self::default()
     }
 
-    /// Adds an ID to the list of game family IDs to retrieve.
-    pub fn game_family_id(mut self, id: u64) -> Self {
+    // Adds an ID to the list of game family IDs to retrieve.
+    fn game_family_id(mut self, id: u64) -> Self {
         self.game_family_ids.push(id);
         self
     }
 
-    /// Adds a list of IDs to the list of game family IDs to retrieve.
-    pub fn game_family_ids(mut self, ids: Vec<u64>) -> Self {
+    // Adds a list of IDs to the list of game family IDs to retrieve.
+    fn game_family_ids(mut self, ids: Vec<u64>) -> Self {
         self.game_family_ids.extend(ids);
         self
     }
@@ -78,14 +78,6 @@ impl<'api> GameFamilyApi<'api> {
     /// Gets families of games by their IDs.
     pub async fn get_by_ids(&self, ids: Vec<u64>) -> Result<GameFamilies> {
         let query = GameFamilyQueryBuilder::new(GameFamilyQueryParams::new().game_family_ids(ids));
-
-        let request = self.api.build_request(self.endpoint, &query.build());
-        self.api.execute_request::<GameFamilies>(request).await
-    }
-
-    /// Gets families of games by the given query parameters.
-    pub async fn get_from_query(&self, query: GameFamilyQueryParams) -> Result<GameFamilies> {
-        let query = GameFamilyQueryBuilder::new(query);
 
         let request = self.api.build_request(self.endpoint, &query.build());
         self.api.execute_request::<GameFamilies>(request).await
@@ -230,39 +222,6 @@ mod tests {
                 ],
             },
         );
-    }
-
-    #[tokio::test]
-    async fn get_by_params() {
-        let mut server = mockito::Server::new_async().await;
-        let api = BoardGameGeekApi {
-            base_url: server.url(),
-            client: reqwest::Client::new(),
-        };
-
-        let mock = server
-            .mock("GET", "/family")
-            .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("type".into(), "boardgamefamily".into()),
-                Matcher::UrlEncoded("id".into(), "2,3,4,5,101,200,6".into()),
-            ]))
-            .with_status(200)
-            .with_body(
-                std::fs::read_to_string("test_data/game_family/game_family_multiple.xml")
-                    .expect("failed to load test data"),
-            )
-            .create_async()
-            .await;
-
-        let query = GameFamilyQueryParams::new()
-            .game_family_ids(vec![2, 3])
-            .game_family_id(4)
-            .game_family_id(5)
-            .game_family_ids(vec![101, 200, 6]);
-        let families = api.game_family().get_from_query(query).await;
-        mock.assert_async().await;
-
-        assert!(families.is_ok(), "error returned when okay expected");
     }
 
     #[tokio::test]
