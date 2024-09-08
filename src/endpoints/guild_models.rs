@@ -43,7 +43,7 @@ pub struct MemberPage {
     #[serde(rename = "page")]
     pub page_number: u64,
     /// A list of members in this guid.
-    #[serde(rename = "$value")]
+    #[serde(rename = "member")]
     pub members: Vec<Member>,
 }
 

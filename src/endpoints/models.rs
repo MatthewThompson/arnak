@@ -264,7 +264,7 @@ pub struct Dimensions {
 // Intermediary struct needed due to the way the XML is structured
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub(crate) struct XmlRanks {
-    #[serde(rename = "$value")]
+    #[serde(rename = "rank")]
     pub(crate) ranks: Vec<GameFamilyRank>,
 }
 
@@ -302,7 +302,7 @@ pub(crate) struct VersionsXml {
     // List of versions, each in an XML tag called `item`, within an outer
     // `version`. We use this intermediary type to get out just the first,
     // since we only expect 1.
-    #[serde(rename = "$value")]
+    #[serde(rename = "item")]
     pub(crate) versions: Vec<GameVersion>,
 }
 

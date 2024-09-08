@@ -212,7 +212,6 @@ pub struct GameStats {
 // Structure of the stats tag in the returned XML
 #[derive(Debug, Deserialize)]
 struct XmlGameStats {
-    #[serde(rename = "$value")]
     ratings: StatsRatings,
 }
 
@@ -525,7 +524,7 @@ struct PollResults {
     #[serde(default, rename = "numplayers")]
     number_of_players: Option<PlayerCount>,
     // List of results.
-    #[serde(rename = "$value")]
+    #[serde(rename = "result")]
     results: Vec<PollResult>,
 }
 
@@ -548,7 +547,7 @@ struct PollResult {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 struct VideosXml {
     // List of videos, each in an XML tag called `video`.
-    #[serde(rename = "$value")]
+    #[serde(rename = "video")]
     videos: Vec<Video>,
 }
 
@@ -715,8 +714,8 @@ impl<'de> Deserialize<'de> for Video {
 // nested list in the game details deserialise implementation
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 struct MarketplaceListingsXml {
-    // List of listings, each in an XML tag called `video`
-    #[serde(rename = "$value")]
+    // List of listings, each in an XML tag called `listing`
+    #[serde(rename = "listing")]
     listings: Vec<MarketplaceListing>,
 }
 
@@ -877,7 +876,7 @@ pub struct RatingCommentPage {
     #[serde(rename = "page")]
     pub page_number: u64,
     /// A list of members in this guid.
-    #[serde(rename = "$value")]
+    #[serde(rename = "comment")]
     pub comments: Vec<RatingComment>,
 }
 
