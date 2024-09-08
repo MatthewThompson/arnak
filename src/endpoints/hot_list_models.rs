@@ -8,7 +8,7 @@ use crate::utils::{XmlSignedValue, XmlStringValue};
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct HotList {
     /// The list of trending board games currently on the hot list.
-    #[serde(rename = "$value")]
+    #[serde(default, rename = "item")]
     pub games: Vec<HotListGame>,
 }
 

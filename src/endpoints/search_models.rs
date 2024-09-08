@@ -8,10 +8,8 @@ use crate::utils::{XmlSignedValue, XmlStringValue};
 /// The returned struct containing a list of search results.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct SearchResults {
-    // Must use serde default otherwise the empty results will return an error due to lack of
-    // `$value`
     /// The list of board games returned by the search.
-    #[serde(default, rename = "$value")]
+    #[serde(default, rename = "item")]
     pub results: Vec<SearchResult>,
 }
 

@@ -17,7 +17,7 @@ pub struct Collection<T> {
     ///
     /// Note that accessories and games can never be returned together in one collection,
     /// but games and game expansions can.
-    #[serde(default = "Vec::new", rename = "$value")]
+    #[serde(default = "Vec::new", rename = "item")]
     pub items: Vec<T>,
 }
 
@@ -213,7 +213,6 @@ pub struct CollectionItemStatsBrief {
     pub owned_by: u64,
     /// Information about the rating that this user, as well as all users, have
     /// given this game.
-    #[serde(rename = "$value")]
     pub rating: CollectionItemRatingBrief,
 }
 
@@ -253,7 +252,7 @@ pub struct CollectionItemStats {
     pub owned_by: u64,
     /// Information about the rating that this user, as well as all users, have
     /// given this game.
-    #[serde(rename = "$value")]
+    #[serde(rename = "rating")]
     pub rating: CollectionItemRating,
 }
 
