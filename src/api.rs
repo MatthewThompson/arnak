@@ -110,6 +110,7 @@ impl BoardGameGeekApi {
     ) -> Result<T> {
         let response = self.send_request(request).await?;
         let response_text = response.text().await?;
+        println!("{response_text}");
 
         let parse_result = deserialise_xml_string(&response_text);
         match parse_result {

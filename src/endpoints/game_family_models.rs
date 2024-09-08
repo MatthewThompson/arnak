@@ -10,7 +10,7 @@ use crate::{ItemType, NameType};
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct GameFamilies {
     /// List of game families, and the games that they contain.
-    #[serde(rename = "$value")]
+    #[serde(default, rename = "item")]
     pub game_families: Vec<GameFamily>,
 }
 

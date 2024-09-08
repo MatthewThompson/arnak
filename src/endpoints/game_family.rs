@@ -264,4 +264,35 @@ mod tests {
 
         assert!(families.is_ok(), "error returned when okay expected");
     }
+
+    #[tokio::test]
+    async fn get_by_id_not_found() {
+        let mut server = mockito::Server::new_async().await;
+        let api = BoardGameGeekApi {
+            base_url: server.url(),
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/family")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("type".into(), "boardgamefamily".into()),
+                Matcher::UrlEncoded("id".into(), "9000".into()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/game_family/game_family_not_found.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let families = api.game_family().get_by_id(9000).await;
+        mock.assert_async().await;
+
+        assert!(families.is_ok(), "error returned when okay expected");
+        let families = families.unwrap();
+
+        assert_eq!(families.game_families.len(), 0);
+    }
 }
