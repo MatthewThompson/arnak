@@ -1,6 +1,6 @@
 use core::fmt;
 
-use chrono::{DateTime, Duration, NaiveDateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 use serde::Deserialize;
 
 use super::{
@@ -629,10 +629,11 @@ impl<'de> Deserialize<'de> for Video {
                                 return Err(serde::de::Error::duplicate_field("postdate"));
                             }
                             let date_string: String = map.next_value()?;
-                            let dt =
-                                NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S%:z")
+                            let date_time =
+                                DateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S%:z")
                                     .map_err(serde::de::Error::custom)?;
-                            post_date = Some(DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc));
+                            let date_time_utc = DateTime::<Utc>::from(date_time);
+                            post_date = Some(date_time_utc);
                         },
                     }
                 }

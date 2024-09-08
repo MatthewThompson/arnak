@@ -1063,7 +1063,7 @@ mod tests {
                             user_id: 312,
                             username: "video_man".to_owned(),
                         },
-                        post_date: Utc.with_ymd_and_hms(2024, 8, 25, 9, 57, 57).unwrap(),
+                        post_date: Utc.with_ymd_and_hms(2024, 8, 25, 14, 57, 57).unwrap(),
                     },
                     Video {
                         id: 504_090,
@@ -1075,7 +1075,7 @@ mod tests {
                             user_id: 333,
                             username: "video_man_2".to_owned(),
                         },
-                        post_date: Utc.with_ymd_and_hms(2024, 7, 11, 16, 42, 52).unwrap(),
+                        post_date: Utc.with_ymd_and_hms(2024, 7, 11, 21, 42, 52).unwrap(),
                     },
                 ],
                 marketplace_listings: vec![
