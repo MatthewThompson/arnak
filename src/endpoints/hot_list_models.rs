@@ -6,10 +6,10 @@ use crate::deserialize::{XmlSignedValue, XmlStringValue};
 
 /// The returned struct containing a list of hot board games.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct HotList {
+pub(crate) struct HotList {
     /// The list of trending board games currently on the hot list.
     #[serde(default, rename = "item")]
-    pub games: Vec<HotListGame>,
+    pub(crate) games: Vec<HotListGame>,
 }
 
 /// An game on the hot list, has the rank from 1 to 50 on the list,
