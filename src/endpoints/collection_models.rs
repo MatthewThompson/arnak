@@ -5,7 +5,7 @@ use serde::Deserialize;
 
 use super::{CollectionItemType, GameFamilyRank, GameVersion, VersionsXml};
 use crate::utils::{
-    date_deserializer, deserialize_1_0_bool, deserialize_minutes, XmlFloatValue, XmlIntValue,
+    deserialize_1_0_bool, deserialize_date_time, deserialize_minutes, XmlFloatValue, XmlIntValue,
 };
 use crate::XmlRanks;
 
@@ -117,7 +117,7 @@ pub struct CollectionItemStatus {
     #[serde(default, rename = "wishlistpriority")]
     pub wishlist_priority: Option<WishlistPriority>,
     /// When the collection status was last modified.
-    #[serde(rename = "lastmodified", with = "date_deserializer")]
+    #[serde(rename = "lastmodified", deserialize_with = "deserialize_date_time")]
     pub last_modified: DateTime<Utc>,
 }
 

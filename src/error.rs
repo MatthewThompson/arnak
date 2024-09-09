@@ -96,7 +96,7 @@ impl StdError for Error {
 // Note this should be possible by making an enum of the three and adding
 // `#[serde(untagged)]` and deriving deserialize, but it didn't work for
 // some reason.
-pub(crate) fn deserialise_maybe_error(api_response: &str) -> Option<Error> {
+pub(crate) fn deserialize_maybe_error(api_response: &str) -> Option<Error> {
     let maybe_error_list = from_str::<ApiXmlErrorList>(api_response);
     if let Ok(error_list) = maybe_error_list {
         return Some(error_list.into());

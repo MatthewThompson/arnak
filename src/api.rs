@@ -5,9 +5,9 @@ use reqwest::{RequestBuilder, Response};
 use tokio::time::sleep;
 
 use crate::endpoints::collection::CollectionApi;
-use crate::utils::deserialise_xml_string;
+use crate::utils::deserialize_xml_string;
 use crate::{
-    deserialise_maybe_error, CollectionItem, CollectionItemBrief, Error, GameApi, GameFamilyApi,
+    deserialize_maybe_error, CollectionItem, CollectionItemBrief, Error, GameApi, GameFamilyApi,
     GuildApi, HotListApi, Result, SearchApi,
 };
 
@@ -111,14 +111,14 @@ impl BoardGameGeekApi {
         let response = self.send_request(request).await?;
         let response_text = response.text().await?;
 
-        let parse_result = deserialise_xml_string(&response_text);
+        let parse_result = deserialize_xml_string(&response_text);
         match parse_result {
             Ok(result) => Ok(result),
             Err(e) => {
                 // The API returns a 200 but with an XML error in some cases,
                 // such as a username not found, so we try to parse that first
                 // for a more specific error.
-                match deserialise_maybe_error(&response_text) {
+                match deserialize_maybe_error(&response_text) {
                     Some(api_error) => Err(api_error),
                     // If the error cannot be parsed, that likely means it was a successful response
                     // that we failed to parse. So return an unexpected response with the original

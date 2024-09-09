@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
 
-use crate::utils::utc_date_time_deserializer;
+use crate::utils::deserialize_date_time_with_zone;
 
 /// A struct with information for a guild, returned by the guild endpoint of the API.
 /// If requested it can also return the guild members, but only up to 25 at a time.
@@ -12,7 +12,10 @@ pub struct Guild {
     /// The name of the guild.
     pub name: String,
     /// The date and time the guild was created.
-    #[serde(rename = "created", with = "utc_date_time_deserializer")]
+    #[serde(
+        rename = "created",
+        deserialize_with = "deserialize_date_time_with_zone"
+    )]
     pub created_at: DateTime<Utc>,
     /// Category of the guild such as event.
     pub category: String,
@@ -55,7 +58,7 @@ pub struct Member {
     /// The username of the guild member.
     pub name: String,
     /// The date and time the user joined the guild, in Utc.
-    #[serde(rename = "date", with = "utc_date_time_deserializer")]
+    #[serde(rename = "date", deserialize_with = "deserialize_date_time_with_zone")]
     pub date_joined: DateTime<Utc>,
 }
 
