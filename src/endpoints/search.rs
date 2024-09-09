@@ -1,4 +1,4 @@
-use super::{ItemType, SearchResults};
+use super::{ItemType, SearchResult, SearchResults};
 use crate::{BoardGameGeekApi, IntoQueryParam, QueryParam, Result};
 
 // All optional query parameters for making a request to the
@@ -104,11 +104,13 @@ impl<'api> SearchApi<'api> {
     /// and expansions. However, expansions will be included in the results twice,
     /// once with the type [`ItemType::BoardGame`] and once with the type
     /// [`ItemType::BoardGameExpansion`].
-    pub async fn search_games(&self, query: &str) -> Result<SearchResults> {
+    pub async fn search_games(&self, query: &str) -> Result<Vec<SearchResult>> {
         let query = SearchQueryBuilder::new(query, SearchQueryParams::new());
 
         let request = self.api.build_request(self.endpoint, &query.build());
-        self.api.execute_request::<SearchResults>(request).await
+        let response = self.api.execute_request::<SearchResults>(request).await?;
+
+        Ok(response.results)
     }
 
     /// Searches for exact matches to a given query, and no additional query parameters set.
@@ -116,20 +118,28 @@ impl<'api> SearchApi<'api> {
     /// and expansions. However, expansions will be included in the results twice,
     /// once with the type [`ItemType::BoardGame`] and once with the type
     /// [`ItemType::BoardGameExpansion`].
-    pub async fn search_games_exact(&self, query: &str) -> Result<SearchResults> {
+    pub async fn search_games_exact(&self, query: &str) -> Result<Vec<SearchResult>> {
         let query = SearchQueryBuilder::new(query, SearchQueryParams::new().exact(true));
 
         let request = self.api.build_request(self.endpoint, &query.build());
-        self.api.execute_request::<SearchResults>(request).await
+        let response = self.api.execute_request::<SearchResults>(request).await?;
+
+        Ok(response.results)
     }
     /// Searches with a given query, only searching for items with the provided types. If none are
     /// provided then it will default to searching within board games and board game expansions,
     /// the same functionality as calling `search_games`
-    pub async fn search(&self, query: &str, item_types: Vec<ItemType>) -> Result<SearchResults> {
+    pub async fn search(
+        &self,
+        query: &str,
+        item_types: Vec<ItemType>,
+    ) -> Result<Vec<SearchResult>> {
         let query = SearchQueryBuilder::new(query, SearchQueryParams::new().item_types(item_types));
 
         let request = self.api.build_request(self.endpoint, &query.build());
-        self.api.execute_request::<SearchResults>(request).await
+        let response = self.api.execute_request::<SearchResults>(request).await?;
+
+        Ok(response.results)
     }
 
     /// Searches for exact matches to a given query, only searching for items with the provided
@@ -139,14 +149,16 @@ impl<'api> SearchApi<'api> {
         &self,
         query: &str,
         item_types: Vec<ItemType>,
-    ) -> Result<SearchResults> {
+    ) -> Result<Vec<SearchResult>> {
         let query = SearchQueryBuilder::new(
             query,
             SearchQueryParams::new().item_types(item_types).exact(true),
         );
 
         let request = self.api.build_request(self.endpoint, &query.build());
-        self.api.execute_request::<SearchResults>(request).await
+        let response = self.api.execute_request::<SearchResults>(request).await?;
+
+        Ok(response.results)
     }
 }
 
@@ -185,9 +197,9 @@ mod tests {
         assert!(search_results.is_ok(), "error returned when okay expected");
         let search_results = search_results.unwrap();
 
-        assert_eq!(search_results.results.len(), 2);
+        assert_eq!(search_results.len(), 2);
         assert_eq!(
-            search_results.results[0],
+            search_results[0],
             SearchResult {
                 id: 312_484,
                 item_type: ItemType::BoardGame,
@@ -196,7 +208,7 @@ mod tests {
             },
         );
         assert_eq!(
-            search_results.results[1],
+            search_results[1],
             SearchResult {
                 id: 341_254,
                 item_type: ItemType::BoardGameExpansion,
@@ -234,9 +246,9 @@ mod tests {
         assert!(search_results.is_ok(), "error returned when okay expected");
         let search_results = search_results.unwrap();
 
-        assert_eq!(search_results.results.len(), 1);
+        assert_eq!(search_results.len(), 1);
         assert_eq!(
-            search_results.results[0],
+            search_results[0],
             SearchResult {
                 id: 312_484,
                 item_type: ItemType::BoardGame,
@@ -274,9 +286,9 @@ mod tests {
         assert!(search_results.is_ok(), "error returned when okay expected");
         let search_results = search_results.unwrap();
 
-        assert_eq!(search_results.results.len(), 2);
+        assert_eq!(search_results.len(), 2);
         assert_eq!(
-            search_results.results[0],
+            search_results[0],
             SearchResult {
                 id: 12668,
                 item_type: ItemType::BoardGame,
@@ -285,7 +297,7 @@ mod tests {
             },
         );
         assert_eq!(
-            search_results.results[1],
+            search_results[1],
             SearchResult {
                 id: 30346,
                 item_type: ItemType::BoardGame,
@@ -326,9 +338,9 @@ mod tests {
         assert!(search_results.is_ok(), "error returned when okay expected");
         let search_results = search_results.unwrap();
 
-        assert_eq!(search_results.results.len(), 1);
+        assert_eq!(search_results.len(), 1);
         assert_eq!(
-            search_results.results[0],
+            search_results[0],
             SearchResult {
                 id: 341_254,
                 item_type: ItemType::BoardGameExpansion,
@@ -370,9 +382,9 @@ mod tests {
         assert!(search_results.is_ok(), "error returned when okay expected");
         let search_results = search_results.unwrap();
 
-        assert_eq!(search_results.results.len(), 1);
+        assert_eq!(search_results.len(), 1);
         assert_eq!(
-            search_results.results[0],
+            search_results[0],
             SearchResult {
                 id: 312_484,
                 item_type: ItemType::BoardGame,
@@ -423,9 +435,9 @@ mod tests {
         assert!(search_results.is_ok(), "error returned when okay expected");
         let search_results = search_results.unwrap();
 
-        assert_eq!(search_results.results.len(), 2);
+        assert_eq!(search_results.len(), 2);
         assert_eq!(
-            search_results.results[0],
+            search_results[0],
             SearchResult {
                 id: 403_238,
                 item_type: ItemType::BoardGameAccessory,
@@ -434,7 +446,7 @@ mod tests {
             },
         );
         assert_eq!(
-            search_results.results[1],
+            search_results[1],
             SearchResult {
                 id: 312_484,
                 item_type: ItemType::BoardGame,
