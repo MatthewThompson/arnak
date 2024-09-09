@@ -9,7 +9,8 @@ use super::{
     XmlRanks,
 };
 use crate::utils::{
-    XmlDateTimeValue, XmlFloatValue, XmlIntValue, XmlLink, XmlName, XmlSignedValue, XmlStringValue,
+    date_time_with_zone_from_string, XmlDateTimeValue, XmlFloatValue, XmlIntValue, XmlLink,
+    XmlName, XmlSignedValue, XmlStringValue,
 };
 use crate::{NameType, VersionsXml};
 
@@ -629,11 +630,9 @@ impl<'de> Deserialize<'de> for Video {
                                 return Err(serde::de::Error::duplicate_field("postdate"));
                             }
                             let date_string: String = map.next_value()?;
-                            let date_time =
-                                DateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S%:z")
-                                    .map_err(serde::de::Error::custom)?;
-                            let date_time_utc = DateTime::<Utc>::from(date_time);
-                            post_date = Some(date_time_utc);
+                            let parsed = date_time_with_zone_from_string(&date_string)
+                                .map_err(serde::de::Error::custom)?;
+                            post_date = Some(parsed);
                         },
                     }
                 }

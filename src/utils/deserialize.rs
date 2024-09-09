@@ -1,9 +1,9 @@
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Duration, NaiveDateTime, ParseError, Utc};
 use serde::Deserialize;
 
 use crate::{ItemType, NameType};
 
-pub(crate) fn deserialise_xml_string<T: serde::de::DeserializeOwned>(
+pub(crate) fn deserialize_xml_string<T: serde::de::DeserializeOwned>(
     xml: &str,
 ) -> core::result::Result<T, serde_xml_rs::Error> {
     // The parser config used by serde_xml
@@ -48,7 +48,7 @@ pub(crate) struct XmlStringValue {
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct XmlDateTimeValue {
-    #[serde(with = "utc_date_time_deserializer")]
+    #[serde(deserialize_with = "deserialize_date_time_with_zone")]
     pub(crate) value: DateTime<Utc>,
 }
 
@@ -95,33 +95,36 @@ where
     minutes.map(|m| Duration::minutes(i64::from(m)))
 }
 
-pub(crate) mod date_deserializer {
-    use chrono::{DateTime, NaiveDateTime, Utc};
-    use serde::{self, Deserialize, Deserializer};
+const DATE_TIME_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
+// e.g. 2024-07-22T16:33:30-05:00
+// Used for the video post date returned from the game endpoint.
+const DATE_TIME_ZONE_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%:z";
+// e.g. Thu, 14 Jun 2007 01:06:46 +0000
+const DATE_TIME_ZONE_LONG_FORMAT: &str = "%a, %d %B %Y %H:%M:%S %z";
 
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        let dt = NaiveDateTime::parse_from_str(&s, "%Y-%m-%d %H:%M:%S")
-            .map_err(serde::de::Error::custom)?;
-        Ok(DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc))
-    }
+pub(crate) fn deserialize_date_time<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    let dt =
+        NaiveDateTime::parse_from_str(&s, DATE_TIME_FORMAT).map_err(serde::de::Error::custom)?;
+    Ok(DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc))
 }
 
-pub(crate) mod utc_date_time_deserializer {
-    use chrono::{DateTime, NaiveDateTime, Utc};
-    use serde::{self, Deserialize, Deserializer};
+pub(crate) fn date_time_with_zone_from_string(string: &str) -> Result<DateTime<Utc>, ParseError> {
+    let date_time = DateTime::parse_from_str(string, DATE_TIME_ZONE_FORMAT)?;
+    Ok(DateTime::<Utc>::from(date_time))
+}
 
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        // e.g. Thu, 14 Jun 2007 01:06:46 +0000
-        let dt = NaiveDateTime::parse_from_str(&s, "%a, %d %B %Y %H:%M:%S %z")
-            .map_err(serde::de::Error::custom)?;
-        Ok(DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc))
-    }
+pub(crate) fn deserialize_date_time_with_zone<'de, D>(
+    deserializer: D,
+) -> Result<DateTime<Utc>, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    let date_time = DateTime::parse_from_str(&s, DATE_TIME_ZONE_LONG_FORMAT)
+        .map_err(serde::de::Error::custom)?;
+    Ok(DateTime::<Utc>::from(date_time))
 }
