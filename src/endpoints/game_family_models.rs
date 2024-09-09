@@ -3,7 +3,7 @@ use core::fmt;
 use serde::Deserialize;
 
 use super::Game;
-use crate::utils::{XmlLink, XmlName};
+use crate::deserialize::{XmlLink, XmlName};
 use crate::{ItemType, NameType};
 
 /// A list of game families. Which are groups of games in a particular series.

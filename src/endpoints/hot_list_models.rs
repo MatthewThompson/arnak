@@ -2,7 +2,7 @@ use core::fmt;
 
 use serde::Deserialize;
 
-use crate::utils::{XmlSignedValue, XmlStringValue};
+use crate::deserialize::{XmlSignedValue, XmlStringValue};
 
 /// The returned struct containing a list of hot board games.
 #[derive(Clone, Debug, Deserialize, PartialEq)]

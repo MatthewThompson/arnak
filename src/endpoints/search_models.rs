@@ -3,7 +3,7 @@ use core::fmt;
 use serde::Deserialize;
 
 use super::ItemType;
-use crate::utils::{XmlSignedValue, XmlStringValue};
+use crate::deserialize::{XmlSignedValue, XmlStringValue};
 
 /// The returned struct containing a list of search results.
 #[derive(Clone, Debug, Deserialize, PartialEq)]

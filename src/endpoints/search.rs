@@ -122,8 +122,9 @@ impl<'api> SearchApi<'api> {
         let request = self.api.build_request(self.endpoint, &query.build());
         self.api.execute_request::<SearchResults>(request).await
     }
-    /// Searches with a given query, only searching for items with the provided types. If none are provided
-    /// then it will default to searching within board games and board game expansions, the same functionality as calling `search_games`
+    /// Searches with a given query, only searching for items with the provided types. If none are
+    /// provided then it will default to searching within board games and board game expansions,
+    /// the same functionality as calling `search_games`
     pub async fn search(&self, query: &str, item_types: Vec<ItemType>) -> Result<SearchResults> {
         let query = SearchQueryBuilder::new(query, SearchQueryParams::new().item_types(item_types));
 
@@ -131,8 +132,9 @@ impl<'api> SearchApi<'api> {
         self.api.execute_request::<SearchResults>(request).await
     }
 
-    /// Searches for exact matches to a given query, only searching for items with the provided types. If none are provided
-    /// then it will default to searching within board games and board game expansions, the same functionality as calling `search_games_exact`
+    /// Searches for exact matches to a given query, only searching for items with the provided
+    /// types. If none are provided then it will default to searching within board games and
+    /// board game expansions, the same functionality as calling `search_games_exact`
     pub async fn search_exact(
         &self,
         query: &str,

@@ -4,7 +4,7 @@ use chrono::{DateTime, Duration, Utc};
 use serde::Deserialize;
 
 use super::{CollectionItemType, GameFamilyRank, GameVersion, VersionsXml};
-use crate::utils::{
+use crate::deserialize::{
     deserialize_1_0_bool, deserialize_date_time, deserialize_date_time_with_zone,
     deserialize_minutes, XmlFloatValue, XmlIntValue,
 };

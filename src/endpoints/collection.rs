@@ -467,13 +467,15 @@ impl<'builder> CollectionQueryBuilder<'builder> {
 /// Collection endpoint of the API. Used for returning user's collections
 /// of games by their username. Filtering by [`crate::CollectionItemStatus`], rating,
 /// recorded plays.
-/// 
-/// It should be noted that unlike the other endpoints, the collection data is not guaranteed to be ready right away.
-/// When a request for a collection is made, the underlying API may return a 202 accepted, with a message that the data
-/// is not yet ready and another request should be made later. This means that the request has been queued and the collection
-/// will be by returned when requested later.
-/// 
-/// Some retries will be attempted in case there is no queue, in which case it is likely to be ready very shortly. 
+///
+/// It should be noted that unlike the other endpoints, the collection data is not guaranteed to be
+/// ready right away. When a request for a collection is made, the underlying API may return a 202
+/// accepted, with a message that the data is not yet ready and another request should be made
+/// later. This means that the request has been queued and the collection will be by returned when
+/// requested later.
+///
+/// Some retries will be attempted in case there is no queue, in which case it is likely to be ready
+/// very shortly.
 pub struct CollectionApi<'api, T: CollectionType<'api>> {
     pub(crate) api: &'api BoardGameGeekApi,
     endpoint: &'static str,

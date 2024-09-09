@@ -3,7 +3,7 @@ use core::fmt::{self, Display};
 use serde::Deserialize;
 
 use super::{GameFamilyType, RankValue};
-use crate::utils::{XmlFloatValue, XmlLink, XmlName, XmlSignedValue, XmlStringValue};
+use crate::deserialize::{XmlFloatValue, XmlLink, XmlName, XmlSignedValue, XmlStringValue};
 
 /// The type of the item. Either a board game, a board game expansion, or board game accessory.
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
