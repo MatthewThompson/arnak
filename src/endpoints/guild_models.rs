@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
 
-use crate::utils::deserialize_date_time_with_zone;
+use crate::deserialize::deserialize_date_time_with_zone;
 
 /// A struct with information for a guild, returned by the guild endpoint of the API.
 /// If requested it can also return the guild members, but only up to 25 at a time.

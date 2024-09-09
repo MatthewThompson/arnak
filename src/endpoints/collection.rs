@@ -467,6 +467,15 @@ impl<'builder> CollectionQueryBuilder<'builder> {
 /// Collection endpoint of the API. Used for returning user's collections
 /// of games by their username. Filtering by [`crate::CollectionItemStatus`], rating,
 /// recorded plays.
+///
+/// It should be noted that unlike the other endpoints, the collection data is not guaranteed to be
+/// ready right away. When a request for a collection is made, the underlying API may return a 202
+/// accepted, with a message that the data is not yet ready and another request should be made
+/// later. This means that the request has been queued and the collection will be by returned when
+/// requested later.
+///
+/// Some retries will be attempted in case there is no queue, in which case it is likely to be ready
+/// very shortly.
 pub struct CollectionApi<'api, T: CollectionType<'api>> {
     pub(crate) api: &'api BoardGameGeekApi,
     endpoint: &'static str,
@@ -608,6 +617,10 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
+        assert_eq!(
+            collection.published_date,
+            Utc.with_ymd_and_hms(2024, 8, 24, 14, 40, 5).unwrap(),
+        );
         assert_eq!(collection.items.len(), 1);
         assert_eq!(
             collection.items[0],
@@ -677,6 +690,10 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
+        assert_eq!(
+            collection.published_date,
+            Utc.with_ymd_and_hms(2024, 8, 19, 21, 47, 19).unwrap(),
+        );
         assert_eq!(collection.items.len(), 39);
     }
 
@@ -710,6 +727,10 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
+        assert_eq!(
+            collection.published_date,
+            Utc.with_ymd_and_hms(2024, 8, 24, 14, 40, 5).unwrap(),
+        );
         assert_eq!(collection.items.len(), 1);
         assert_eq!(
             collection.items[0],
@@ -804,6 +825,10 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
+        assert_eq!(
+            collection.published_date,
+            Utc.with_ymd_and_hms(2024, 8, 24, 14, 40, 5).unwrap(),
+        );
         assert_eq!(collection.items.len(), 1);
         assert_eq!(
             collection.items[0],
@@ -900,6 +925,10 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
+        assert_eq!(
+            collection.published_date,
+            Utc.with_ymd_and_hms(2024, 8, 24, 14, 40, 5).unwrap(),
+        );
         assert_eq!(collection.items.len(), 3);
         assert_eq!(
             collection.items[0],
@@ -1198,6 +1227,10 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
+        assert_eq!(
+            collection.published_date,
+            Utc.with_ymd_and_hms(2024, 7, 29, 15, 58, 1).unwrap(),
+        );
         assert_eq!(collection.items.len(), 1);
         assert_eq!(
             collection.items[0],
@@ -1287,6 +1320,10 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
+        assert_eq!(
+            collection.published_date,
+            Utc.with_ymd_and_hms(2024, 7, 29, 15, 58, 1).unwrap(),
+        );
         assert_eq!(collection.items.len(), 37);
 
         // Looking for a game that supports 17 players, not in the collection. Nothing
@@ -1315,6 +1352,10 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
+        assert_eq!(
+            collection.published_date,
+            Utc.with_ymd_and_hms(2024, 7, 29, 15, 58, 1).unwrap(),
+        );
         assert_eq!(collection.items.len(), 0);
     }
 
@@ -1350,6 +1391,10 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
+        assert_eq!(
+            collection.published_date,
+            Utc.with_ymd_and_hms(2024, 7, 29, 15, 58, 1).unwrap(),
+        );
         assert_eq!(collection.items.len(), 1);
         assert_eq!(
             collection.items[0],
@@ -1437,6 +1482,10 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
+        assert_eq!(
+            collection.published_date,
+            Utc.with_ymd_and_hms(2024, 7, 29, 15, 58, 1).unwrap(),
+        );
         assert_eq!(collection.items.len(), 30);
         for game in collection.items {
             assert!(game.stats.min_players <= 2 && game.stats.max_players >= 2);
@@ -1468,6 +1517,10 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
+        assert_eq!(
+            collection.published_date,
+            Utc.with_ymd_and_hms(2024, 7, 29, 15, 58, 1).unwrap(),
+        );
         assert_eq!(collection.items.len(), 0);
     }
 
@@ -1504,6 +1557,10 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
+        assert_eq!(
+            collection.published_date,
+            Utc.with_ymd_and_hms(2024, 8, 24, 17, 7, 54).unwrap(),
+        );
         assert_eq!(collection.items.len(), 2);
         assert_eq!(
             collection.items[0],
@@ -1644,6 +1701,10 @@ mod tests {
         assert!(collection.is_ok(), "error returned when okay expected");
         let collection = collection.unwrap();
 
+        assert_eq!(
+            collection.published_date,
+            Utc.with_ymd_and_hms(2024, 9, 7, 19, 37, 26).unwrap(),
+        );
         assert_eq!(collection.items.len(), 0);
     }
 }

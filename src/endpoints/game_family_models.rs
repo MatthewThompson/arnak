@@ -3,15 +3,15 @@ use core::fmt;
 use serde::Deserialize;
 
 use super::Game;
-use crate::utils::{XmlLink, XmlName};
+use crate::deserialize::{XmlLink, XmlName};
 use crate::{ItemType, NameType};
 
-/// A list of game families. Which are groups of games in a particular series.
+// A list of game families. Which are groups of games in a particular series.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct GameFamilies {
-    /// List of game families, and the games that they contain.
+pub(crate) struct GameFamilies {
+    // List of game families, and the games that they contain.
     #[serde(default, rename = "item")]
-    pub game_families: Vec<GameFamily>,
+    pub(crate) game_families: Vec<GameFamily>,
 }
 
 /// A family of games in a particular series or group. Contains the description for the

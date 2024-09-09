@@ -3,14 +3,14 @@ use core::fmt;
 use serde::Deserialize;
 
 use super::ItemType;
-use crate::utils::{XmlSignedValue, XmlStringValue};
+use crate::deserialize::{XmlSignedValue, XmlStringValue};
 
 /// The returned struct containing a list of search results.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub struct SearchResults {
+pub(crate) struct SearchResults {
     /// The list of board games returned by the search.
     #[serde(default, rename = "item")]
-    pub results: Vec<SearchResult>,
+    pub(crate) results: Vec<SearchResult>,
 }
 
 /// A result when searching for a name. Includes the game's name, type, and year

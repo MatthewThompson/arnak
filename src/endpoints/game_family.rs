@@ -1,5 +1,5 @@
-use super::{GameFamilies, ItemType};
-use crate::{BoardGameGeekApi, IntoQueryParam, QueryParam, Result};
+use super::{GameFamilies, GameFamily, ItemType};
+use crate::{BoardGameGeekApi, Error, IntoQueryParam, QueryParam, Result};
 
 // Query parameters for making a request to the game family endpoint.
 #[derive(Clone, Debug, Default)]
@@ -68,19 +68,29 @@ impl<'api> GameFamilyApi<'api> {
     }
 
     /// Gets a family of games by ID.
-    pub async fn get_by_id(&self, id: u64) -> Result<GameFamilies> {
+    pub async fn get_by_id(&self, id: u64) -> Result<GameFamily> {
         let query = GameFamilyQueryBuilder::new(GameFamilyQueryParams::new().game_family_id(id));
 
         let request = self.api.build_request(self.endpoint, &query.build());
-        self.api.execute_request::<GameFamilies>(request).await
+        let mut response = self.api.execute_request::<GameFamilies>(request).await?;
+
+        match response.game_families.len() {
+            0 => Err(Error::ItemNotFound),
+            1 => Ok(response.game_families.remove(0)),
+            len => Err(Error::UnexpectedResponseError(format!(
+                "expected 1 game family but got {len}",
+            ))),
+        }
     }
 
     /// Gets families of games by their IDs.
-    pub async fn get_by_ids(&self, ids: Vec<u64>) -> Result<GameFamilies> {
+    pub async fn get_by_ids(&self, ids: Vec<u64>) -> Result<Vec<GameFamily>> {
         let query = GameFamilyQueryBuilder::new(GameFamilyQueryParams::new().game_family_ids(ids));
 
         let request = self.api.build_request(self.endpoint, &query.build());
-        self.api.execute_request::<GameFamilies>(request).await
+        let response = self.api.execute_request::<GameFamilies>(request).await?;
+
+        Ok(response.game_families)
     }
 }
 
@@ -113,15 +123,14 @@ mod tests {
             .create_async()
             .await;
 
-        let families = api.game_family().get_by_id(2).await;
+        let game_family = api.game_family().get_by_id(2).await;
         mock.assert_async().await;
 
-        assert!(families.is_ok(), "error returned when okay expected");
-        let families = families.unwrap();
+        assert!(game_family.is_ok(), "error returned when okay expected");
+        let game_family = game_family.unwrap();
 
-        assert_eq!(families.game_families.len(), 1);
         assert_eq!(
-            families.game_families[0],
+            game_family,
             GameFamily {
                 id: 2,
                 name: "Game: Carcassonne".into(),
@@ -169,15 +178,15 @@ mod tests {
             .create_async()
             .await;
 
-        let families = api.game_family().get_by_ids(vec![2, 3]).await;
+        let game_families = api.game_family().get_by_ids(vec![2, 3]).await;
         mock.assert_async().await;
 
-        assert!(families.is_ok(), "error returned when okay expected");
-        let families = families.unwrap();
+        assert!(game_families.is_ok(), "error returned when okay expected");
+        let game_families = game_families.unwrap();
 
-        assert_eq!(families.game_families.len(), 2);
+        assert_eq!(game_families.len(), 2);
         assert_eq!(
-            families.game_families[0],
+            game_families[0],
             GameFamily {
                 id: 2,
                 name: "Game: Carcassonne".into(),
@@ -202,7 +211,7 @@ mod tests {
             },
         );
         assert_eq!(
-            families.game_families[1],
+            game_families[1],
             GameFamily {
                 id: 3,
                 name: "Game: Catan".into(),
@@ -246,12 +255,10 @@ mod tests {
             .create_async()
             .await;
 
-        let families = api.game_family().get_by_id(9000).await;
+        let game_families = api.game_family().get_by_id(9000).await;
         mock.assert_async().await;
 
-        assert!(families.is_ok(), "error returned when okay expected");
-        let families = families.unwrap();
-
-        assert_eq!(families.game_families.len(), 0);
+        assert!(game_families.is_err());
+        assert!(matches!(game_families.err().unwrap(), Error::ItemNotFound));
     }
 }

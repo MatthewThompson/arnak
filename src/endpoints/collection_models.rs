@@ -4,8 +4,9 @@ use chrono::{DateTime, Duration, Utc};
 use serde::Deserialize;
 
 use super::{CollectionItemType, GameFamilyRank, GameVersion, VersionsXml};
-use crate::utils::{
-    deserialize_1_0_bool, deserialize_date_time, deserialize_minutes, XmlFloatValue, XmlIntValue,
+use crate::deserialize::{
+    deserialize_1_0_bool, deserialize_date_time, deserialize_date_time_with_zone,
+    deserialize_minutes, XmlFloatValue, XmlIntValue,
 };
 use crate::XmlRanks;
 
@@ -19,6 +20,15 @@ pub struct Collection<T> {
     /// but games and game expansions can.
     #[serde(default = "Vec::new", rename = "item")]
     pub items: Vec<T>,
+    /// Date and time at which this collection was published.
+    ///
+    /// When a user's collection is requested, if the data is not ready the request will be queued
+    /// and a 202 accepted status will be returned, with a message to
+    #[serde(
+        rename = "pubdate",
+        deserialize_with = "deserialize_date_time_with_zone"
+    )]
+    pub published_date: DateTime<Utc>,
 }
 
 /// An item in a collection, in brief form. With the name, status, type,

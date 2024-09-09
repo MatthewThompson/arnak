@@ -4,8 +4,8 @@ use std::time::Duration;
 use reqwest::{RequestBuilder, Response};
 use tokio::time::sleep;
 
+use crate::deserialize::deserialize_xml_string;
 use crate::endpoints::collection::CollectionApi;
-use crate::utils::deserialize_xml_string;
 use crate::{
     deserialize_maybe_error, CollectionItem, CollectionItemBrief, Error, GameApi, GameFamilyApi,
     GuildApi, HotListApi, Result, SearchApi,

@@ -1,4 +1,4 @@
-use super::HotList;
+use super::{HotList, HotListGame};
 use crate::{BoardGameGeekApi, Result};
 
 /// Hot list endpoint of the API. Used for returning the current trending board
@@ -17,9 +17,11 @@ impl<'api> HotListApi<'api> {
     }
 
     /// Gets the current list of hot board games.
-    pub async fn get(&self) -> Result<HotList> {
+    pub async fn get(&self) -> Result<Vec<HotListGame>> {
         let request = self.api.build_request(self.endpoint, &[]);
-        self.api.execute_request(request).await
+        let response = self.api.execute_request::<HotList>(request).await?;
+
+        Ok(response.games)
     }
 }
 
@@ -55,9 +57,9 @@ mod tests {
         assert!(hot_list.is_ok(), "error returned when okay expected");
         let hot_list = hot_list.unwrap();
 
-        assert_eq!(hot_list.games.len(), 50);
+        assert_eq!(hot_list.len(), 50);
         assert_eq!(
-            hot_list.games[0],
+            hot_list[0],
             HotListGame {
                 id: 359_871,
                 rank: 1,

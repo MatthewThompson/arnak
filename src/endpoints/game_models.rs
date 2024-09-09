@@ -8,7 +8,7 @@ use super::{
     GameFamilyRank, GameImplementation, GameMechanic, GamePublisher, GameType, GameVersion, User,
     XmlRanks,
 };
-use crate::utils::{
+use crate::deserialize::{
     date_time_with_zone_from_string, XmlDateTimeValue, XmlFloatValue, XmlIntValue, XmlLink,
     XmlName, XmlSignedValue, XmlStringValue,
 };
