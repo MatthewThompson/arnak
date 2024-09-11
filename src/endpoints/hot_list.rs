@@ -63,8 +63,8 @@ mod tests {
             HotListGame {
                 id: 359_871,
                 rank: 1,
-                thumbnail: "https://cf.geekdo-images.com/XWImAu_3RK61wbzcKboVdA__thumb/img/Ry-6KHwNgERWadyxs1X1_P3dMvY=/fit-in/200x150/filters:strip_icc()/pic8145530.png".into(),
-                name: "Arcs".into(),
+                thumbnail: "https://cf.geekdo-images.com/XWImAu_3RK61wbzcKboVdA__thumb/img/Ry-6KHwNgERWadyxs1X1_P3dMvY=/fit-in/200x150/filters:strip_icc()/pic8145530.png".to_owned(),
+                name: "Arcs".to_owned(),
                 year_published: 2024,
             },
         );

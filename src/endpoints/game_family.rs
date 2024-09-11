@@ -112,8 +112,8 @@ mod tests {
         let mock = server
             .mock("GET", "/family")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("type".into(), "boardgamefamily".into()),
-                Matcher::UrlEncoded("id".into(), "2".into()),
+                Matcher::UrlEncoded("type".to_owned(), "boardgamefamily".to_owned()),
+                Matcher::UrlEncoded("id".to_owned(), "2".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -133,23 +133,23 @@ mod tests {
             game_family,
             GameFamily {
                 id: 2,
-                name: "Game: Carcassonne".into(),
-                alternate_names: vec!["Carcassonne: Solo-Variante".into()],
-                image: "https://cf.geekdo-images.com/c_pg0WfJKn7_P33AsDS5EA__original/img/k2t0IHkPo0nzLadfSxXhtAzyU5I=/0x0/filters:format(jpeg)/pic453826.jpg".into(),
-                thumbnail: "https://cf.geekdo-images.com/c_pg0WfJKn7_P33AsDS5EA__thumb/img/8RgZmSChaxESGjIdhMeIg0C9OZk=/fit-in/200x150/filters:strip_icc()/pic453826.jpg".into(),
-                description: "Games (expansions, promos, etc.) in the \"Carcassonne\" family of games, published by Hans im GlÃ¼ck.\n\n\nSee this Carcassonne Series wiki for more details.".into(),
+                name: "Game: Carcassonne".to_owned(),
+                alternate_names: vec!["Carcassonne: Solo-Variante".to_owned()],
+                image: "https://cf.geekdo-images.com/c_pg0WfJKn7_P33AsDS5EA__original/img/k2t0IHkPo0nzLadfSxXhtAzyU5I=/0x0/filters:format(jpeg)/pic453826.jpg".to_owned(),
+                thumbnail: "https://cf.geekdo-images.com/c_pg0WfJKn7_P33AsDS5EA__thumb/img/8RgZmSChaxESGjIdhMeIg0C9OZk=/fit-in/200x150/filters:strip_icc()/pic453826.jpg".to_owned(),
+                description: "Games (expansions, promos, etc.) in the \"Carcassonne\" family of games, published by Hans im GlÃ¼ck.\n\n\nSee this Carcassonne Series wiki for more details.".to_owned(),
                 games: vec![
                     Game {
                         id: 822,
-                        name: "Carcassonne".into(),
+                        name: "Carcassonne".to_owned(),
                     },
                     Game {
                         id: 142_057,
-                        name: "Carcassonne Big Box".into(),
+                        name: "Carcassonne Big Box".to_owned(),
                     },
                     Game {
                         id: 141_008,
-                        name: "Carcassonne Big Box 2".into(),
+                        name: "Carcassonne Big Box 2".to_owned(),
                     },
                 ],
             },
@@ -167,8 +167,8 @@ mod tests {
         let mock = server
             .mock("GET", "/family")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("type".into(), "boardgamefamily".into()),
-                Matcher::UrlEncoded("id".into(), "2,3".into()),
+                Matcher::UrlEncoded("type".to_owned(), "boardgamefamily".to_owned()),
+                Matcher::UrlEncoded("id".to_owned(), "2,3".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -189,23 +189,23 @@ mod tests {
             game_families[0],
             GameFamily {
                 id: 2,
-                name: "Game: Carcassonne".into(),
-                alternate_names: vec!["Carcassonne: Solo-Variante".into()],
-                image: "https://cf.geekdo-images.com/c_pg0WfJKn7_P33AsDS5EA__original/img/k2t0IHkPo0nzLadfSxXhtAzyU5I=/0x0/filters:format(jpeg)/pic453826.jpg".into(),
-                thumbnail: "https://cf.geekdo-images.com/c_pg0WfJKn7_P33AsDS5EA__thumb/img/8RgZmSChaxESGjIdhMeIg0C9OZk=/fit-in/200x150/filters:strip_icc()/pic453826.jpg".into(),
-                description: "Games (expansions, promos, etc.) in the \"Carcassonne\" family of games, published by Hans im GlÃ¼ck.\n\n\nSee this Carcassonne Series wiki for more details.".into(),
+                name: "Game: Carcassonne".to_owned(),
+                alternate_names: vec!["Carcassonne: Solo-Variante".to_owned()],
+                image: "https://cf.geekdo-images.com/c_pg0WfJKn7_P33AsDS5EA__original/img/k2t0IHkPo0nzLadfSxXhtAzyU5I=/0x0/filters:format(jpeg)/pic453826.jpg".to_owned(),
+                thumbnail: "https://cf.geekdo-images.com/c_pg0WfJKn7_P33AsDS5EA__thumb/img/8RgZmSChaxESGjIdhMeIg0C9OZk=/fit-in/200x150/filters:strip_icc()/pic453826.jpg".to_owned(),
+                description: "Games (expansions, promos, etc.) in the \"Carcassonne\" family of games, published by Hans im GlÃ¼ck.\n\n\nSee this Carcassonne Series wiki for more details.".to_owned(),
                 games: vec![
                     Game {
                         id: 822,
-                        name: "Carcassonne".into(),
+                        name: "Carcassonne".to_owned(),
                     },
                     Game {
                         id: 142_057,
-                        name: "Carcassonne Big Box".into(),
+                        name: "Carcassonne Big Box".to_owned(),
                     },
                     Game {
                         id: 141_008,
-                        name: "Carcassonne Big Box 2".into(),
+                        name: "Carcassonne Big Box 2".to_owned(),
                     },
                 ],
             },
@@ -214,19 +214,19 @@ mod tests {
             game_families[1],
             GameFamily {
                 id: 3,
-                name: "Game: Catan".into(),
+                name: "Game: Catan".to_owned(),
                 alternate_names: vec![],
-                image: "https://cf.geekdo-images.com/FFUKDbZw6d9mAKaL9U3ymg__original/img/rulpehNOumO24_7WzaHvl7P2aac=/0x0/filters:format(jpeg)/pic1446957.jpg".into(),
-                thumbnail: "https://cf.geekdo-images.com/FFUKDbZw6d9mAKaL9U3ymg__thumb/img/o06DBHHSC9Yck1WmSkp-rK360QI=/fit-in/200x150/filters:strip_icc()/pic1446957.jpg".into(),
-                description: "This is the family of Settlers of Catan games, meant to include any game in the Game: Catan universe.\n\nA detailed overview is given on the Catan Series wiki.".into(),
+                image: "https://cf.geekdo-images.com/FFUKDbZw6d9mAKaL9U3ymg__original/img/rulpehNOumO24_7WzaHvl7P2aac=/0x0/filters:format(jpeg)/pic1446957.jpg".to_owned(),
+                thumbnail: "https://cf.geekdo-images.com/FFUKDbZw6d9mAKaL9U3ymg__thumb/img/o06DBHHSC9Yck1WmSkp-rK360QI=/fit-in/200x150/filters:strip_icc()/pic1446957.jpg".to_owned(),
+                description: "This is the family of Settlers of Catan games, meant to include any game in the Game: Catan universe.\n\nA detailed overview is given on the Catan Series wiki.".to_owned(),
                 games: vec![
                     Game {
                         id: 13,
-                        name: "CATAN".into(),
+                        name: "CATAN".to_owned(),
                     },
                     Game {
                         id: 27710,
-                        name: "Catan Dice Game".into(),
+                        name: "Catan Dice Game".to_owned(),
                     },
                 ],
             },
@@ -244,8 +244,8 @@ mod tests {
         let mock = server
             .mock("GET", "/family")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("type".into(), "boardgamefamily".into()),
-                Matcher::UrlEncoded("id".into(), "9000".into()),
+                Matcher::UrlEncoded("type".to_owned(), "boardgamefamily".to_owned()),
+                Matcher::UrlEncoded("id".to_owned(), "9000".to_owned()),
             ]))
             .with_status(200)
             .with_body(

@@ -214,9 +214,9 @@ mod tests {
         let mock = server
             .mock("GET", "/thing")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("type".into(), "boardgame,boardgameexpansion".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
-                Matcher::UrlEncoded("id".into(), "312484".into()),
+                Matcher::UrlEncoded("type".to_owned(), "boardgame,boardgameexpansion".to_owned()),
+                Matcher::UrlEncoded("stats".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("id".to_owned(), "312484".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -473,9 +473,9 @@ mod tests {
         let mock = server
             .mock("GET", "/thing")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("type".into(), "boardgame,boardgameexpansion".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
-                Matcher::UrlEncoded("id".into(), "341254".into()),
+                Matcher::UrlEncoded("type".to_owned(), "boardgame,boardgameexpansion".to_owned()),
+                Matcher::UrlEncoded("stats".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("id".to_owned(), "341254".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -732,15 +732,15 @@ mod tests {
         let mock = server
             .mock("GET", "/thing")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("type".into(), "boardgame,boardgameexpansion".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
-                Matcher::UrlEncoded("id".into(), "312484".into()),
-                Matcher::UrlEncoded("versions".into(), "1".into()),
-                Matcher::UrlEncoded("videos".into(), "1".into()),
-                Matcher::UrlEncoded("marketplace".into(), "1".into()),
-                Matcher::UrlEncoded("comments".into(), "1".into()),
-                Matcher::UrlEncoded("page".into(), "1".into()),
-                Matcher::UrlEncoded("pagesize".into(), "3".into()),
+                Matcher::UrlEncoded("type".to_owned(), "boardgame,boardgameexpansion".to_owned()),
+                Matcher::UrlEncoded("stats".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("id".to_owned(), "312484".to_owned()),
+                Matcher::UrlEncoded("versions".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("videos".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("marketplace".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("comments".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("page".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("pagesize".to_owned(), "3".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -1086,7 +1086,7 @@ mod tests {
                             value: "44.99".to_owned(),
                         },
                         condition: GameCondition::New,
-                        notes: String::new(),
+                        notes: "".to_owned(),
                         link: "https://boardgamegeek.com/market/product/2408401".to_owned(),
                     },
                     MarketplaceListing {
@@ -1127,7 +1127,7 @@ mod tests {
                         RatingComment {
                             username: "u3".to_owned(),
                             rating: Some(8.5),
-                            comment: String::new(),
+                            comment: "".to_owned(),
                         },
                     ],
                 }),
@@ -1146,15 +1146,15 @@ mod tests {
         let mock = server
             .mock("GET", "/thing")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("type".into(), "boardgame,boardgameexpansion".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
-                Matcher::UrlEncoded("id".into(), "312484,341254".into()),
-                Matcher::UrlEncoded("versions".into(), "0".into()),
-                Matcher::UrlEncoded("videos".into(), "0".into()),
-                Matcher::UrlEncoded("marketplace".into(), "0".into()),
-                Matcher::UrlEncoded("ratingcomments".into(), "1".into()),
-                Matcher::UrlEncoded("page".into(), "1".into()),
-                Matcher::UrlEncoded("pagesize".into(), "3".into()),
+                Matcher::UrlEncoded("type".to_owned(), "boardgame,boardgameexpansion".to_owned()),
+                Matcher::UrlEncoded("stats".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("id".to_owned(), "312484,341254".to_owned()),
+                Matcher::UrlEncoded("versions".to_owned(), "0".to_owned()),
+                Matcher::UrlEncoded("videos".to_owned(), "0".to_owned()),
+                Matcher::UrlEncoded("marketplace".to_owned(), "0".to_owned()),
+                Matcher::UrlEncoded("ratingcomments".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("page".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("pagesize".to_owned(), "3".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -1420,7 +1420,7 @@ mod tests {
                         RatingComment {
                             username: "u3".to_owned(),
                             rating: Some(8.5),
-                            comment: String::new(),
+                            comment: "".to_owned(),
                         },
                     ],
                 }),

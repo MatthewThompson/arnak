@@ -598,10 +598,10 @@ mod tests {
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("username".into(), "somename".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
-                Matcher::UrlEncoded("brief".into(), "1".into()),
-                Matcher::UrlEncoded("own".into(), "1".into()),
+                Matcher::UrlEncoded("username".to_owned(), "somename".to_owned()),
+                Matcher::UrlEncoded("stats".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("brief".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("own".to_owned(), "1".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -671,10 +671,10 @@ mod tests {
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("username".into(), "somename".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
-                Matcher::UrlEncoded("brief".into(), "0".into()),
-                Matcher::UrlEncoded("own".into(), "1".into()),
+                Matcher::UrlEncoded("username".to_owned(), "somename".to_owned()),
+                Matcher::UrlEncoded("stats".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("brief".to_owned(), "0".to_owned()),
+                Matcher::UrlEncoded("own".to_owned(), "1".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -708,10 +708,10 @@ mod tests {
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("username".into(), "somename".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
-                Matcher::UrlEncoded("brief".into(), "0".into()),
-                Matcher::UrlEncoded("own".into(), "1".into()),
+                Matcher::UrlEncoded("username".to_owned(), "somename".to_owned()),
+                Matcher::UrlEncoded("stats".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("brief".to_owned(), "0".to_owned()),
+                Matcher::UrlEncoded("own".to_owned(), "1".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -773,16 +773,16 @@ mod tests {
                             GameFamilyRank {
                                 game_family_type: GameFamilyType::Subtype,
                                 id: 1,
-                                name: "boardgame".into(),
-                                friendly_name: "Board Game Rank".into(),
+                                name: "boardgame".to_owned(),
+                                friendly_name: "Board Game Rank".to_owned(),
                                 value: RankValue::Ranked(2486),
                                 bayesian_average: 6.08972,
                             },
                             GameFamilyRank {
                                 game_family_type: GameFamilyType::Family,
                                 id: 5499,
-                                name: "familygames".into(),
-                                friendly_name: "Family Game Rank".into(),
+                                name: "familygames".to_owned(),
+                                friendly_name: "Family Game Rank".to_owned(),
                                 value: RankValue::Ranked(1006),
                                 bayesian_average: 6.05246,
                             },
@@ -806,10 +806,10 @@ mod tests {
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("username".into(), "somename".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
-                Matcher::UrlEncoded("brief".into(), "0".into()),
-                Matcher::UrlEncoded("wishlist".into(), "1".into()),
+                Matcher::UrlEncoded("username".to_owned(), "somename".to_owned()),
+                Matcher::UrlEncoded("stats".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("brief".to_owned(), "0".to_owned()),
+                Matcher::UrlEncoded("wishlist".to_owned(), "1".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -871,16 +871,16 @@ mod tests {
                             GameFamilyRank {
                                 game_family_type: GameFamilyType::Subtype,
                                 id: 1,
-                                name: "boardgame".into(),
-                                friendly_name: "Board Game Rank".into(),
+                                name: "boardgame".to_owned(),
+                                friendly_name: "Board Game Rank".to_owned(),
                                 value: RankValue::Ranked(23),
                                 bayesian_average: 7.94347,
                             },
                             GameFamilyRank {
                                 game_family_type: GameFamilyType::Family,
                                 id: 5497,
-                                name: "strategygames".into(),
-                                friendly_name: "Strategy Game Rank".into(),
+                                name: "strategygames".to_owned(),
+                                friendly_name: "Strategy Game Rank".to_owned(),
                                 value: RankValue::Ranked(19),
                                 bayesian_average: 7.97338,
                             },
@@ -904,10 +904,10 @@ mod tests {
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("username".into(), "somename".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
-                Matcher::UrlEncoded("brief".into(), "1".into()),
-                Matcher::UrlEncoded("version".into(), "1".into()),
+                Matcher::UrlEncoded("username".to_owned(), "somename".to_owned()),
+                Matcher::UrlEncoded("stats".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("brief".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("version".to_owned(), "1".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -1000,26 +1000,26 @@ mod tests {
                 },
                 version: Some(GameVersion {
                     id: 712_636,
-                    name: "Russian edition 2024".into(),
+                    name: "Russian edition 2024".to_owned(),
                     alternate_names: vec![],
                     year_published: 2024,
-                    image: "https://cf.geekdo-images.com/IfUVNbebRWbtQ_SlGxG6ZQ__original/img/DNNED1WasGboaJH8OWMoGm6Zg1k=/0x0/filters:format(jpeg)/pic8177684.jpg".into(),
-                    thumbnail: "https://cf.geekdo-images.com/IfUVNbebRWbtQ_SlGxG6ZQ__thumb/img/E4EX1sbROpEXxte6IMx7cRgSL2E=/fit-in/200x150/filters:strip_icc()/pic8177684.jpg".into(),
+                    image: "https://cf.geekdo-images.com/IfUVNbebRWbtQ_SlGxG6ZQ__original/img/DNNED1WasGboaJH8OWMoGm6Zg1k=/0x0/filters:format(jpeg)/pic8177684.jpg".to_owned(),
+                    thumbnail: "https://cf.geekdo-images.com/IfUVNbebRWbtQ_SlGxG6ZQ__thumb/img/E4EX1sbROpEXxte6IMx7cRgSL2E=/fit-in/200x150/filters:strip_icc()/pic8177684.jpg".to_owned(),
                     original_game: Game {
                         id: 13,
-                        name: "CATAN".into(),
+                        name: "CATAN".to_owned(),
                     },
                     publishers: vec![GamePublisher {
                         id: 18852,
-                        name: "Hobby World".into(),
+                        name: "Hobby World".to_owned(),
                     }],
                     artists: vec![GameArtist {
                         id: 11825,
-                        name: "Michael Menzel".into(),
+                        name: "Michael Menzel".to_owned(),
                     }],
                     languages: vec![Language {
                         id: 2202,
-                        name: "Russian".into(),
+                        name: "Russian".to_owned(),
                     }],
                     dimensions: Some(Dimensions {
                         width: 11.7323,
@@ -1027,7 +1027,7 @@ mod tests {
                         depth: 2.79528,
                     }),
                     weight: Some(2.7205),
-                    product_code: Some("915853".into()),
+                    product_code: Some("915853".to_owned()),
                 }),
             },
             "returned collection game with version doesn't match expected",
@@ -1066,31 +1066,31 @@ mod tests {
                 },
                 version: Some(GameVersion {
                     id: 590_616,
-                    name: "English/Japanese edition".into(),
+                    name: "English/Japanese edition".to_owned(),
                     alternate_names: vec![],
                     year_published: 2021,
-                    image: "https://cf.geekdo-images.com/rt5qzjbrXq7PgI9IaRekNA__original/img/rh02vSdTIvg-oPr4ymQETCLUEjU=/0x0/filters:format(jpeg)/pic7227031.jpg".into(),
-                    thumbnail: "https://cf.geekdo-images.com/rt5qzjbrXq7PgI9IaRekNA__thumb/img/HGNVOyEKBxZVl0Ry7YDwIcQ5vVc=/fit-in/200x150/filters:strip_icc()/pic7227031.jpg".into(),
+                    image: "https://cf.geekdo-images.com/rt5qzjbrXq7PgI9IaRekNA__original/img/rh02vSdTIvg-oPr4ymQETCLUEjU=/0x0/filters:format(jpeg)/pic7227031.jpg".to_owned(),
+                    thumbnail: "https://cf.geekdo-images.com/rt5qzjbrXq7PgI9IaRekNA__thumb/img/HGNVOyEKBxZVl0Ry7YDwIcQ5vVc=/fit-in/200x150/filters:strip_icc()/pic7227031.jpg".to_owned(),
                     original_game: Game {
                         id: 352_515,
-                        name: "Trio".into(),
+                        name: "Trio".to_owned(),
                     },
                     publishers: vec![GamePublisher {
                         id: 50472,
-                        name: "Mob+ (Mob Plus)".into(),
+                        name: "Mob+ (Mob Plus)".to_owned(),
                     }],
                     artists: vec![GameArtist {
                         id: 108_040,
-                        name: "別府さい (Sai Beppu)".into(),
+                        name: "別府さい (Sai Beppu)".to_owned(),
                     }],
                     languages: vec![
                         Language {
                             id: 2184,
-                            name: "English".into(),
+                            name: "English".to_owned(),
                         },
                         Language {
                             id: 2194,
-                            name: "Japanese".into(),
+                            name: "Japanese".to_owned(),
                         },
                     ],
                     dimensions: None,
@@ -1114,39 +1114,39 @@ mod tests {
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
                 // This user's collection
-                Matcher::UrlEncoded("username".into(), "someone".into()),
+                Matcher::UrlEncoded("username".to_owned(), "someone".to_owned()),
                 // Which info to include for each item
-                Matcher::UrlEncoded("stats".into(), "1".into()),
-                Matcher::UrlEncoded("brief".into(), "0".into()),
-                Matcher::UrlEncoded("version".into(), "1".into()),
+                Matcher::UrlEncoded("stats".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("brief".to_owned(), "0".to_owned()),
+                Matcher::UrlEncoded("version".to_owned(), "1".to_owned()),
                 // Status filtering
-                Matcher::UrlEncoded("own".into(), "1".into()),
-                Matcher::UrlEncoded("trade".into(), "0".into()),
-                Matcher::UrlEncoded("want".into(), "1".into()),
-                Matcher::UrlEncoded("wishlist".into(), "1".into()),
-                Matcher::UrlEncoded("wishlistpriority".into(), "5".into()),
-                Matcher::UrlEncoded("preordered".into(), "1".into()),
-                Matcher::UrlEncoded("wanttoplay".into(), "0".into()),
-                Matcher::UrlEncoded("wanttobuy".into(), "0".into()),
-                Matcher::UrlEncoded("prevowned".into(), "1".into()),
+                Matcher::UrlEncoded("own".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("trade".to_owned(), "0".to_owned()),
+                Matcher::UrlEncoded("want".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("wishlist".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("wishlistpriority".to_owned(), "5".to_owned()),
+                Matcher::UrlEncoded("preordered".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("wanttoplay".to_owned(), "0".to_owned()),
+                Matcher::UrlEncoded("wanttobuy".to_owned(), "0".to_owned()),
+                Matcher::UrlEncoded("prevowned".to_owned(), "1".to_owned()),
                 // Filtering
-                Matcher::UrlEncoded("subtype".into(), "boardgameexpansion".into()),
-                Matcher::UrlEncoded("excludesubtype".into(), "boardgame".into()),
-                Matcher::UrlEncoded("id".into(), "13,3000,1".into()),
-                Matcher::UrlEncoded("rated".into(), "1".into()),
-                Matcher::UrlEncoded("played".into(), "1".into()),
-                Matcher::UrlEncoded("comment".into(), "1".into()),
-                Matcher::UrlEncoded("hasparts".into(), "0".into()),
-                Matcher::UrlEncoded("wantparts".into(), "1".into()),
-                Matcher::UrlEncoded("minrating".into(), "3.5".into()),
-                Matcher::UrlEncoded("rating".into(), "9".into()),
-                Matcher::UrlEncoded("minbggrating".into(), "5.5".into()),
-                Matcher::UrlEncoded("bggrating".into(), "8.7".into()),
-                Matcher::UrlEncoded("minplays".into(), "2".into()),
-                Matcher::UrlEncoded("maxplays".into(), "450".into()),
-                Matcher::UrlEncoded("showprivate".into(), "1".into()),
-                Matcher::UrlEncoded("collid".into(), "345".into()),
-                Matcher::UrlEncoded("modifiedsince".into(), "24-05-17".into()),
+                Matcher::UrlEncoded("subtype".to_owned(), "boardgameexpansion".to_owned()),
+                Matcher::UrlEncoded("excludesubtype".to_owned(), "boardgame".to_owned()),
+                Matcher::UrlEncoded("id".to_owned(), "13,3000,1".to_owned()),
+                Matcher::UrlEncoded("rated".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("played".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("comment".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("hasparts".to_owned(), "0".to_owned()),
+                Matcher::UrlEncoded("wantparts".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("minrating".to_owned(), "3.5".to_owned()),
+                Matcher::UrlEncoded("rating".to_owned(), "9".to_owned()),
+                Matcher::UrlEncoded("minbggrating".to_owned(), "5.5".to_owned()),
+                Matcher::UrlEncoded("bggrating".to_owned(), "8.7".to_owned()),
+                Matcher::UrlEncoded("minplays".to_owned(), "2".to_owned()),
+                Matcher::UrlEncoded("maxplays".to_owned(), "450".to_owned()),
+                Matcher::UrlEncoded("showprivate".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("collid".to_owned(), "345".to_owned()),
+                Matcher::UrlEncoded("modifiedsince".to_owned(), "24-05-17".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -1206,9 +1206,9 @@ mod tests {
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("username".into(), "someone".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
-                Matcher::UrlEncoded("brief".into(), "0".into()),
+                Matcher::UrlEncoded("username".to_owned(), "someone".to_owned()),
+                Matcher::UrlEncoded("stats".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("brief".to_owned(), "0".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -1273,16 +1273,16 @@ mod tests {
                             GameFamilyRank {
                                 game_family_type: GameFamilyType::Subtype,
                                 id: 1,
-                                name: "boardgame".into(),
-                                friendly_name: "Board Game Rank".into(),
+                                name: "boardgame".to_owned(),
+                                friendly_name: "Board Game Rank".to_owned(),
                                 value: RankValue::Ranked(5587),
                                 bayesian_average: 5.71005,
                             },
                             GameFamilyRank {
                                 game_family_type: GameFamilyType::Family,
                                 id: 5498,
-                                name: "partygames".into(),
-                                friendly_name: "Party Game Rank".into(),
+                                name: "partygames".to_owned(),
+                                friendly_name: "Party Game Rank".to_owned(),
                                 value: RankValue::Ranked(563),
                                 bayesian_average: 5.65053,
                             }
@@ -1299,9 +1299,9 @@ mod tests {
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("username".into(), "someone".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
-                Matcher::UrlEncoded("brief".into(), "0".into()),
+                Matcher::UrlEncoded("username".to_owned(), "someone".to_owned()),
+                Matcher::UrlEncoded("stats".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("brief".to_owned(), "0".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -1331,9 +1331,9 @@ mod tests {
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("username".into(), "someone".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
-                Matcher::UrlEncoded("brief".into(), "0".into()),
+                Matcher::UrlEncoded("username".to_owned(), "someone".to_owned()),
+                Matcher::UrlEncoded("stats".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("brief".to_owned(), "0".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -1370,9 +1370,9 @@ mod tests {
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("username".into(), "someone".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
-                Matcher::UrlEncoded("brief".into(), "0".into()),
+                Matcher::UrlEncoded("username".to_owned(), "someone".to_owned()),
+                Matcher::UrlEncoded("stats".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("brief".to_owned(), "0".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -1437,16 +1437,16 @@ mod tests {
                             GameFamilyRank {
                                 game_family_type: GameFamilyType::Subtype,
                                 id: 1,
-                                name: "boardgame".into(),
-                                friendly_name: "Board Game Rank".into(),
+                                name: "boardgame".to_owned(),
+                                friendly_name: "Board Game Rank".to_owned(),
                                 value: RankValue::Ranked(5587),
                                 bayesian_average: 5.71005,
                             },
                             GameFamilyRank {
                                 game_family_type: GameFamilyType::Family,
                                 id: 5498,
-                                name: "partygames".into(),
-                                friendly_name: "Party Game Rank".into(),
+                                name: "partygames".to_owned(),
+                                friendly_name: "Party Game Rank".to_owned(),
                                 value: RankValue::Ranked(563),
                                 bayesian_average: 5.65053,
                             }
@@ -1461,9 +1461,9 @@ mod tests {
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("username".into(), "someone".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
-                Matcher::UrlEncoded("brief".into(), "0".into()),
+                Matcher::UrlEncoded("username".to_owned(), "someone".to_owned()),
+                Matcher::UrlEncoded("stats".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("brief".to_owned(), "0".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -1496,9 +1496,9 @@ mod tests {
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("username".into(), "someone".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
-                Matcher::UrlEncoded("brief".into(), "0".into()),
+                Matcher::UrlEncoded("username".to_owned(), "someone".to_owned()),
+                Matcher::UrlEncoded("stats".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("brief".to_owned(), "0".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -1535,10 +1535,10 @@ mod tests {
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("username".into(), "somename".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
-                Matcher::UrlEncoded("brief".into(), "0".into()),
-                Matcher::UrlEncoded("subtype".into(), "boardgameaccessory".into()),
+                Matcher::UrlEncoded("username".to_owned(), "somename".to_owned()),
+                Matcher::UrlEncoded("stats".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("brief".to_owned(), "0".to_owned()),
+                Matcher::UrlEncoded("subtype".to_owned(), "boardgameaccessory".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -1603,8 +1603,8 @@ mod tests {
                             GameFamilyRank {
                                 game_family_type: GameFamilyType::Subtype,
                                 id: 62,
-                                name: "boardgameaccessory".into(),
-                                friendly_name: "Accessory Rank".into(),
+                                name: "boardgameaccessory".to_owned(),
+                                friendly_name: "Accessory Rank".to_owned(),
                                 value: RankValue::Ranked(749),
                                 bayesian_average: 6.10014,
                             },
@@ -1656,8 +1656,8 @@ mod tests {
                             GameFamilyRank {
                                 game_family_type: GameFamilyType::Subtype,
                                 id: 62,
-                                name: "boardgameaccessory".into(),
-                                friendly_name: "Accessory Rank".into(),
+                                name: "boardgameaccessory".to_owned(),
+                                friendly_name: "Accessory Rank".to_owned(),
                                 value: RankValue::Ranked(22),
                                 bayesian_average: 7.55507,
                             },
@@ -1680,9 +1680,9 @@ mod tests {
         let mock = server
             .mock("GET", "/collection")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("username".into(), "somename".into()),
-                Matcher::UrlEncoded("stats".into(), "1".into()),
-                Matcher::UrlEncoded("brief".into(), "0".into()),
+                Matcher::UrlEncoded("username".to_owned(), "somename".to_owned()),
+                Matcher::UrlEncoded("stats".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("brief".to_owned(), "0".to_owned()),
             ]))
             .with_status(200)
             .with_body(
