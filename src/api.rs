@@ -143,11 +143,10 @@ impl BoardGameGeekApi {
                 };
                 if response.status() == reqwest::StatusCode::ACCEPTED {
                     if retries >= 4 {
-                        break Err(Error::MaxRetryError(retries + 1));
+                        break Err(Error::CollectionNotReady);
                     }
                     // Request has been accepted but the data isn't ready yet, we wait a short
-                    // amount of time before trying again, with exponential
-                    // backoff.
+                    // amount of time before trying again, with exponential backoff.
                     let backoff_multiplier = 2_u64.pow(retries);
                     retries += 1;
                     let delay = Duration::from_millis(200 * backoff_multiplier);

@@ -14,13 +14,17 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// case an error shouldn't happen.
 #[derive(Debug)]
 pub enum Error {
-    /// An error was returned making the HTTP request, or an error
-    /// status code was returned.
+    /// An error was returned making the HTTP request, or an error status code was returned.
     HttpError(reqwest::Error),
-    /// The request tried too many times and timed out before the
-    /// data was ready to be returned by the API. Includes the total
-    /// number of times tried.
-    MaxRetryError(u32),
+    /// A request was made to retrieve a user's collection but the data is not ready to be returned
+    /// from the underlying API yet.
+    ///
+    /// The when a request is made to get a collection of a user, internally a collection export is
+    /// queued and the API will return a 202 accepted. In this case we will retry shortly after
+    /// in the case that the data is ready momentarily after the request is made. But if this is
+    /// not the case and a 202 is returned even after some retries, this error will be returned so
+    /// that the consumer knows they will have to try again later to fetch the collection.
+    CollectionNotReady,
     /// An error occurred attempting to parse the response from
     /// the API into the expected type.
     InvalidResponseError(serde_xml_rs::Error),
@@ -59,8 +63,11 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Error::HttpError(e) => write!(f, "error making request: {e}"),
-            Error::MaxRetryError(retries) => {
-                write!(f, "data still not ready after {retries} retries, aborting")
+            Error::CollectionNotReady => {
+                write!(
+                    f,
+                    "request for collection has been queued but the data is not ready yet",
+                )
             },
             Error::InvalidResponseError(e) => write!(f, "error parsing output: {e}"),
             Error::UnexpectedResponseError(reason) => {
@@ -82,7 +89,7 @@ impl StdError for Error {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match &self {
             Error::HttpError(e) => Some(e),
-            Error::MaxRetryError(_) => None,
+            Error::CollectionNotReady => None,
             Error::InvalidResponseError(e) => Some(e),
             Error::UnexpectedResponseError(_) => None,
             Error::UnknownUsernameError => None,
