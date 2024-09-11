@@ -122,8 +122,8 @@ mod tests {
         let mock = server
             .mock("GET", "/guild")
             .match_query(Matcher::AllOf(vec![Matcher::UrlEncoded(
-                "id".into(),
-                "13".into(),
+                "id".to_owned(),
+                "13".to_owned(),
             )]))
             .with_status(200)
             .with_body(
@@ -152,12 +152,12 @@ mod tests {
                     "A group to discuss the Con of the North, held in February in Minnesota."
                         .to_owned(),
                 location: Location {
-                    address_line_1: String::new(),
-                    address_line_2: String::new(),
+                    address_line_1: "".to_owned(),
+                    address_line_2: "".to_owned(),
                     city: "Saint Paul".to_owned(),
                     state: "Minnesota".to_owned(),
                     country: "United States".to_owned(),
-                    postal_code: String::new(),
+                    postal_code: "".to_owned(),
                 },
                 member_page: None,
             },
@@ -175,9 +175,9 @@ mod tests {
         let mock = server
             .mock("GET", "/guild")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("id".into(), "13".into()),
-                Matcher::UrlEncoded("members".into(), "1".into()),
-                Matcher::UrlEncoded("page".into(), "2".into()),
+                Matcher::UrlEncoded("id".to_owned(), "13".to_owned()),
+                Matcher::UrlEncoded("members".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("page".to_owned(), "2".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -209,12 +209,12 @@ mod tests {
                     "A group to discuss the Con of the North, held in February in Minnesota."
                         .to_owned(),
                 location: Location {
-                    address_line_1: String::new(),
-                    address_line_2: String::new(),
+                    address_line_1: "".to_owned(),
+                    address_line_2: "".to_owned(),
                     city: "Saint Paul".to_owned(),
                     state: "Minnesota".to_owned(),
                     country: "United States".to_owned(),
-                    postal_code: String::new(),
+                    postal_code: "".to_owned(),
                 },
                 member_page: Some(MemberPage {
                     total_members: 27,
@@ -245,10 +245,10 @@ mod tests {
         let mock = server
             .mock("GET", "/guild")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("id".into(), "13".into()),
-                Matcher::UrlEncoded("members".into(), "1".into()),
-                Matcher::UrlEncoded("page".into(), "5".into()),
-                Matcher::UrlEncoded("sort".into(), "date".into()),
+                Matcher::UrlEncoded("id".to_owned(), "13".to_owned()),
+                Matcher::UrlEncoded("members".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("page".to_owned(), "5".to_owned()),
+                Matcher::UrlEncoded("sort".to_owned(), "date".to_owned()),
             ]))
             .with_status(200)
             .with_body(

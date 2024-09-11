@@ -35,6 +35,8 @@
     // Both of these could be reconsidered if the modules are made public instead, or all imports are listed.
     clippy::module_name_repetitions,
     clippy::wildcard_imports,
+    // to_owned is used for consistency. Mainly used for declaring expected outputs in tests where using String::new() is a little more noisy.
+    clippy::manual_string_new,
     // Misc noisy
     clippy::missing_errors_doc,
     clippy::must_use_candidate,

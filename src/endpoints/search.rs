@@ -180,8 +180,8 @@ mod tests {
         let mock = server
             .mock("GET", "/search")
             .match_query(Matcher::AllOf(vec![Matcher::UrlEncoded(
-                "query".into(),
-                "some search term".into(),
+                "query".to_owned(),
+                "some search term".to_owned(),
             )]))
             .with_status(200)
             .with_body(
@@ -203,7 +203,7 @@ mod tests {
             SearchResult {
                 id: 312_484,
                 item_type: ItemType::BoardGame,
-                name: "Lost Ruins of Arnak".into(),
+                name: "Lost Ruins of Arnak".to_owned(),
                 year_published: Some(2020),
             },
         );
@@ -212,7 +212,7 @@ mod tests {
             SearchResult {
                 id: 341_254,
                 item_type: ItemType::BoardGameExpansion,
-                name: "Lost Ruins of Arnak: Expedition Leaders".into(),
+                name: "Lost Ruins of Arnak: Expedition Leaders".to_owned(),
                 year_published: Some(2021),
             },
         );
@@ -229,8 +229,8 @@ mod tests {
         let mock = server
             .mock("GET", "/search")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("query".into(), "lost ruins of arnak".into()),
-                Matcher::UrlEncoded("exact".into(), "1".into()),
+                Matcher::UrlEncoded("query".to_owned(), "lost ruins of arnak".to_owned()),
+                Matcher::UrlEncoded("exact".to_owned(), "1".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -252,7 +252,7 @@ mod tests {
             SearchResult {
                 id: 312_484,
                 item_type: ItemType::BoardGame,
-                name: "Lost Ruins of Arnak".into(),
+                name: "Lost Ruins of Arnak".to_owned(),
                 year_published: Some(2020),
             },
         );
@@ -269,8 +269,8 @@ mod tests {
         let mock = server
             .mock("GET", "/search")
             .match_query(Matcher::AllOf(vec![Matcher::UrlEncoded(
-                "query".into(),
-                "a".into(),
+                "query".to_owned(),
+                "a".to_owned(),
             )]))
             .with_status(200)
             .with_body(
@@ -292,7 +292,7 @@ mod tests {
             SearchResult {
                 id: 12668,
                 item_type: ItemType::BoardGame,
-                name: "\"Get Smart\"".into(),
+                name: "\"Get Smart\"".to_owned(),
                 year_published: Some(1965),
             },
         );
@@ -301,7 +301,7 @@ mod tests {
             SearchResult {
                 id: 30346,
                 item_type: ItemType::BoardGame,
-                name: "\"Get Smart\" Card Game".into(),
+                name: "\"Get Smart\" Card Game".to_owned(),
                 year_published: None,
             },
         );
@@ -318,8 +318,8 @@ mod tests {
         let mock = server
             .mock("GET", "/search")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("query".into(), "arnak".into()),
-                Matcher::UrlEncoded("type".into(), "boardgameexpansion".into()),
+                Matcher::UrlEncoded("query".to_owned(), "arnak".to_owned()),
+                Matcher::UrlEncoded("type".to_owned(), "boardgameexpansion".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -344,7 +344,7 @@ mod tests {
             SearchResult {
                 id: 341_254,
                 item_type: ItemType::BoardGameExpansion,
-                name: "Lost Ruins of Arnak: Expedition Leaders".into(),
+                name: "Lost Ruins of Arnak: Expedition Leaders".to_owned(),
                 year_published: Some(2021),
             },
         );
@@ -361,9 +361,9 @@ mod tests {
         let mock = server
             .mock("GET", "/search")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("query".into(), "lost ruins of arnak".into()),
-                Matcher::UrlEncoded("exact".into(), "1".into()),
-                Matcher::UrlEncoded("type".into(), "boardgame".into()),
+                Matcher::UrlEncoded("query".to_owned(), "lost ruins of arnak".to_owned()),
+                Matcher::UrlEncoded("exact".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("type".to_owned(), "boardgame".to_owned()),
             ]))
             .with_status(200)
             .with_body(
@@ -388,7 +388,7 @@ mod tests {
             SearchResult {
                 id: 312_484,
                 item_type: ItemType::BoardGame,
-                name: "Lost Ruins of Arnak".into(),
+                name: "Lost Ruins of Arnak".to_owned(),
                 year_published: Some(2020),
             },
         );
@@ -405,10 +405,10 @@ mod tests {
         let mock = server
             .mock("GET", "/search")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("query".into(), "arnak".into()),
+                Matcher::UrlEncoded("query".to_owned(), "arnak".to_owned()),
                 Matcher::UrlEncoded(
-                    "type".into(),
-                    "boardgame,boardgameaccessory,boardgameartist".into(),
+                    "type".to_owned(),
+                    "boardgame,boardgameaccessory,boardgameartist".to_owned(),
                 ),
             ]))
             .with_status(200)
@@ -441,7 +441,7 @@ mod tests {
             SearchResult {
                 id: 403_238,
                 item_type: ItemType::BoardGameAccessory,
-                name: "Lost Ruins of Arnak + Expansions: The GiftForge Insert".into(),
+                name: "Lost Ruins of Arnak + Expansions: The GiftForge Insert".to_owned(),
                 year_published: Some(2023),
             },
         );
@@ -450,7 +450,7 @@ mod tests {
             SearchResult {
                 id: 312_484,
                 item_type: ItemType::BoardGame,
-                name: "Lost Ruins of Arnak".into(),
+                name: "Lost Ruins of Arnak".to_owned(),
                 year_published: Some(2020),
             },
         );
