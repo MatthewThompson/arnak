@@ -539,3 +539,33 @@ impl<'de> Deserialize<'de> for RankValue {
         }
     }
 }
+
+/// A rank a particular board game has on the site, within a subtype. Can be
+/// either Ranked with a u64 for the rank, Or `NotRanked`.
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum RankBayesAverage {
+    /// The rank of a game within a particular family of games, or all games. Where
+    /// 1 means that it has the highest overall rank of every game in that category.
+    Ranked(f64),
+    /// The game does not have a rank in a given category, possibly due to not having
+    /// enough ratings.
+    NotRanked,
+}
+
+impl<'de> Deserialize<'de> for RankBayesAverage {
+    fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let s: String = serde::de::Deserialize::deserialize(deserializer)?;
+        if s == "Not Ranked" {
+            return Ok(RankBayesAverage::NotRanked);
+        }
+
+        let rank: Result<f64, _> = s.parse();
+        match rank {
+            Ok(value) => Ok(RankBayesAverage::Ranked(value)),
+            _ => Err(serde::de::Error::unknown_variant(
+                &s,
+                &["u64", "Not Ranked"],
+            )),
+        }
+    }
+}
