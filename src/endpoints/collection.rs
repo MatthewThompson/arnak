@@ -498,6 +498,7 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
         username: &'api str,
         query_params: CollectionQueryParams,
     ) -> Result<Collection<T>> {
+        println!("what");
         let query = CollectionQueryBuilder::new(T::base_query(username), query_params);
 
         let request = self.api.build_request(self.endpoint, &query.build());
@@ -579,7 +580,7 @@ mod tests {
     use crate::{
         CollectionItemRating, CollectionItemStats, CollectionItemStatus, CollectionItemType,
         Dimensions, Game, GameArtist, GameFamilyRank, GameFamilyType, GamePublisher, GameVersion,
-        Language, RankValue,
+        Language, RankBayesAverage, RankValue,
     };
 
     #[test]
@@ -776,7 +777,7 @@ mod tests {
                                 name: "boardgame".to_owned(),
                                 friendly_name: "Board Game Rank".to_owned(),
                                 value: RankValue::Ranked(2486),
-                                bayesian_average: 6.08972,
+                                bayesian_average: RankBayesAverage::Ranked(6.08972),
                             },
                             GameFamilyRank {
                                 game_family_type: GameFamilyType::Family,
@@ -784,7 +785,7 @@ mod tests {
                                 name: "familygames".to_owned(),
                                 friendly_name: "Family Game Rank".to_owned(),
                                 value: RankValue::Ranked(1006),
-                                bayesian_average: 6.05246,
+                                bayesian_average: RankBayesAverage::Ranked(6.05246),
                             },
                         ],
                     },
@@ -874,7 +875,7 @@ mod tests {
                                 name: "boardgame".to_owned(),
                                 friendly_name: "Board Game Rank".to_owned(),
                                 value: RankValue::Ranked(23),
-                                bayesian_average: 7.94347,
+                                bayesian_average: RankBayesAverage::Ranked(7.94347),
                             },
                             GameFamilyRank {
                                 game_family_type: GameFamilyType::Family,
@@ -882,7 +883,7 @@ mod tests {
                                 name: "strategygames".to_owned(),
                                 friendly_name: "Strategy Game Rank".to_owned(),
                                 value: RankValue::Ranked(19),
-                                bayesian_average: 7.97338,
+                                bayesian_average: RankBayesAverage::Ranked(7.97338),
                             },
                         ],
                     },
@@ -1276,7 +1277,7 @@ mod tests {
                                 name: "boardgame".to_owned(),
                                 friendly_name: "Board Game Rank".to_owned(),
                                 value: RankValue::Ranked(5587),
-                                bayesian_average: 5.71005,
+                                bayesian_average: RankBayesAverage::Ranked(5.71005),
                             },
                             GameFamilyRank {
                                 game_family_type: GameFamilyType::Family,
@@ -1284,7 +1285,7 @@ mod tests {
                                 name: "partygames".to_owned(),
                                 friendly_name: "Party Game Rank".to_owned(),
                                 value: RankValue::Ranked(563),
-                                bayesian_average: 5.65053,
+                                bayesian_average: RankBayesAverage::Ranked(5.65053),
                             }
                         ],
                     }
@@ -1440,7 +1441,7 @@ mod tests {
                                 name: "boardgame".to_owned(),
                                 friendly_name: "Board Game Rank".to_owned(),
                                 value: RankValue::Ranked(5587),
-                                bayesian_average: 5.71005,
+                                bayesian_average: RankBayesAverage::Ranked(5.71005),
                             },
                             GameFamilyRank {
                                 game_family_type: GameFamilyType::Family,
@@ -1448,7 +1449,7 @@ mod tests {
                                 name: "partygames".to_owned(),
                                 friendly_name: "Party Game Rank".to_owned(),
                                 value: RankValue::Ranked(563),
-                                bayesian_average: 5.65053,
+                                bayesian_average: RankBayesAverage::Ranked(5.65053),
                             }
                         ],
                     }
@@ -1606,7 +1607,7 @@ mod tests {
                                 name: "boardgameaccessory".to_owned(),
                                 friendly_name: "Accessory Rank".to_owned(),
                                 value: RankValue::Ranked(749),
-                                bayesian_average: 6.10014,
+                                bayesian_average: RankBayesAverage::Ranked(6.10014),
                             },
                         ],
                     },
@@ -1659,7 +1660,7 @@ mod tests {
                                 name: "boardgameaccessory".to_owned(),
                                 friendly_name: "Accessory Rank".to_owned(),
                                 value: RankValue::Ranked(22),
-                                bayesian_average: 7.55507,
+                                bayesian_average: RankBayesAverage::Ranked(7.55507),
                             },
                         ],
                     },

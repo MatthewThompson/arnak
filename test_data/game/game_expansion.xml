@@ -91,9 +91,9 @@
                 <bayesaverage value="7.92384" />
                 <ranks>
                     <rank type="subtype" id="1" name="boardgame" friendlyname="Board Game Rank"
-                        value="Not Ranked" bayesaverage="7.92384" />
+                        value="Not Ranked" bayesaverage="Not Ranked" />
                     <rank type="family" id="5497" name="strategygames"
-                        friendlyname="Strategy Game Rank" value="Not Ranked" bayesaverage="8.06708" />
+                        friendlyname="Strategy Game Rank" value="Not Ranked" bayesaverage="Not Ranked" />
                 </ranks>
                 <stddev value="1.00019" />
                 <median value="0" />
