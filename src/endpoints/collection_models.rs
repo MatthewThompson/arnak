@@ -76,11 +76,11 @@ pub struct CollectionItem {
     pub name: String,
     /// The year the item was first published.
     #[serde(rename = "yearpublished")]
-    pub year_published: i64,
+    pub year_published: Option<i64>,
     /// A link to a jpg image for the item.
-    pub image: String,
+    pub image: Option<String>,
     /// A link to a jpg thumbnail image for the item.
-    pub thumbnail: String,
+    pub thumbnail: Option<String>,
     /// Status of the item in this collection, such as own, preowned, wishlist.
     pub status: CollectionItemStatus,
     /// The number of times the user has played the game.
