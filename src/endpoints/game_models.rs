@@ -5,12 +5,11 @@ use serde::Deserialize;
 
 use super::{
     Game, GameAccessory, GameArtist, GameCategory, GameCompilation, GameDesigner, GameFamilyName,
-    GameFamilyRank, GameImplementation, GameMechanic, GamePublisher, GameType, GameVersion, User,
-    XmlRanks,
+    GameImplementation, GameMechanic, GamePublisher, GameType, GameVersion, ItemFamilyRank, User,
 };
 use crate::deserialize::{
-    date_time_with_zone_from_string, XmlDateTimeValue, XmlFloatValue, XmlIntValue, XmlLink,
-    XmlName, XmlSignedValue, XmlStringValue,
+    date_time_with_zone_from_string, xml_ranks_to_ranks, XmlDateTimeValue, XmlFloatValue,
+    XmlIntValue, XmlLink, XmlName, XmlRanks, XmlSignedValue, XmlStringValue,
 };
 use crate::{NameType, VersionsXml};
 
@@ -143,8 +142,11 @@ pub struct GameStats {
     pub standard_deviation: f64,
     // Private because it's always 0.
     pub(crate) median: f64,
-    /// The list of ranks the item is on the site within each of its item types.
-    pub ranks: Vec<GameFamilyRank>,
+    /// The rank of this game amongst all games.
+    pub rank: ItemFamilyRank,
+    /// The list of ranks the game is on the site within various game families, such as family or
+    /// strategy games.
+    pub sub_family_ranks: Vec<ItemFamilyRank>,
     /// The number of users who own this game.
     pub users_owned: u64,
     /// The number of users who are trading away this game.
@@ -1145,13 +1147,16 @@ impl<'de> Deserialize<'de> for GameDetails {
                                 return Err(serde::de::Error::duplicate_field("statistics"));
                             }
                             let stats_xml: XmlGameStats = map.next_value()?;
+                            let (rank, sub_family_ranks) =
+                                xml_ranks_to_ranks::<'de, A>(stats_xml.ratings.ranks)?;
                             stats = Some(GameStats {
                                 users_rated: stats_xml.ratings.usersrated.value,
                                 average_rating: stats_xml.ratings.average.value,
                                 bayesian_average: stats_xml.ratings.bayesaverage.value,
                                 standard_deviation: stats_xml.ratings.stddev.value,
                                 median: stats_xml.ratings.median.value,
-                                ranks: stats_xml.ratings.ranks.ranks,
+                                rank,
+                                sub_family_ranks,
                                 users_owned: stats_xml.ratings.owned.value,
                                 users_trading: stats_xml.ratings.trading.value,
                                 users_want_in_trade: stats_xml.ratings.wanting.value,

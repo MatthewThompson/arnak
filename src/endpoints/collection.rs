@@ -578,8 +578,8 @@ mod tests {
     use super::*;
     use crate::{
         CollectionItemRating, CollectionItemStats, CollectionItemStatus, CollectionItemType,
-        Dimensions, Game, GameArtist, GameFamilyRank, GameFamilyType, GamePublisher, GameVersion,
-        Language, RankValue,
+        Dimensions, Game, GameArtist, GamePublisher, GameVersion, ItemFamilyRank, Language,
+        RankValue,
     };
 
     #[test]
@@ -769,17 +769,15 @@ mod tests {
                         bayesian_average: 6.08972,
                         standard_deviation: 1.45941,
                         median: 0.0,
-                        ranks: vec![
-                            GameFamilyRank {
-                                game_family_type: GameFamilyType::Subtype,
-                                id: 1,
-                                name: "boardgame".to_owned(),
-                                friendly_name: "Board Game Rank".to_owned(),
-                                value: RankValue::Ranked(2486),
-                                bayesian_average: 6.08972,
-                            },
-                            GameFamilyRank {
-                                game_family_type: GameFamilyType::Family,
+                        rank: ItemFamilyRank {
+                            id: 1,
+                            name: "boardgame".to_owned(),
+                            friendly_name: "Board Game Rank".to_owned(),
+                            value: RankValue::Ranked(2486),
+                            bayesian_average: 6.08972,
+                        },
+                        sub_family_ranks: vec![
+                            ItemFamilyRank {
                                 id: 5499,
                                 name: "familygames".to_owned(),
                                 friendly_name: "Family Game Rank".to_owned(),
@@ -867,24 +865,20 @@ mod tests {
                         bayesian_average: 7.94347,
                         standard_deviation: 1.37019,
                         median: 0.0,
-                        ranks: vec![
-                            GameFamilyRank {
-                                game_family_type: GameFamilyType::Subtype,
-                                id: 1,
-                                name: "boardgame".to_owned(),
-                                friendly_name: "Board Game Rank".to_owned(),
-                                value: RankValue::Ranked(23),
-                                bayesian_average: 7.94347,
-                            },
-                            GameFamilyRank {
-                                game_family_type: GameFamilyType::Family,
-                                id: 5497,
-                                name: "strategygames".to_owned(),
-                                friendly_name: "Strategy Game Rank".to_owned(),
-                                value: RankValue::Ranked(19),
-                                bayesian_average: 7.97338,
-                            },
-                        ],
+                        rank: ItemFamilyRank {
+                            id: 1,
+                            name: "boardgame".to_owned(),
+                            friendly_name: "Board Game Rank".to_owned(),
+                            value: RankValue::Ranked(23),
+                            bayesian_average: 7.94347,
+                        },
+                        sub_family_ranks: vec![ItemFamilyRank {
+                            id: 5497,
+                            name: "strategygames".to_owned(),
+                            friendly_name: "Strategy Game Rank".to_owned(),
+                            value: RankValue::Ranked(19),
+                            bayesian_average: 7.97338,
+                        },],
                     },
                 },
                 version: None,
@@ -1269,17 +1263,15 @@ mod tests {
                         bayesian_average: 5.71005,
                         standard_deviation: 1.58457,
                         median: 0.0,
-                        ranks: vec![
-                            GameFamilyRank {
-                                game_family_type: GameFamilyType::Subtype,
-                                id: 1,
-                                name: "boardgame".to_owned(),
-                                friendly_name: "Board Game Rank".to_owned(),
-                                value: RankValue::Ranked(5587),
-                                bayesian_average: 5.71005,
-                            },
-                            GameFamilyRank {
-                                game_family_type: GameFamilyType::Family,
+                        rank: ItemFamilyRank {
+                            id: 1,
+                            name: "boardgame".to_owned(),
+                            friendly_name: "Board Game Rank".to_owned(),
+                            value: RankValue::Ranked(5587),
+                            bayesian_average: 5.71005,
+                        },
+                        sub_family_ranks: vec![
+                            ItemFamilyRank {
                                 id: 5498,
                                 name: "partygames".to_owned(),
                                 friendly_name: "Party Game Rank".to_owned(),
@@ -1433,17 +1425,15 @@ mod tests {
                         bayesian_average: 5.71005,
                         standard_deviation: 1.58457,
                         median: 0.0,
-                        ranks: vec![
-                            GameFamilyRank {
-                                game_family_type: GameFamilyType::Subtype,
-                                id: 1,
-                                name: "boardgame".to_owned(),
-                                friendly_name: "Board Game Rank".to_owned(),
-                                value: RankValue::Ranked(5587),
-                                bayesian_average: 5.71005,
-                            },
-                            GameFamilyRank {
-                                game_family_type: GameFamilyType::Family,
+                        rank: ItemFamilyRank {
+                            id: 1,
+                            name: "boardgame".to_owned(),
+                            friendly_name: "Board Game Rank".to_owned(),
+                            value: RankValue::Ranked(5587),
+                            bayesian_average: 5.71005,
+                        },
+                        sub_family_ranks: vec![
+                            ItemFamilyRank {
                                 id: 5498,
                                 name: "partygames".to_owned(),
                                 friendly_name: "Party Game Rank".to_owned(),
@@ -1599,16 +1589,14 @@ mod tests {
                         bayesian_average: 6.10014,
                         standard_deviation: 1.89983,
                         median: 0.0,
-                        ranks: vec![
-                            GameFamilyRank {
-                                game_family_type: GameFamilyType::Subtype,
-                                id: 62,
-                                name: "boardgameaccessory".to_owned(),
-                                friendly_name: "Accessory Rank".to_owned(),
-                                value: RankValue::Ranked(749),
-                                bayesian_average: 6.10014,
-                            },
-                        ],
+                        rank: ItemFamilyRank {
+                            id: 62,
+                            name: "boardgameaccessory".to_owned(),
+                            friendly_name: "Accessory Rank".to_owned(),
+                            value: RankValue::Ranked(749),
+                            bayesian_average: 6.10014,
+                        },
+                        sub_family_ranks: vec![],
                     },
                 },
                 version: None,
@@ -1652,16 +1640,14 @@ mod tests {
                         bayesian_average: 7.55507,
                         standard_deviation: 1.30371,
                         median: 0.0,
-                        ranks: vec![
-                            GameFamilyRank {
-                                game_family_type: GameFamilyType::Subtype,
-                                id: 62,
-                                name: "boardgameaccessory".to_owned(),
-                                friendly_name: "Accessory Rank".to_owned(),
-                                value: RankValue::Ranked(22),
-                                bayesian_average: 7.55507,
-                            },
-                        ],
+                        rank: ItemFamilyRank {
+                            id: 62,
+                            name: "boardgameaccessory".to_owned(),
+                            friendly_name: "Accessory Rank".to_owned(),
+                            value: RankValue::Ranked(22),
+                            bayesian_average: 7.55507,
+                        },
+                        sub_family_ranks: vec![],
                     },
                 },
                 version: None,

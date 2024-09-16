@@ -2,7 +2,7 @@ use core::fmt::{self, Display};
 
 use serde::Deserialize;
 
-use super::{GameFamilyType, RankValue};
+use super::RankValue;
 use crate::deserialize::{XmlFloatValue, XmlLink, XmlName, XmlSignedValue, XmlStringValue};
 
 /// The type of the item. Either a board game, a board game expansion, or board game accessory.
@@ -261,21 +261,9 @@ pub struct Dimensions {
     pub depth: f64,
 }
 
-// Intermediary struct needed due to the way the XML is structured
-#[derive(Clone, Debug, Deserialize, PartialEq)]
-pub(crate) struct XmlRanks {
-    #[serde(rename = "rank")]
-    pub(crate) ranks: Vec<GameFamilyRank>,
-}
-
 /// A struct containing the game's rank within a particular type of game.
 #[derive(Clone, Debug, PartialEq, Deserialize)]
-pub struct GameFamilyRank {
-    /// The type of this group of games. Can be `subtype` for rank within all
-    /// board games. Or it can be `family` if it is the rank within a family of games
-    /// such as party games or strategy games.
-    #[serde(rename = "type")]
-    pub game_family_type: GameFamilyType,
+pub struct ItemFamilyRank {
     /// ID of the game family.
     pub id: u64,
     /// Name of the game type. "boardgame" used as the generic subtype that

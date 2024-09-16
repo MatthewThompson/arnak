@@ -3,12 +3,11 @@ use core::fmt;
 use chrono::{DateTime, Duration, Utc};
 use serde::Deserialize;
 
-use super::{CollectionItemType, GameFamilyRank, GameVersion, VersionsXml};
+use super::{CollectionItemType, GameVersion, ItemFamilyRank, VersionsXml};
 use crate::deserialize::{
     deserialize_1_0_bool, deserialize_date_time, deserialize_date_time_with_zone,
-    deserialize_minutes, XmlFloatValue, XmlIntValue,
+    deserialize_minutes, xml_ranks_to_ranks, XmlFloatValue, XmlIntValue, XmlRanks,
 };
-use crate::XmlRanks;
 
 /// A user's collection on boardgamegeek.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
@@ -369,8 +368,11 @@ pub struct CollectionItemRating {
     pub standard_deviation: f64,
     // Kept private for now since the API always returns 0 for this seemingly.
     pub(crate) median: f64,
-    /// The list of ranks the item is on the site within each of its item types.
-    pub ranks: Vec<GameFamilyRank>,
+    /// The rank of this item amongst everything of that item type.
+    pub rank: ItemFamilyRank,
+    /// The list of ranks the item is on the site within various game families, such as family
+    /// games.
+    pub sub_family_ranks: Vec<ItemFamilyRank>,
 }
 
 impl<'de> Deserialize<'de> for CollectionItemRating {
@@ -406,7 +408,8 @@ impl<'de> Deserialize<'de> for CollectionItemRating {
                 let mut bayesian_average = None;
                 let mut standard_deviation = None;
                 let mut median = None;
-                let mut ranks = None;
+                let mut rank = None;
+                let mut sub_family_ranks = vec![];
                 while let Some(key) = map.next_key()? {
                     match key {
                         Field::Value => {
@@ -459,14 +462,11 @@ impl<'de> Deserialize<'de> for CollectionItemRating {
                             median = Some(median_xml_tag.value);
                         },
                         Field::Ranks => {
-                            if ranks.is_some() {
-                                return Err(serde::de::Error::duplicate_field("ranks"));
-                            }
-                            // An extra layer of indirection is needed due to the way the XML is
-                            // structured, but should be removed for the final
-                            // structure.
                             let ranks_xml: XmlRanks = map.next_value()?;
-                            ranks = Some(ranks_xml.ranks);
+                            let (overall_rank, other_ranks) =
+                                xml_ranks_to_ranks::<'de, A>(ranks_xml)?;
+                            rank = Some(overall_rank);
+                            sub_family_ranks = other_ranks;
                         },
                     }
                 }
@@ -480,7 +480,9 @@ impl<'de> Deserialize<'de> for CollectionItemRating {
                 let standard_deviation =
                     standard_deviation.ok_or_else(|| serde::de::Error::missing_field("stddev"))?;
                 let median = median.ok_or_else(|| serde::de::Error::missing_field("median"))?;
-                let ranks = ranks.ok_or_else(|| serde::de::Error::missing_field("ranks"))?;
+                let rank =
+                    rank.ok_or_else(|| serde::de::Error::missing_field("rank type=\"subtype\""))?;
+
                 Ok(Self::Value {
                     user_rating,
                     users_rated,
@@ -488,26 +490,13 @@ impl<'de> Deserialize<'de> for CollectionItemRating {
                     bayesian_average,
                     standard_deviation,
                     median,
-                    ranks,
+                    rank,
+                    sub_family_ranks,
                 })
             }
         }
         deserializer.deserialize_any(CollectionItemRatingVisitor)
     }
-}
-
-/// Type of game family.
-///
-/// [`GameFamilyType::Subtype`] is used for the `boardgame` family that includes all games.
-/// [`GameFamilyType::Family`] is used for everything else. Such as party games or strategy games.
-#[derive(Clone, Debug, PartialEq, Deserialize)]
-pub enum GameFamilyType {
-    /// Used only for the generic `boardgame` family that includes all games.
-    #[serde(rename = "subtype")]
-    Subtype,
-    /// Used for all families of games such as party games and strategy games.
-    #[serde(rename = "family")]
-    Family,
 }
 
 /// A rank a particular board game has on the site, within a subtype. Can be
