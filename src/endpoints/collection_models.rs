@@ -74,13 +74,13 @@ pub struct CollectionItem {
     pub item_type: CollectionItemType,
     /// The name of the item.
     pub name: String,
-    /// The year the item was first published.
+    /// The year the item was first published. Can be empty.
     #[serde(rename = "yearpublished")]
-    pub year_published: i64,
-    /// A link to a jpg image for the item.
-    pub image: String,
-    /// A link to a jpg thumbnail image for the item.
-    pub thumbnail: String,
+    pub year_published: Option<i64>,
+    /// A link to a jpg image for the item. Can be empty.
+    pub image: Option<String>,
+    /// A link to a jpg thumbnail image for the item. Can be empty.
+    pub thumbnail: Option<String>,
     /// Status of the item in this collection, such as own, preowned, wishlist.
     pub status: CollectionItemStatus,
     /// The number of times the user has played the game.
@@ -532,6 +532,41 @@ impl<'de> Deserialize<'de> for RankValue {
         let rank: Result<u64, _> = s.parse();
         match rank {
             Ok(value) => Ok(RankValue::Ranked(value)),
+            _ => Err(serde::de::Error::unknown_variant(
+                &s,
+                &["u64", "Not Ranked"],
+            )),
+        }
+    }
+}
+
+/// Bayesian average of a boardgame in its family.
+/// Either valued as a f64, or `NotRanked`.
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum RankBayesAverage {
+    /// The Bayesian average rating of a game within a specific family or category.
+    ///
+    /// The `f64` value represents the calculated Bayesian average. A higher value generally
+    /// indicates a better-rated game.
+    Ranked(f64),
+
+    /// Indicates that the game does not have a Bayesian average rating in the given category.
+    ///
+    /// This may occur if the game has insufficient ratings to calculate a reliable average or
+    /// if it is excluded from the ranking system for other reasons.
+    NotRanked,
+}
+
+impl<'de> Deserialize<'de> for RankBayesAverage {
+    fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let s: String = serde::de::Deserialize::deserialize(deserializer)?;
+        if s == "Not Ranked" {
+            return Ok(RankBayesAverage::NotRanked);
+        }
+
+        let rank: Result<f64, _> = s.parse();
+        match rank {
+            Ok(value) => Ok(RankBayesAverage::Ranked(value)),
             _ => Err(serde::de::Error::unknown_variant(
                 &s,
                 &["u64", "Not Ranked"],
