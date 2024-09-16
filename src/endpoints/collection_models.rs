@@ -74,12 +74,12 @@ pub struct CollectionItem {
     pub item_type: CollectionItemType,
     /// The name of the item.
     pub name: String,
-    /// The year the item was first published.
+    /// The year the item was first published. Can be empty.
     #[serde(rename = "yearpublished")]
     pub year_published: Option<i64>,
-    /// A link to a jpg image for the item.
+    /// A link to a jpg image for the item. Can be empty.
     pub image: Option<String>,
-    /// A link to a jpg thumbnail image for the item.
+    /// A link to a jpg thumbnail image for the item. Can be empty.
     pub thumbnail: Option<String>,
     /// Status of the item in this collection, such as own, preowned, wishlist.
     pub status: CollectionItemStatus,
@@ -540,15 +540,20 @@ impl<'de> Deserialize<'de> for RankValue {
     }
 }
 
-/// A rank a particular board game has on the site, within a subtype. Can be
-/// either Ranked with a u64 for the rank, Or `NotRanked`.
+/// Bayesian average of a boardgame in its family.
+/// Either valued as a f64, or `NotRanked`.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum RankBayesAverage {
-    /// The rank of a game within a particular family of games, or all games. Where
-    /// 1 means that it has the highest overall rank of every game in that category.
+    /// The Bayesian average rating of a game within a specific family or category.
+    ///
+    /// The `f64` value represents the calculated Bayesian average. A higher value generally
+    /// indicates a better-rated game.
     Ranked(f64),
-    /// The game does not have a rank in a given category, possibly due to not having
-    /// enough ratings.
+
+    /// Indicates that the game does not have a Bayesian average rating in the given category.
+    ///
+    /// This may occur if the game has insufficient ratings to calculate a reliable average or
+    /// if it is excluded from the ranking system for other reasons.
     NotRanked,
 }
 
