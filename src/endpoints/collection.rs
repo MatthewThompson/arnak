@@ -498,7 +498,6 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
         username: &'api str,
         query_params: CollectionQueryParams,
     ) -> Result<Collection<T>> {
-        println!("what");
         let query = CollectionQueryBuilder::new(T::base_query(username), query_params);
 
         let request = self.api.build_request(self.endpoint, &query.build());
@@ -740,9 +739,9 @@ mod tests {
                 collection_id: 118_278_872,
                 item_type: CollectionItemType::BoardGame,
                 name: "Boss Monster: The Dungeon Building Card Game".to_string(),
-                year_published: 2013,
-                image: "https://cf.geekdo-images.com/VBwaHyx-NWL3VLcCWKRA0w__original/img/izAmJ81QELl5DoK3y2bzJw55lhA=/0x0/filters:format(jpeg)/pic1732644.jpg".to_string(),
-                thumbnail: "https://cf.geekdo-images.com/VBwaHyx-NWL3VLcCWKRA0w__thumb/img/wisLXxKXbo5-Ci-ZjEj8ryyoN2g=/fit-in/200x150/filters:strip_icc()/pic1732644.jpg".to_string(),
+                year_published: Some(2013),
+                image: Some("https://cf.geekdo-images.com/VBwaHyx-NWL3VLcCWKRA0w__original/img/izAmJ81QELl5DoK3y2bzJw55lhA=/0x0/filters:format(jpeg)/pic1732644.jpg".to_string()),
+                thumbnail: Some("https://cf.geekdo-images.com/VBwaHyx-NWL3VLcCWKRA0w__thumb/img/wisLXxKXbo5-Ci-ZjEj8ryyoN2g=/fit-in/200x150/filters:strip_icc()/pic1732644.jpg".to_string()),
                 status: CollectionItemStatus {
                     own: true,
                     previously_owned: false,
@@ -838,9 +837,9 @@ mod tests {
                 collection_id: 118_332_974,
                 item_type: CollectionItemType::BoardGame,
                 name: "A Feast for Odin".to_string(),
-                year_published: 2016,
-                image: "https://domain/img.jpg".to_string(),
-                thumbnail: "https://domain/thumbnail.jpg".to_string(),
+                year_published: Some(2016),
+                image: Some("https://domain/img.jpg".to_string()),
+                thumbnail: Some("https://domain/thumbnail.jpg".to_string()),
                 status: CollectionItemStatus {
                     own: false,
                     previously_owned: false,
@@ -1240,9 +1239,9 @@ mod tests {
                 collection_id: 118_280_658,
                 item_type: CollectionItemType::BoardGame,
                 name: "Pictionary".to_string(),
-                year_published: 1985,
-                image: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__original/img/YRJAlLzkxMuJHVPsdnBLNFpoODA=/0x0/filters:format(png)/pic5147022.png".to_string(),
-                thumbnail: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__thumb/img/7ls1a8ak5oT7BaKM-rVHpOVrP14=/fit-in/200x150/filters:strip_icc()/pic5147022.png".to_string(),
+                year_published: Some(1985), 
+                image: Some("https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__original/img/YRJAlLzkxMuJHVPsdnBLNFpoODA=/0x0/filters:format(png)/pic5147022.png".to_string()), 
+                thumbnail: Some("https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__thumb/img/7ls1a8ak5oT7BaKM-rVHpOVrP14=/fit-in/200x150/filters:strip_icc()/pic5147022.png".to_string()), 
                 status: CollectionItemStatus {
                     own: true,
                     previously_owned: false,
@@ -1404,9 +1403,9 @@ mod tests {
                 collection_id: 118_280_658,
                 item_type: CollectionItemType::BoardGame,
                 name: "Pictionary".to_string(),
-                year_published: 1985,
-                image: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__original/img/YRJAlLzkxMuJHVPsdnBLNFpoODA=/0x0/filters:format(png)/pic5147022.png".to_string(),
-                thumbnail: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__thumb/img/7ls1a8ak5oT7BaKM-rVHpOVrP14=/fit-in/200x150/filters:strip_icc()/pic5147022.png".to_string(),
+                year_published: Some(1985), 
+                image: Some("https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__original/img/YRJAlLzkxMuJHVPsdnBLNFpoODA=/0x0/filters:format(png)/pic5147022.png".to_string()), 
+                thumbnail: Some("https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__thumb/img/7ls1a8ak5oT7BaKM-rVHpOVrP14=/fit-in/200x150/filters:strip_icc()/pic5147022.png".to_string()), 
                 status: CollectionItemStatus {
                     own: true,
                     previously_owned: false,
@@ -1570,9 +1569,9 @@ mod tests {
                 collection_id: 122_439_219,
                 item_type: CollectionItemType::BoardGameAccessory,
                 name: "12 Realms: Buildings Pack".to_string(),
-                year_published: 2013,
-                image: "https://cf.geekdo-images.com/5fKeQe2FG2FR1W3maIj1Gw__original/img/vWskbRA9FmoLrFghnPi_5RGVMec=/0x0/filters:format(jpeg)/pic2522878.jpg".to_string(),
-                thumbnail: "https://cf.geekdo-images.com/5fKeQe2FG2FR1W3maIj1Gw__thumb/img/Fu2YriGdZVDzf8sJyvnWADloJPU=/fit-in/200x150/filters:strip_icc()/pic2522878.jpg".to_string(),
+                year_published: Some(2013),
+                image: Some("https://cf.geekdo-images.com/5fKeQe2FG2FR1W3maIj1Gw__original/img/vWskbRA9FmoLrFghnPi_5RGVMec=/0x0/filters:format(jpeg)/pic2522878.jpg".to_string()),
+                thumbnail: Some("https://cf.geekdo-images.com/5fKeQe2FG2FR1W3maIj1Gw__thumb/img/Fu2YriGdZVDzf8sJyvnWADloJPU=/fit-in/200x150/filters:strip_icc()/pic2522878.jpg".to_string()),
                 status: CollectionItemStatus {
                     own: true,
                     previously_owned: false,
@@ -1623,9 +1622,9 @@ mod tests {
                 collection_id: 122_524_875,
                 item_type: CollectionItemType::BoardGameAccessory,
                 name: "Wings of War: Miniatures".to_string(),
-                year_published: 2007,
-                image: "https://cf.geekdo-images.com/qGV1v8Ye0FKTxZNCF1ZINw__original/img/49pxPDdA4CHNFZOMQM1UTM8FNL4=/0x0/filters:format(jpeg)/pic830522.jpg".to_string(),
-                thumbnail: "https://cf.geekdo-images.com/qGV1v8Ye0FKTxZNCF1ZINw__thumb/img/vgAzbZuLXNSawia3yp4BAPT_2is=/fit-in/200x150/filters:strip_icc()/pic830522.jpg".to_string(),
+                year_published: Some(2007),
+                image: Some("https://cf.geekdo-images.com/qGV1v8Ye0FKTxZNCF1ZINw__original/img/49pxPDdA4CHNFZOMQM1UTM8FNL4=/0x0/filters:format(jpeg)/pic830522.jpg".to_string()),
+                thumbnail: Some("https://cf.geekdo-images.com/qGV1v8Ye0FKTxZNCF1ZINw__thumb/img/vgAzbZuLXNSawia3yp4BAPT_2is=/fit-in/200x150/filters:strip_icc()/pic830522.jpg".to_string()),
                 status: CollectionItemStatus {
                     own: false,
                     previously_owned: false,
