@@ -1,7 +1,7 @@
 use chrono::{DateTime, Duration, NaiveDateTime, ParseError, Utc};
 use serde::Deserialize;
 
-use crate::{ItemType, NameType};
+use crate::{ItemFamilyRank, ItemType, NameType, RankValue};
 
 pub(crate) fn deserialize_xml_string<T: serde::de::DeserializeOwned>(
     xml: &str,
@@ -127,4 +127,95 @@ where
     let date_time = DateTime::parse_from_str(&s, DATE_TIME_ZONE_LONG_FORMAT)
         .map_err(serde::de::Error::custom)?;
     Ok(DateTime::<Utc>::from(date_time))
+}
+
+// Intermediary struct needed due to the way the XML is structured
+#[derive(Debug, Deserialize)]
+pub(crate) struct XmlRanks {
+    #[serde(rename = "rank")]
+    pub(crate) ranks: Vec<XmlItemFamilyRank>,
+}
+
+// Type of game family.
+//
+// [`ItemFamilyType::Subtype`] is used for the `boardgame` family that includes all games.
+// [`ItemFamilyType::Family`] is used for everything else. Such as party games or strategy games.
+// Used only for identifying which ranks belong to sub families and which to the overall category
+// (game/accessory) when deserialising.
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+pub(crate) enum ItemFamilyType {
+    // Used only for the generic `boardgame` family that includes all games.
+    #[serde(rename = "subtype")]
+    Subtype,
+    // Used for all families of games such as party games and strategy games.
+    #[serde(rename = "family")]
+    Family,
+}
+
+// Helper function for deserialisers to convert a game's ranks as they are in the XML, to a single
+// overall rank and a list of sub ranks. For a list of ranks in the XML, go through and return a the
+// main one and a list of the rest. Will return an error if more than one generic rank is found.
+pub(crate) fn xml_ranks_to_ranks<'de, D: serde::de::MapAccess<'de>>(
+    xml_ranks: XmlRanks,
+) -> core::result::Result<(ItemFamilyRank, Vec<ItemFamilyRank>), D::Error> {
+    let mut rank = None;
+    let mut sub_family_ranks = vec![];
+    for family_rank in xml_ranks.ranks {
+        match family_rank.game_family_type {
+            ItemFamilyType::Subtype => {
+                if rank.is_some() {
+                    return Err(serde::de::Error::duplicate_field("rank type=\"subtype\""));
+                }
+                rank = Some(ItemFamilyRank {
+                    id: family_rank.id,
+                    name: family_rank.name,
+                    friendly_name: family_rank.friendly_name,
+                    value: family_rank.value,
+                    bayesian_average: family_rank.bayesian_average,
+                });
+            },
+            ItemFamilyType::Family => {
+                sub_family_ranks.push(ItemFamilyRank {
+                    id: family_rank.id,
+                    name: family_rank.name,
+                    friendly_name: family_rank.friendly_name,
+                    value: family_rank.value,
+                    bayesian_average: family_rank.bayesian_average,
+                });
+            },
+        }
+    }
+    let rank = rank.ok_or_else(|| serde::de::Error::missing_field("rank type=\"subtype\""))?;
+
+    Ok((rank, sub_family_ranks))
+}
+
+/// A struct containing the item's rank within a particular type of game.
+#[derive(Debug, Deserialize)]
+pub(crate) struct XmlItemFamilyRank {
+    /// The type of this group of games. Can be `subtype` for rank within all
+    /// board games. Or it can be `family` if it is the rank within a family of games
+    /// such as party games or strategy games. We use this to determine whether to set it
+    /// on the item's rank, or in their list of sub family ranks. But the field is not set
+    /// on the actual [`GameFamilyRank`] struct
+    #[serde(rename = "type")]
+    pub(crate) game_family_type: ItemFamilyType,
+    /// ID of the game family.
+    pub(crate) id: u64,
+    /// Name of the game type. "boardgame" used as the generic subtype that
+    /// includes all board games.
+    pub(crate) name: String,
+    /// User friendly name in the format "GENRE game rank" e.g. "Party Game
+    /// Rank".
+    #[serde(rename = "friendlyname")]
+    pub(crate) friendly_name: String,
+    /// The overall rank on the site within this type of game.
+    pub(crate) value: RankValue,
+    /// The score out of 10, as a bayesian average.
+    ///
+    /// This is what boardgamegeek calls a Geek Rating. It is the average rating
+    /// that the users have given it along with a few thousand 5.5 ratings added
+    /// in too.
+    #[serde(rename = "bayesaverage")]
+    pub(crate) bayesian_average: f64,
 }
