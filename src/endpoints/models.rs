@@ -286,7 +286,7 @@ pub struct ItemFamilyRank {
 
 // A user's collection on boardgamegeek.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-pub(crate) struct VersionsXml {
+pub(crate) struct XmlVersions {
     // List of versions, each in an XML tag called `item`, within an outer
     // `version`. We use this intermediary type to get out just the first,
     // since we only expect 1.

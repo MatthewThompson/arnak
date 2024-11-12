@@ -3,7 +3,7 @@ use core::fmt;
 use chrono::{DateTime, Duration, Utc};
 use serde::Deserialize;
 
-use super::{CollectionItemType, GameVersion, ItemFamilyRank, VersionsXml};
+use super::{CollectionItemType, GameVersion, ItemFamilyRank, XmlVersions};
 use crate::deserialize::{
     deserialize_1_0_bool, deserialize_date_time, deserialize_date_time_with_zone,
     deserialize_minutes, xml_ranks_to_ranks, XmlFloatValue, XmlIntValue, XmlRanks,
@@ -171,7 +171,7 @@ where
 {
     // If the tag is missing the None case is already handled by the `#serde[(default)]` on
     // the type. If this deserialize returns an error it should be propagated.
-    let mut versions: VersionsXml = serde::de::Deserialize::deserialize(deserializer)?;
+    let mut versions: XmlVersions = serde::de::Deserialize::deserialize(deserializer)?;
 
     match versions.versions.len() {
         0 => Err(serde::de::Error::custom(format!(

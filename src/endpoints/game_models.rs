@@ -11,7 +11,7 @@ use crate::deserialize::{
     date_time_with_zone_from_string, xml_ranks_to_ranks, XmlDateTimeValue, XmlFloatValue,
     XmlIntValue, XmlLink, XmlName, XmlRanks, XmlSignedValue, XmlStringValue,
 };
-use crate::{NameType, VersionsXml};
+use crate::{NameType, XmlVersions};
 
 // A struct containing the list of requested games with the full details.
 #[derive(Clone, Debug, Deserialize)]
@@ -502,7 +502,7 @@ struct PollResult {
 // A list of videos. Define the type in xml that can be deserialised, but pull out the nested
 // list in the game details deserialise implementation.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-struct VideosXml {
+struct XmlVideos {
     // List of videos, each in an XML tag called `video`.
     #[serde(rename = "video")]
     videos: Vec<Video>,
@@ -669,7 +669,7 @@ impl<'de> Deserialize<'de> for Video {
 // A list of marketplace listings. Define the type in xml that can be deserialised, but pull out the
 // nested list in the game details deserialise implementation
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-struct MarketplaceListingsXml {
+struct XmlMarketplaceListings {
     // List of listings, each in an XML tag called `listing`
     #[serde(rename = "listing")]
     listings: Vec<MarketplaceListing>,
@@ -1170,14 +1170,14 @@ impl<'de> Deserialize<'de> for GameDetails {
                             if versions.is_some() {
                                 return Err(serde::de::Error::duplicate_field("versions"));
                             }
-                            let versions_xml: VersionsXml = map.next_value()?;
+                            let versions_xml: XmlVersions = map.next_value()?;
                             versions = Some(versions_xml.versions);
                         },
                         Field::Videos => {
                             if videos.is_some() {
                                 return Err(serde::de::Error::duplicate_field("videos"));
                             }
-                            let videos_xml: VideosXml = map.next_value()?;
+                            let videos_xml: XmlVideos = map.next_value()?;
                             videos = Some(videos_xml.videos);
                         },
                         Field::MarketPlaceListings => {
@@ -1186,7 +1186,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                                     "marketplacelistings",
                                 ));
                             }
-                            let marketplace_listings_xml: MarketplaceListingsXml =
+                            let marketplace_listings_xml: XmlMarketplaceListings =
                                 map.next_value()?;
                             marketplace_listings = Some(marketplace_listings_xml.listings);
                         },
