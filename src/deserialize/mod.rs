@@ -1,7 +1,7 @@
 use chrono::{DateTime, Duration, NaiveDateTime, ParseError, Utc};
 use serde::Deserialize;
 
-use crate::{ItemFamilyRank, ItemType, NameType, RankValue};
+use crate::{ItemFamilyRank, ItemType, NameType, RankValue, RatingValue};
 
 pub(crate) fn deserialize_xml_string<T: serde::de::DeserializeOwned>(
     xml: &str,
@@ -217,5 +217,5 @@ pub(crate) struct XmlItemFamilyRank {
     /// that the users have given it along with a few thousand 5.5 ratings added
     /// in too.
     #[serde(rename = "bayesaverage")]
-    pub(crate) bayesian_average: f64,
+    pub(crate) bayesian_average: RatingValue,
 }

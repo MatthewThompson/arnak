@@ -273,7 +273,8 @@ pub struct CollectionItemRatingBrief {
     pub user_rating: Option<f64>,
     /// The mean average rating for this item.
     pub average: f64,
-    /// The bayesian average rating for this item.
+    /// The bayesian average rating for this item. Will be set to 0 if the item does not
+    /// yet have a bayesian rating.
     pub bayesian_average: f64,
 }
 
@@ -362,7 +363,8 @@ pub struct CollectionItemRating {
     pub users_rated: u64,
     /// The mean average rating for this item.
     pub average: f64,
-    /// The bayesian average rating for this item.
+    /// The bayesian average rating for this item. Will be set to 0 if the item does not
+    /// yet have a bayesian rating.
     pub bayesian_average: f64,
     /// The standard deviation of the average rating.
     pub standard_deviation: f64,
@@ -524,6 +526,41 @@ impl<'de> Deserialize<'de> for RankValue {
             _ => Err(serde::de::Error::unknown_variant(
                 &s,
                 &["u64", "Not Ranked"],
+            )),
+        }
+    }
+}
+
+/// A Bayesian average rating of a boardgame in its family.
+/// Either valued as a f64, or `NotRanked`.
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum RatingValue {
+    /// The Bayesian average rating of a game within a specific family or category.
+    ///
+    /// The `f64` value represents the calculated Bayesian average. A higher value generally
+    /// indicates a better-rated game.
+    Rated(f64),
+
+    /// Indicates that the game does not have a Bayesian average rating in the given category.
+    ///
+    /// This may occur if the game has insufficient ratings to calculate a reliable average or
+    /// if it is excluded from the ranking system for other reasons.
+    Unrated,
+}
+
+impl<'de> Deserialize<'de> for RatingValue {
+    fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let s: String = serde::de::Deserialize::deserialize(deserializer)?;
+        if s == "Not Ranked" {
+            return Ok(RatingValue::Unrated);
+        }
+
+        let rank: Result<f64, _> = s.parse();
+        match rank {
+            Ok(value) => Ok(RatingValue::Rated(value)),
+            _ => Err(serde::de::Error::unknown_variant(
+                &s,
+                &["f64", "Not Ranked"],
             )),
         }
     }
