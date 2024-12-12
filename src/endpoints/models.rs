@@ -2,7 +2,7 @@ use core::fmt::{self, Display};
 
 use serde::Deserialize;
 
-use super::RankValue;
+use super::{RankValue, RatingValue};
 use crate::deserialize::{XmlFloatValue, XmlLink, XmlName, XmlSignedValue, XmlStringValue};
 
 /// The type of the item. Either a board game, a board game expansion, or board game accessory.
@@ -274,6 +274,7 @@ pub struct ItemFamilyRank {
     #[serde(rename = "friendlyname")]
     pub friendly_name: String,
     /// The overall rank on the site within this type of game.
+    #[serde(rename = "bayesaverage")]
     pub value: RankValue,
     /// The score out of 10, as a bayesian average.
     ///
@@ -281,7 +282,7 @@ pub struct ItemFamilyRank {
     /// that the users have given it along with a few thousand 5.5 ratings added
     /// in too.
     #[serde(rename = "bayesaverage")]
-    pub bayesian_average: f64,
+    pub bayesian_average: RatingValue,
 }
 
 // A user's collection on boardgamegeek.

@@ -21,6 +21,8 @@
 
 #![deny(clippy::pedantic, clippy::cargo)]
 #![allow(
+    // Seems to be returning false positives on CI.
+    clippy::needless_lifetimes,
     // Collection status would indeed be better as an enum, but the problem is that it is technically allowed for the
     // user to have a game as multiple statuses in their collection.
     clippy::struct_excessive_bools,
