@@ -739,9 +739,9 @@ mod tests {
                 collection_id: 118_278_872,
                 item_type: CollectionItemType::BoardGame,
                 name: "Boss Monster: The Dungeon Building Card Game".to_string(),
-                year_published: 2013,
-                image: "https://cf.geekdo-images.com/VBwaHyx-NWL3VLcCWKRA0w__original/img/izAmJ81QELl5DoK3y2bzJw55lhA=/0x0/filters:format(jpeg)/pic1732644.jpg".to_string(),
-                thumbnail: "https://cf.geekdo-images.com/VBwaHyx-NWL3VLcCWKRA0w__thumb/img/wisLXxKXbo5-Ci-ZjEj8ryyoN2g=/fit-in/200x150/filters:strip_icc()/pic1732644.jpg".to_string(),
+                year_published: Some(2013),
+                image: Some("https://cf.geekdo-images.com/VBwaHyx-NWL3VLcCWKRA0w__original/img/izAmJ81QELl5DoK3y2bzJw55lhA=/0x0/filters:format(jpeg)/pic1732644.jpg".to_string()),
+                thumbnail: Some("https://cf.geekdo-images.com/VBwaHyx-NWL3VLcCWKRA0w__thumb/img/wisLXxKXbo5-Ci-ZjEj8ryyoN2g=/fit-in/200x150/filters:strip_icc()/pic1732644.jpg".to_string()),
                 status: CollectionItemStatus {
                     own: true,
                     previously_owned: false,
@@ -835,9 +835,9 @@ mod tests {
                 collection_id: 118_332_974,
                 item_type: CollectionItemType::BoardGame,
                 name: "A Feast for Odin".to_string(),
-                year_published: 2016,
-                image: "https://domain/img.jpg".to_string(),
-                thumbnail: "https://domain/thumbnail.jpg".to_string(),
+                year_published: Some(2016),
+                image: Some("https://domain/img.jpg".to_string()),
+                thumbnail: Some("https://domain/thumbnail.jpg".to_string()),
                 status: CollectionItemStatus {
                     own: false,
                     previously_owned: false,
@@ -1233,9 +1233,9 @@ mod tests {
                 collection_id: 118_280_658,
                 item_type: CollectionItemType::BoardGame,
                 name: "Pictionary".to_string(),
-                year_published: 1985,
-                image: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__original/img/YRJAlLzkxMuJHVPsdnBLNFpoODA=/0x0/filters:format(png)/pic5147022.png".to_string(),
-                thumbnail: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__thumb/img/7ls1a8ak5oT7BaKM-rVHpOVrP14=/fit-in/200x150/filters:strip_icc()/pic5147022.png".to_string(),
+                year_published: Some(1985),
+                image: Some("https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__original/img/YRJAlLzkxMuJHVPsdnBLNFpoODA=/0x0/filters:format(png)/pic5147022.png".to_string()),
+                thumbnail: Some("https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__thumb/img/7ls1a8ak5oT7BaKM-rVHpOVrP14=/fit-in/200x150/filters:strip_icc()/pic5147022.png".to_string()),
                 status: CollectionItemStatus {
                     own: true,
                     previously_owned: false,
@@ -1395,9 +1395,9 @@ mod tests {
                 collection_id: 118_280_658,
                 item_type: CollectionItemType::BoardGame,
                 name: "Pictionary".to_string(),
-                year_published: 1985,
-                image: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__original/img/YRJAlLzkxMuJHVPsdnBLNFpoODA=/0x0/filters:format(png)/pic5147022.png".to_string(),
-                thumbnail: "https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__thumb/img/7ls1a8ak5oT7BaKM-rVHpOVrP14=/fit-in/200x150/filters:strip_icc()/pic5147022.png".to_string(),
+                year_published: Some(1985),
+                image: Some("https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__original/img/YRJAlLzkxMuJHVPsdnBLNFpoODA=/0x0/filters:format(png)/pic5147022.png".to_string()),
+                thumbnail: Some("https://cf.geekdo-images.com/YfUxodD7JSqYitxvjXB69Q__thumb/img/7ls1a8ak5oT7BaKM-rVHpOVrP14=/fit-in/200x150/filters:strip_icc()/pic5147022.png".to_string()),
                 status: CollectionItemStatus {
                     own: true,
                     previously_owned: false,
@@ -1559,9 +1559,9 @@ mod tests {
                 collection_id: 122_439_219,
                 item_type: CollectionItemType::BoardGameAccessory,
                 name: "12 Realms: Buildings Pack".to_string(),
-                year_published: 2013,
-                image: "https://cf.geekdo-images.com/5fKeQe2FG2FR1W3maIj1Gw__original/img/vWskbRA9FmoLrFghnPi_5RGVMec=/0x0/filters:format(jpeg)/pic2522878.jpg".to_string(),
-                thumbnail: "https://cf.geekdo-images.com/5fKeQe2FG2FR1W3maIj1Gw__thumb/img/Fu2YriGdZVDzf8sJyvnWADloJPU=/fit-in/200x150/filters:strip_icc()/pic2522878.jpg".to_string(),
+                year_published: Some(2013),
+                image: Some("https://cf.geekdo-images.com/5fKeQe2FG2FR1W3maIj1Gw__original/img/vWskbRA9FmoLrFghnPi_5RGVMec=/0x0/filters:format(jpeg)/pic2522878.jpg".to_string()),
+                thumbnail: Some("https://cf.geekdo-images.com/5fKeQe2FG2FR1W3maIj1Gw__thumb/img/Fu2YriGdZVDzf8sJyvnWADloJPU=/fit-in/200x150/filters:strip_icc()/pic2522878.jpg".to_string()),
                 status: CollectionItemStatus {
                     own: true,
                     previously_owned: false,
@@ -1610,9 +1610,9 @@ mod tests {
                 collection_id: 122_524_875,
                 item_type: CollectionItemType::BoardGameAccessory,
                 name: "Wings of War: Miniatures".to_string(),
-                year_published: 2007,
-                image: "https://cf.geekdo-images.com/qGV1v8Ye0FKTxZNCF1ZINw__original/img/49pxPDdA4CHNFZOMQM1UTM8FNL4=/0x0/filters:format(jpeg)/pic830522.jpg".to_string(),
-                thumbnail: "https://cf.geekdo-images.com/qGV1v8Ye0FKTxZNCF1ZINw__thumb/img/vgAzbZuLXNSawia3yp4BAPT_2is=/fit-in/200x150/filters:strip_icc()/pic830522.jpg".to_string(),
+                year_published: Some(2007),
+                image: Some("https://cf.geekdo-images.com/qGV1v8Ye0FKTxZNCF1ZINw__original/img/49pxPDdA4CHNFZOMQM1UTM8FNL4=/0x0/filters:format(jpeg)/pic830522.jpg".to_string()),
+                thumbnail: Some("https://cf.geekdo-images.com/qGV1v8Ye0FKTxZNCF1ZINw__thumb/img/vgAzbZuLXNSawia3yp4BAPT_2is=/fit-in/200x150/filters:strip_icc()/pic830522.jpg".to_string()),
                 status: CollectionItemStatus {
                     own: false,
                     previously_owned: false,
@@ -1692,5 +1692,94 @@ mod tests {
             Utc.with_ymd_and_hms(2024, 9, 7, 19, 37, 26).unwrap(),
         );
         assert_eq!(collection.items.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_minimal_game() {
+        let mut server = mockito::Server::new_async().await;
+        let api = BoardGameGeekApi {
+            base_url: server.url(),
+            client: reqwest::Client::new(),
+        };
+        let mock = server
+            .mock("GET", "/collection")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("username".to_owned(), "somename".to_owned()),
+                Matcher::UrlEncoded("stats".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("brief".to_owned(), "0".to_owned()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/collection/collection_minimal_game.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let collection = api
+            .collection()
+            .get("somename", CollectionQueryParams::new())
+            .await;
+        mock.assert_async().await;
+
+        assert!(collection.is_ok(), "error returned when okay expected");
+        let collection = collection.unwrap();
+
+        assert_eq!(
+            collection.published_date,
+            Utc.with_ymd_and_hms(2024, 8, 24, 14, 40, 5).unwrap(),
+        );
+        assert_eq!(collection.items.len(), 1);
+        assert_eq!(
+            collection.items[0],
+            CollectionItem {
+                id: 261_537,
+                collection_id: 116_940_928,
+                item_type: CollectionItemType::BoardGame,
+                name: "Drinking Games for People Who Never Drink Except When They Do".to_string(),
+                year_published: None,
+                image: None,
+                thumbnail: None,
+                status: CollectionItemStatus {
+                    own: true,
+                    previously_owned: false,
+                    for_trade: false,
+                    want_in_trade: false,
+                    want_to_play: false,
+                    want_to_buy: false,
+                    wishlist: false,
+                    wishlist_priority: None,
+                    pre_ordered: false,
+                    last_modified: Utc.with_ymd_and_hms(2024, 3, 3, 16, 6, 30).unwrap(),
+                },
+                number_of_plays: 0,
+                stats: CollectionItemStats {
+                    min_players: 0,
+                    max_players: 0,
+                    min_playtime: Duration::minutes(0),
+                    max_playtime: Duration::minutes(0),
+                    playing_time: Duration::minutes(0),
+                    owned_by: 38,
+                    rating: CollectionItemRating {
+                        user_rating: None,
+                        users_rated: 3,
+                        average: 4.66667,
+                        bayesian_average: 0.0,
+                        standard_deviation: 1.24722,
+                        median: 0.0,
+                        rank: ItemFamilyRank {
+                            id: 1,
+                            name: "boardgame".to_owned(),
+                            friendly_name: "Board Game Rank".to_owned(),
+                            value: RankValue::NotRanked,
+                            bayesian_average: RatingValue::Unrated,
+                        },
+                        sub_family_ranks: vec![],
+                    },
+                },
+                version: None,
+            },
+            "returned collection game doesn't match expected",
+        );
     }
 }
