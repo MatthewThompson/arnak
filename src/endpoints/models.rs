@@ -274,7 +274,6 @@ pub struct ItemFamilyRank {
     #[serde(rename = "friendlyname")]
     pub friendly_name: String,
     /// The overall rank on the site within this type of game.
-    #[serde(rename = "bayesaverage")]
     pub value: RankValue,
     /// The score out of 10, as a bayesian average.
     ///
