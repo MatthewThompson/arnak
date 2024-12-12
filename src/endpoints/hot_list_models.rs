@@ -22,7 +22,7 @@ pub struct HotListGame {
     /// The rank within the hot list, should be ordered from 1 to 50.
     pub rank: u64,
     /// A link to a jpg thumbnail image for the game.
-    pub thumbnail: String,
+    pub thumbnail: Option<String>,
     /// The name of the game.
     pub name: String,
     /// The year the game was first published.
@@ -108,8 +108,6 @@ impl<'de> Deserialize<'de> for HotListGame {
                 }
                 let id = id.ok_or_else(|| serde::de::Error::missing_field("id"))?;
                 let rank = rank.ok_or_else(|| serde::de::Error::missing_field("rank"))?;
-                let thumbnail =
-                    thumbnail.ok_or_else(|| serde::de::Error::missing_field("thumbnail"))?;
                 let name = name.ok_or_else(|| serde::de::Error::missing_field("name"))?;
                 let year_published = year_published
                     .ok_or_else(|| serde::de::Error::missing_field("yearpublished"))?;

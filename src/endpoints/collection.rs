@@ -997,8 +997,8 @@ mod tests {
                     name: "Russian edition 2024".to_owned(),
                     alternate_names: vec![],
                     year_published: 2024,
-                    image: "https://cf.geekdo-images.com/IfUVNbebRWbtQ_SlGxG6ZQ__original/img/DNNED1WasGboaJH8OWMoGm6Zg1k=/0x0/filters:format(jpeg)/pic8177684.jpg".to_owned(),
-                    thumbnail: "https://cf.geekdo-images.com/IfUVNbebRWbtQ_SlGxG6ZQ__thumb/img/E4EX1sbROpEXxte6IMx7cRgSL2E=/fit-in/200x150/filters:strip_icc()/pic8177684.jpg".to_owned(),
+                    image: Some("https://cf.geekdo-images.com/IfUVNbebRWbtQ_SlGxG6ZQ__original/img/DNNED1WasGboaJH8OWMoGm6Zg1k=/0x0/filters:format(jpeg)/pic8177684.jpg".to_owned()),
+                    thumbnail: Some("https://cf.geekdo-images.com/IfUVNbebRWbtQ_SlGxG6ZQ__thumb/img/E4EX1sbROpEXxte6IMx7cRgSL2E=/fit-in/200x150/filters:strip_icc()/pic8177684.jpg".to_owned()),
                     original_game: Game {
                         id: 13,
                         name: "CATAN".to_owned(),
@@ -1063,8 +1063,8 @@ mod tests {
                     name: "English/Japanese edition".to_owned(),
                     alternate_names: vec![],
                     year_published: 2021,
-                    image: "https://cf.geekdo-images.com/rt5qzjbrXq7PgI9IaRekNA__original/img/rh02vSdTIvg-oPr4ymQETCLUEjU=/0x0/filters:format(jpeg)/pic7227031.jpg".to_owned(),
-                    thumbnail: "https://cf.geekdo-images.com/rt5qzjbrXq7PgI9IaRekNA__thumb/img/HGNVOyEKBxZVl0Ry7YDwIcQ5vVc=/fit-in/200x150/filters:strip_icc()/pic7227031.jpg".to_owned(),
+                    image: Some("https://cf.geekdo-images.com/rt5qzjbrXq7PgI9IaRekNA__original/img/rh02vSdTIvg-oPr4ymQETCLUEjU=/0x0/filters:format(jpeg)/pic7227031.jpg".to_owned()),
+                    thumbnail: Some("https://cf.geekdo-images.com/rt5qzjbrXq7PgI9IaRekNA__thumb/img/HGNVOyEKBxZVl0Ry7YDwIcQ5vVc=/fit-in/200x150/filters:strip_icc()/pic7227031.jpg".to_owned()),
                     original_game: Game {
                         id: 352_515,
                         name: "Trio".to_owned(),
