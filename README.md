@@ -18,7 +18,7 @@ on the respective site collections.
 This example uses [Tokio](https://tokio.rs), so it would also be needed as a dependency:
 ```toml
 [dependencies]
-arnak = { version = "0.2.0" }
+arnak = { version = "0.4.0" }
 tokio = { version = "1" }
 ```
 
