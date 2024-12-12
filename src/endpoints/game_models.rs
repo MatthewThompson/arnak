@@ -41,10 +41,10 @@ pub struct GameDetails {
     pub alternate_names: Vec<String>,
     /// A brief description of the game.
     pub description: String,
-    /// A link to a jpg image for the game.
-    pub image: String,
-    /// A link to a jpg thumbnail image for the game.
-    pub thumbnail: String,
+    /// A link to a jpg image for the game. Can by empty.
+    pub image: Option<String>,
+    /// A link to a jpg thumbnail image for the game. Can by empty.
+    pub thumbnail: Option<String>,
     /// The year the game was first published.
     pub year_published: i64,
     /// The minimum number of players the game supports.

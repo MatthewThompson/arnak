@@ -25,9 +25,9 @@ pub struct GameFamily {
     /// A list of alternate names for the game family.
     pub alternate_names: Vec<String>,
     /// A link to a jpg image for the game family.
-    pub image: String,
+    pub image: Option<String>,
     /// A link to a jpg thumbnail image for the game family.
-    pub thumbnail: String,
+    pub thumbnail: Option<String>,
     /// A description of the group of games.
     pub description: String,
     /// The list of games in this game family.

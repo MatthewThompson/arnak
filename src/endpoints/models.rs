@@ -310,9 +310,9 @@ pub struct GameVersion {
     /// The year the game was first published.
     pub year_published: i64,
     /// A link to a jpg image for the game.
-    pub image: String,
+    pub image: Option<String>,
     /// A link to a jpg thumbnail image for the game.
-    pub thumbnail: String,
+    pub thumbnail: Option<String>,
     /// The name and ID of the game this version is based off of.
     pub original_game: Game,
     /// List of publishers for this game.
