@@ -54,7 +54,7 @@ impl BoardGameGeekApi {
     /// and doesn't necessarily just include items that the user owns, but also
     /// items on the user's wishlist or ones they have previously owned, or even
     /// items they have manually added to the collection.
-    pub fn collection(&self) -> CollectionApi<CollectionItem> {
+    pub fn collection(&self) -> CollectionApi<'_, CollectionItem> {
         CollectionApi::new(self)
     }
 
@@ -66,37 +66,37 @@ impl BoardGameGeekApi {
     /// and doesn't necessarily just include items that the user owns, but also
     /// items on the user's wishlist or ones they have previously owned, or even
     /// items they have manually added to the collection.
-    pub fn collection_brief(&self) -> CollectionApi<CollectionItemBrief> {
+    pub fn collection_brief(&self) -> CollectionApi<'_, CollectionItemBrief> {
         CollectionApi::new(self)
     }
 
     /// Returns the game family endpoint of the API, which is used for querying
     /// families of games by their IDs.
-    pub fn game_family(&self) -> GameFamilyApi {
+    pub fn game_family(&self) -> GameFamilyApi<'_> {
         GameFamilyApi::new(self)
     }
 
     /// Returns the game endpoint of the API, which is used for querying
     /// full game details by their IDs.
-    pub fn game(&self) -> GameApi {
+    pub fn game(&self) -> GameApi<'_> {
         GameApi::new(self)
     }
 
     /// Returns the guild endpoint of the API, which is used for querying
     /// guilds by their IDs.
-    pub fn guild(&self) -> GuildApi {
+    pub fn guild(&self) -> GuildApi<'_> {
         GuildApi::new(self)
     }
 
     /// Returns the hot list endpoint of the API, which is used for querying the
     /// current trending board games.
-    pub fn hot_list(&self) -> HotListApi {
+    pub fn hot_list(&self) -> HotListApi<'_> {
         HotListApi::new(self)
     }
 
     /// Returns the search endpoint of the API, which is used for searching for
     /// board games by name.
-    pub fn search(&self) -> SearchApi {
+    pub fn search(&self) -> SearchApi<'_> {
         SearchApi::new(self)
     }
 
