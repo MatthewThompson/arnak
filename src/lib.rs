@@ -9,7 +9,7 @@
 //! // Enter tokio async runtime.
 //! let rt = tokio::runtime::Runtime::new().unwrap();
 //! rt.block_on(async {
-//!     let api = BoardGameGeekApi::new();
+//!     let api = BoardGameGeekApi::new("my_auth_token").expect("something went wrong");
 //!     let collection = api.collection().get_owned("bluebearbgg").await;
 //!
 //!     match collection {

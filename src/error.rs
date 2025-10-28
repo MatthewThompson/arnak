@@ -14,6 +14,9 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// case an error shouldn't happen.
 #[derive(Debug)]
 pub enum Error {
+    /// An error returned creating the Http client. Can only happen when constructing a new instance of the
+    /// API when the `auth_token` contains invalid characters.
+    HttpClientCreationError(String),
     /// An error was returned making the HTTP request, or an error status code was returned.
     HttpError(reqwest::Error),
     /// A request was made to retrieve a user's collection but the data is not ready to be returned
@@ -62,6 +65,9 @@ impl From<serde_xml_rs::Error> for Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Error::HttpClientCreationError(reason) => {
+                write!(f, "error creating http client: {reason}")
+            },
             Error::HttpError(e) => write!(f, "error making request: {e}"),
             Error::CollectionNotReady => {
                 write!(
@@ -88,6 +94,7 @@ impl fmt::Display for Error {
 impl StdError for Error {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match &self {
+            Error::HttpClientCreationError(_) => None,
             Error::HttpError(e) => Some(e),
             Error::CollectionNotReady => None,
             Error::InvalidResponseError(e) => Some(e),
