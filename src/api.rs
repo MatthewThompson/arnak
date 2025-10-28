@@ -11,6 +11,22 @@ use crate::{
     GuildApi, HotListApi, Result, SearchApi,
 };
 
+fn http_client_from_token(auth_token: &str) -> Result<reqwest::Client> {
+    let mut default_headers = reqwest::header::HeaderMap::new();
+    let mut auth_header_value = reqwest::header::HeaderValue::from_str(
+        format!("Bearer {auth_token}").as_str(),
+    )
+    .map_err(|_| {
+        Error::HttpClientCreationError("auth token contains invalid header characters".to_owned())
+    })?;
+    auth_header_value.set_sensitive(true);
+    default_headers.insert(reqwest::header::AUTHORIZATION, auth_header_value);
+    reqwest::ClientBuilder::new()
+        .default_headers(default_headers)
+        .build()
+        .map_err(|e| Error::HttpClientCreationError(e.to_string()))
+}
+
 /// API for making requests to the [Board Game Geek API](https://boardgamegeek.com/wiki/page/BGG_XML_API2).
 pub struct BoardGameGeekApi {
     // URL for the board game geek API.
@@ -20,21 +36,15 @@ pub struct BoardGameGeekApi {
     pub(crate) client: reqwest::Client,
 }
 
-impl Default for BoardGameGeekApi {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl BoardGameGeekApi {
     const BASE_URL: &'static str = "https://boardgamegeek.com/xmlapi2";
 
     /// Creates a new API from a default HTTP client.
-    pub fn new() -> Self {
-        Self {
+    pub fn new(auth_token: &str) -> Result<Self> {
+        Ok(Self {
             base_url: String::from(BoardGameGeekApi::BASE_URL),
-            client: reqwest::Client::new(),
-        }
+            client: http_client_from_token(auth_token)?,
+        })
     }
 
     /// Returns the collection endpoint of the API, which is used for querying a
