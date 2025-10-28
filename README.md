@@ -27,7 +27,7 @@ use arnak::BoardGameGeekApi;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let api = BoardGameGeekApi::new();
+    let api = BoardGameGeekApi::new("my_auth_token").expect("something went wrong");
     let collection = api.collection().get_owned("bluebearbgg").await;
     match collection {
         Ok(collection) => println!("bluebearbgg owns {} games.", collection.items.len()),
