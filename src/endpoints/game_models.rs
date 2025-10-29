@@ -5,7 +5,8 @@ use serde::Deserialize;
 
 use super::{
     Game, GameAccessory, GameArtist, GameCategory, GameCompilation, GameDesigner, GameFamilyName,
-    GameImplementation, GameMechanic, GamePublisher, GameType, GameVersion, ItemFamilyRank, User,
+    GameImplementation, GameMechanic, GamePublisher, GameType, GameVersion, ItemFamilyRank,
+    UserBrief,
 };
 use crate::deserialize::{
     date_time_with_zone_from_string, xml_ranks_to_ranks, XmlDateTimeValue, XmlFloatValue,
@@ -522,7 +523,7 @@ pub struct Video {
     /// Youtube link to the video.
     pub link: String,
     /// Name and ID of the user who uploaded this video.
-    pub uploader: User,
+    pub uploader: UserBrief,
     /// The date and time the video was posted.
     pub post_date: DateTime<Utc>,
 }
@@ -657,7 +658,7 @@ impl<'de> Deserialize<'de> for Video {
                     category,
                     language,
                     link,
-                    uploader: User { user_id, username },
+                    uploader: UserBrief { user_id, username },
                     post_date,
                 })
             }
