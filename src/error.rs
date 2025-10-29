@@ -14,8 +14,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// case an error shouldn't happen.
 #[derive(Debug)]
 pub enum Error {
-    /// An error returned creating the Http client. Can only happen when constructing a new instance of the
-    /// API when the `auth_token` contains invalid characters.
+    /// An error returned creating the Http client. Can only happen when constructing a new
+    /// instance of the API when the `auth_token` contains invalid characters.
     HttpClientCreationError(String),
     /// An error was returned making the HTTP request, or an error status code was returned.
     HttpError(reqwest::Error),
