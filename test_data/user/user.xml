@@ -11,7 +11,7 @@
 	<xboxaccount value="" />
 	<wiiaccount value="" />
 	<psnaccount value="" />
-	<battlenetaccount value="" />
+	<battlenetaccount value="account name" />
 	<steamaccount value="" />
 	<traderating value="0" />
 </user>

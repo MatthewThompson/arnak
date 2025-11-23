@@ -262,7 +262,7 @@ impl TryFrom<PollResults> for SuggestedPlayerCount {
                     not_recommended_votes = Some(vote_result.number_of_votes);
                 },
                 unexpected => {
-                    return Err(format!("unexpected player count vote option: {unexpected}",));
+                    return Err(format!("unexpected player count vote option: {unexpected}"));
                 },
             }
         }

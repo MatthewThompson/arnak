@@ -1,4 +1,4 @@
-use chrono::{DateTime, Duration, NaiveDateTime, ParseError, Utc};
+use chrono::{DateTime, Duration, NaiveDate, NaiveDateTime, ParseError, Utc};
 use serde::Deserialize;
 
 use crate::{ItemFamilyRank, ItemType, NameType, RankValue, RatingValue};
@@ -44,6 +44,12 @@ pub(crate) struct XmlFloatValue {
 #[derive(Debug, Deserialize)]
 pub(crate) struct XmlStringValue {
     pub(crate) value: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct XmlDateValue {
+    #[serde(deserialize_with = "deserialize_date")]
+    pub(crate) value: NaiveDate,
 }
 
 #[derive(Debug, Deserialize)]
@@ -95,12 +101,24 @@ where
     minutes.map(|m| Duration::minutes(i64::from(m)))
 }
 
+// e.g. 2025-04-24
+// Used for the last login date for a user.
+const DATE_FORMAT: &str = "%Y-%m-%d";
+
 const DATE_TIME_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
 // e.g. 2024-07-22T16:33:30-05:00
 // Used for the video post date returned from the game endpoint.
 const DATE_TIME_ZONE_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%:z";
 // e.g. Thu, 14 Jun 2007 01:06:46 +0000
 const DATE_TIME_ZONE_LONG_FORMAT: &str = "%a, %d %B %Y %H:%M:%S %z";
+
+pub(crate) fn deserialize_date<'de, D>(deserializer: D) -> Result<NaiveDate, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    NaiveDate::parse_from_str(&s, DATE_FORMAT).map_err(serde::de::Error::custom)
+}
 
 pub(crate) fn deserialize_date_time<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
 where

@@ -37,3 +37,8 @@ pub(crate) mod search_models;
 pub use search_models::*;
 pub(crate) mod search;
 pub use search::*;
+
+pub(crate) mod user_models;
+pub use user_models::*;
+pub(crate) mod user;
+pub use user::*;

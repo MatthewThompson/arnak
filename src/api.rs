@@ -6,6 +6,7 @@ use tokio::time::sleep;
 
 use crate::deserialize::deserialize_xml_string;
 use crate::endpoints::collection::CollectionApi;
+use crate::user::UserApi;
 use crate::{
     deserialize_maybe_error, CollectionItem, CollectionItemBrief, Error, GameApi, GameFamilyApi,
     GuildApi, HotListApi, Result, SearchApi,
@@ -92,6 +93,12 @@ impl BoardGameGeekApi {
     /// current trending board games.
     pub fn hot_list(&self) -> HotListApi<'_> {
         HotListApi::new(self)
+    }
+
+    /// Returns the user endpoint of the API, which is used for querying users
+    /// on the site.
+    pub fn user(&self) -> UserApi<'_> {
+        UserApi::new(self)
     }
 
     /// Returns the search endpoint of the API, which is used for searching for
