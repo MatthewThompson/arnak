@@ -1,0 +1,35 @@
+<user id="3855477" name="BluebearBGG" termsofuse="https://boardgamegeek.com/xmlapi/termsofuse">
+    <firstname value="Matthew"/>
+	<lastname value="" />
+    <avatarlink value="N/A"/>
+    <yearregistered value="2024"/>
+	<lastlogin value="2025-10-26" />
+    <stateorprovince value="England"/>
+    <country value="United Kingdom"/>
+    <webaddress value=""/>
+    <xboxaccount value=""/>
+    <wiiaccount value=""/>
+    <psnaccount value=""/>
+    <battlenetaccount value="account name"/>
+    <steamaccount value=""/>
+    <traderating value="0"/>
+    <buddies total="1" page="1">
+        <buddy id="379939" name="happy_squid"/>
+    </buddies>
+    <guilds total="2" page="1">
+        <guild id="1062" name="Kickstarter Games"/>
+        <guild id="999999" name="A guild"/>
+    </guilds>
+    <top domain="boardgame">
+        <item rank="1" type="thing" id="338960" name="Slay the Spire: The Board Game"/>
+        <item rank="2" type="person" id="103500" name="Bobby Hill"/>
+        <item rank="3" type="company" id="5774" name="Bézier Games"/>
+        <item rank="4" type="family" id="79006" name="Components:  Meeples"/>
+        <item rank="5" type="property" id="2082" name="Worker Placement"/>
+        <item rank="6" type="event" id="38" name="Gen Con 2020"/>
+    </top>
+    <hot domain="boardgame">
+        <item rank="1" type="thing" id="454971" name="Slay the Spire: The Board Game – Downfall"/>
+        <item rank="2" type="property" id="2082" name="Worker Placement"/>
+    </hot>
+</user>

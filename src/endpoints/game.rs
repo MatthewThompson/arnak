@@ -200,7 +200,7 @@ mod tests {
         ItemFamilyRank, Language, LanguageDependence, LanguageDependencePoll, MarketplaceListing,
         PlayerAge, PlayerCount, Price, RankValue, RatingComment, RatingCommentPage, RatingValue,
         SuggestedPlayerAge, SuggestedPlayerAgePoll, SuggestedPlayerCount, SuggestedPlayerCountPoll,
-        User, Video, VideoCategory,
+        UserBrief, Video, VideoCategory,
     };
 
     #[tokio::test]
@@ -1053,7 +1053,7 @@ mod tests {
                         category: VideoCategory::Other,
                         language: "French".to_owned(),
                         link: "http://www.youtube.com/watch?v=1".to_owned(),
-                        uploader: User {
+                        uploader: UserBrief {
                             user_id: 312,
                             username: "video_man".to_owned(),
                         },
@@ -1065,7 +1065,7 @@ mod tests {
                         category: VideoCategory::Session,
                         language: "Portuguese".to_owned(),
                         link: "http://www.youtube.com/watch?v=2".to_owned(),
-                        uploader: User {
+                        uploader: UserBrief {
                             user_id: 333,
                             username: "video_man_2".to_owned(),
                         },
