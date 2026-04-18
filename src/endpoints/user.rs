@@ -89,7 +89,7 @@ impl<'builder> UserQueryBuilder<'builder> {
     }
 }
 
-/// User endpoint of the API. Used for returning information about a single user by name.
+/// User endpoint of the API. Used for returning information about a single user by their username.
 pub struct UserApi<'api> {
     pub(crate) api: &'api BoardGameGeekApi,
     endpoint: &'static str,
@@ -123,7 +123,7 @@ mod tests {
     use crate::{Buddy, BuddyList, GuildBrief, GuildList, ListItem, ListItemType};
 
     #[tokio::test]
-    async fn get_by_id() {
+    async fn get() {
         let mut server = mockito::Server::new_async().await;
         let api = BoardGameGeekApi {
             base_url: server.url(),
