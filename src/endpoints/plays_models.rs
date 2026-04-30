@@ -21,7 +21,7 @@ pub struct Plays {
     pub total: u64,
     /// The page of plays that is returned in the `plays` field of this object. Page size is 100.
     pub page: u64,
-    /// The list of plays for this
+    /// The list of plays, each item in the list being a recorded instance of someone playing a game or other item. Includes various information about the session including who played and how long it lasted.
     #[serde(default = "Vec::new", rename = "play")]
     pub plays: Vec<Play>,
 }
@@ -128,13 +128,13 @@ pub struct Player {
     pub user_id: Option<u64>,
     /// The player's name.
     pub name: String,
-    /// Their in game start position. Arbitrary user input is allowed so this is a string not a
+    /// The player's in game start position. Arbitrary user input is allowed so this is a string not a
     /// number.
     #[serde(rename = "startposition")]
     pub start_position: String,
-    /// Their in game color.
+    /// The player's in game color.
     pub color: String,
-    /// Their in game score.
+    /// The player's in game score.
     pub score: String,
     /// True if this was the first time this player played this game.
     #[serde(rename = "new")]
