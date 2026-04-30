@@ -69,7 +69,7 @@ impl Display for ItemType {
     }
 }
 
-/// The subset of all item types on Boardgamegeek, including things that you can log a play for.
+/// A subset of all item types on Boardgamegeek, that includes things that a play can be logged for.
 /// Typically a type of boardgame or an accessory.
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
