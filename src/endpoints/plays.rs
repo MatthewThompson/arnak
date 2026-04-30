@@ -49,8 +49,8 @@ pub(crate) enum PlaysItemType {
 }
 
 #[derive(Clone, Debug)]
-enum PlaysQuery<'n> {
-    QueryByUser(&'n str),
+enum PlaysQuery<'q> {
+    QueryByUser(&'q str),
     QueryById {
         id: u64,
         plays_item_type: PlaysItemType,
@@ -102,7 +102,7 @@ impl<'builder> PlaysQueryBuilder<'builder> {
 }
 
 /// Plays endpoint of the API. Used for returning information about recordings of instances of games
-/// being played. Plays can be queried either by user or by ID, either way they are returned in
+/// being played. Plays can be queried either by user or by item ID, either way they are returned in
 /// reverse chronological order.
 pub struct PlaysApi<'api> {
     pub(crate) api: &'api BoardGameGeekApi,
