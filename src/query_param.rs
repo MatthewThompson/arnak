@@ -44,7 +44,7 @@ impl IntoQueryParam for f32 {
 
 impl IntoQueryParam for NaiveDate {
     fn into_query_param(self, key: &str) -> QueryParam<'_> {
-        (key, self.format("%y-%m-%d").to_string())
+        (key, self.format("%Y-%m-%d").to_string())
     }
 }
 

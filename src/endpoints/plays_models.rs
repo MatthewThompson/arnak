@@ -8,11 +8,13 @@ use crate::ItemSubType;
 /// of plays, along with the total number in the list.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Plays {
-    // TODO check if this is a different object when requesting for a thing/family
-    /// The username of the user that these plays were requested for.
+    /// The username of the user that these plays were requested for. Not included if the plays for
+    /// a particular game was requested.
+    #[serde(default)]
     pub username: String,
-    /// The ID of the user that these plays were requested for.
-    #[serde(rename = "userid")]
+    /// The ID of the user that these plays were requested for. Not included if the plays for a
+    /// particular game was requested.
+    #[serde(default, rename = "userid")]
     pub user_id: u64,
     /// The total number of plays for the query, only up to 100 being returned depending on the
     /// requested page.

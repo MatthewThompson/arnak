@@ -296,4 +296,68 @@ mod tests {
             }
         );
     }
+
+    #[tokio::test]
+    async fn get_by_item_id() {
+        let mut server = mockito::Server::new_async().await;
+        let api = BoardGameGeekApi {
+            base_url: server.url(),
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/plays")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("id".to_owned(), "382350".to_owned()),
+                Matcher::UrlEncoded("type".to_owned(), "thing".to_owned()),
+                Matcher::UrlEncoded("mindate".to_owned(), "2026-01-01".to_owned()),
+                Matcher::UrlEncoded("maxdate".to_owned(), "2026-06-02".to_owned()),
+                Matcher::UrlEncoded("subtype".to_owned(), "boardgameexpansion".to_owned()),
+                Matcher::UrlEncoded("page".to_owned(), "1".to_owned()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/plays/thing_plays.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let params = PlaysQueryParams::new()
+            .min_date(NaiveDate::from_ymd_opt(2026, 1, 1).unwrap())
+            .max_date(NaiveDate::from_ymd_opt(2026, 6, 2).unwrap())
+            .sub_type(ItemSubType::BoardGameExpansion)
+            .page(1);
+        let plays = api.plays().get_by_item_id(382_350, params).await;
+        mock.assert_async().await;
+
+        assert!(plays.is_ok(), "error returned when okay expected");
+        let plays = plays.unwrap();
+
+        assert_eq!(
+            plays,
+            Plays {
+                username: "".to_owned(),
+                user_id: 0,
+                total: 1,
+                page: 1,
+                plays: vec![Play {
+                    id: 113_391_260,
+                    date: NaiveDate::from_ymd_opt(2026, 4, 30).unwrap(),
+                    quantity: 1,
+                    duration: Duration::minutes(60),
+                    incomplete: false,
+                    location: "kitchen".to_owned(),
+                    do_not_count_win_stats: false,
+                    comments: Some("blah".to_owned()),
+                    played_item: PlayedItem {
+                        name: "Lost Ruins of Arnak: The Missing Expedition".to_owned(),
+                        id: 382_350,
+                        sub_types: vec![ItemSubType::BoardGame, ItemSubType::BoardGameExpansion],
+                    },
+                    players: vec![],
+                },],
+            }
+        );
+    }
 }
