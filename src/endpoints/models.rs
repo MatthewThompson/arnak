@@ -6,7 +6,7 @@ use super::{RankValue, RatingValue};
 use crate::deserialize::{XmlFloatValue, XmlLink, XmlName, XmlSignedValue, XmlStringValue};
 
 /// The type of the item. Either a board game, a board game expansion, or board game accessory.
-#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ItemType {
     /// A board game. In many cases the underlying API will also include
@@ -71,7 +71,7 @@ impl Display for ItemType {
 
 /// A subset of all item types on Boardgamegeek, that includes things that a play can be logged for.
 /// Typically a type of boardgame or an accessory.
-#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ItemSubType {
     /// A board game. In many cases the underlying API will also include
@@ -110,7 +110,7 @@ impl Display for ItemSubType {
 /// The type of an item that can be returned from the collections endpoint.
 /// Either a board game, a board game expansion, or board game accessory, a subset ot
 /// [`ItemType`].
-#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum CollectionItemType {
     /// A board game. In many cases the underlying API will also include
@@ -137,7 +137,7 @@ impl Display for CollectionItemType {
 ///
 /// Either [`GameType::BoardGame`] for a normal board game or [`GameType::BoardGameExpansion`]
 /// for an expansion of another existing board game.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum GameType {
     /// A board game. In many cases the underlying API will also include
@@ -157,7 +157,7 @@ impl Display for GameType {
 }
 
 /// The type of game, board game or expansion.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum NameType {
     /// The primary name for a game or game family.
