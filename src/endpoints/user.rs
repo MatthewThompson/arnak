@@ -84,7 +84,9 @@ impl<'builder> UserQueryBuilder<'builder> {
         if let Some(include_hot_list) = self.params.include_hot_list {
             query_params.push(include_hot_list.into_query_param("hot"));
         }
-        query_params.push(self.params.page.unwrap_or(1).into_query_param("page"));
+        if let Some(page) = self.params.page {
+            query_params.push(page.into_query_param("page"));
+        }
         query_params
     }
 }
@@ -135,7 +137,6 @@ mod tests {
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("name".to_owned(), "bluebearbgg".to_owned()),
                 Matcher::UrlEncoded("domain".to_owned(), "boardgame".to_owned()),
-                Matcher::UrlEncoded("page".to_owned(), "1".to_owned()),
             ]))
             .with_status(200)
             .with_body(

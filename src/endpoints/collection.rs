@@ -1140,7 +1140,7 @@ mod tests {
                 Matcher::UrlEncoded("maxplays".to_owned(), "450".to_owned()),
                 Matcher::UrlEncoded("showprivate".to_owned(), "1".to_owned()),
                 Matcher::UrlEncoded("collid".to_owned(), "345".to_owned()),
-                Matcher::UrlEncoded("modifiedsince".to_owned(), "24-05-17".to_owned()),
+                Matcher::UrlEncoded("modifiedsince".to_owned(), "2024-05-17".to_owned()),
             ]))
             .with_status(200)
             .with_body(

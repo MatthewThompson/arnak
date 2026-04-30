@@ -33,6 +33,11 @@ pub use hot_list_models::*;
 pub(crate) mod hot_list;
 pub use hot_list::*;
 
+pub(crate) mod plays_models;
+pub use plays_models::*;
+pub(crate) mod plays;
+pub use plays::*;
+
 pub(crate) mod search_models;
 pub use search_models::*;
 pub(crate) mod search;

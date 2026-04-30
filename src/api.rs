@@ -9,7 +9,7 @@ use crate::endpoints::collection::CollectionApi;
 use crate::user::UserApi;
 use crate::{
     deserialize_maybe_error, CollectionItem, CollectionItemBrief, Error, GameApi, GameFamilyApi,
-    GuildApi, HotListApi, Result, SearchApi,
+    GuildApi, HotListApi, PlaysApi, Result, SearchApi,
 };
 
 fn http_client_from_token(auth_token: &str) -> Result<reqwest::Client> {
@@ -95,16 +95,22 @@ impl BoardGameGeekApi {
         HotListApi::new(self)
     }
 
-    /// Returns the user endpoint of the API, which is used for querying users
-    /// on the site.
-    pub fn user(&self) -> UserApi<'_> {
-        UserApi::new(self)
+    /// Returns the plays endpoint of the API, which is used for querying instances of games that a
+    /// user has played.
+    pub fn plays(&self) -> PlaysApi<'_> {
+        PlaysApi::new(self)
     }
 
     /// Returns the search endpoint of the API, which is used for searching for
     /// board games by name.
     pub fn search(&self) -> SearchApi<'_> {
         SearchApi::new(self)
+    }
+
+    /// Returns the user endpoint of the API, which is used for querying users
+    /// on the site.
+    pub fn user(&self) -> UserApi<'_> {
+        UserApi::new(self)
     }
 
     // Creates a reqwest::RequestBuilder from the base url and the provided

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plays total="1" page="1" termsofuse="https://boardgamegeek.com/xmlapi/termsofuse">
+    <play id="113391260" userid="3855477" date="2026-04-30" quantity="1" length="60" incomplete="0" nowinstats="0" location="kitchen">
+        <item name="Lost Ruins of Arnak: The Missing Expedition" objecttype="thing" objectid="382350">
+            <subtypes>
+                <subtype value="boardgame"/>
+                <subtype value="boardgameexpansion"/>
+            </subtypes>
+        </item>
+        <comments>blah</comments>
+    </play>
+</plays>

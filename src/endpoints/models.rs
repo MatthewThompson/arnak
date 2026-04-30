@@ -6,7 +6,7 @@ use super::{RankValue, RatingValue};
 use crate::deserialize::{XmlFloatValue, XmlLink, XmlName, XmlSignedValue, XmlStringValue};
 
 /// The type of the item. Either a board game, a board game expansion, or board game accessory.
-#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ItemType {
     /// A board game. In many cases the underlying API will also include
@@ -69,10 +69,48 @@ impl Display for ItemType {
     }
 }
 
+/// A subset of all item types on Boardgamegeek, that includes things that a play can be logged for.
+/// Typically a type of boardgame or an accessory.
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum ItemSubType {
+    /// A board game. In many cases the underlying API will also include
+    /// board game expansions under this type, unless explicitly excluded.
+    BoardGame,
+    /// A board game expansion.
+    BoardGameExpansion,
+    /// An accessory for a board game. This can include things such as playmats
+    /// and miniatures.
+    BoardGameAccessory,
+    /// A different edition of an existing game.
+    BoardGameCompilation,
+    /// A different implementation of an existing game.
+    BoardGameImplementation,
+}
+
+impl From<ItemSubType> for ItemType {
+    fn from(sub_type: ItemSubType) -> Self {
+        match sub_type {
+            ItemSubType::BoardGame => ItemType::BoardGame,
+            ItemSubType::BoardGameExpansion => ItemType::BoardGameExpansion,
+            ItemSubType::BoardGameAccessory => ItemType::BoardGameAccessory,
+            ItemSubType::BoardGameCompilation => ItemType::BoardGameCompilation,
+            ItemSubType::BoardGameImplementation => ItemType::BoardGameImplementation,
+        }
+    }
+}
+
+impl Display for ItemSubType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let item_type = ItemType::from(*self);
+        item_type.fmt(f)
+    }
+}
+
 /// The type of an item that can be returned from the collections endpoint.
 /// Either a board game, a board game expansion, or board game accessory, a subset ot
 /// [`ItemType`].
-#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum CollectionItemType {
     /// A board game. In many cases the underlying API will also include
@@ -99,7 +137,7 @@ impl Display for CollectionItemType {
 ///
 /// Either [`GameType::BoardGame`] for a normal board game or [`GameType::BoardGameExpansion`]
 /// for an expansion of another existing board game.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum GameType {
     /// A board game. In many cases the underlying API will also include
@@ -119,7 +157,7 @@ impl Display for GameType {
 }
 
 /// The type of game, board game or expansion.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum NameType {
     /// The primary name for a game or game family.
