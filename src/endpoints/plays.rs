@@ -1,15 +1,45 @@
 use chrono::NaiveDate;
 
-use crate::{BoardGameGeekApi, IntoQueryParam, ItemType, Plays, QueryParam, Result};
+use crate::{BoardGameGeekApi, IntoQueryParam, ItemSubType, ItemType, Plays, QueryParam, Result};
 
 /// All optional query parameters for making a request to the plays endpoint.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct PlaysQueryParams {
     min_date: Option<NaiveDate>,
     max_date: Option<NaiveDate>,
-    // TODO new type for this? (it's a subset)
-    sub_type: Option<ItemType>,
+    sub_type: Option<ItemSubType>,
     page: Option<u64>,
+}
+
+impl PlaysQueryParams {
+    /// Constructs a new plays query with parameters set to None.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Sets the `min_date` parameter. Will only return plays from after this date.
+    pub fn min_date(mut self, min_date: NaiveDate) -> Self {
+        self.min_date = Some(min_date);
+        self
+    }
+
+    /// Sets the `max_date` parameter. Will only return plays from up to this date.
+    pub fn max_date(mut self, max_date: NaiveDate) -> Self {
+        self.max_date = Some(max_date);
+        self
+    }
+
+    /// Sets the `sub_type` parameter. Will only return items of the specified type.
+    pub fn sub_type(mut self, sub_type: ItemSubType) -> Self {
+        self.sub_type = Some(sub_type);
+        self
+    }
+
+    /// The page of results to return, if unset defaults to the first page.
+    pub fn page(mut self, page: u64) -> Self {
+        self.page = Some(page);
+        self
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -109,5 +139,122 @@ impl<'api> PlaysApi<'api> {
         let response = self.api.execute_request::<Plays>(request).await?;
 
         Ok(response)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use chrono::Duration;
+    use mockito::Matcher;
+
+    use super::*;
+    use crate::{Play, PlayedItem, Player};
+
+    #[tokio::test]
+    async fn get_by_username() {
+        let mut server = mockito::Server::new_async().await;
+        let api = BoardGameGeekApi {
+            base_url: server.url(),
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/plays")
+            .match_query(Matcher::AllOf(vec![Matcher::UrlEncoded(
+                "username".to_owned(),
+                "BluebearBgg".to_owned(),
+            )]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/plays/user_plays.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let plays = api
+            .plays()
+            .get_by_username("BluebearBgg", PlaysQueryParams::new())
+            .await;
+        mock.assert_async().await;
+
+        assert!(plays.is_ok(), "error returned when okay expected");
+        let plays = plays.unwrap();
+
+        assert_eq!(
+            plays,
+            Plays {
+                username: "bluebearbgg".to_owned(),
+                user_id: 3_855_477,
+                total: 3,
+                page: 1,
+                plays: vec![
+                    Play {
+                        id: 112_947_972,
+                        date: NaiveDate::from_ymd_opt(2026, 4, 18).unwrap(),
+                        quantity: 2,
+                        duration: Duration::minutes(1310),
+                        incomplete: true,
+                        location: "kitchen".to_owned(),
+                        do_not_count_win_stats: false,
+                        comments: None,
+                        played_item: PlayedItem {
+                            name: "Lost Ruins of Arnak".to_owned(),
+                        },
+                        players: vec![Player {
+                            username: Some("BluebearBGG".to_owned()),
+                            user_id: Some(3_855_477),
+                            name: "Matthew Thompson".to_owned(),
+                            start_position: "1".to_owned(),
+                            color: "blue".to_owned(),
+                            score: "999".to_owned(),
+                            first_time_playing: true,
+                            rating: 0,
+                            won: true,
+                        },],
+                    },
+                    Play {
+                        id: 84_729_716,
+                        date: NaiveDate::from_ymd_opt(2024, 5, 6).unwrap(),
+                        quantity: 1,
+                        duration: Duration::minutes(0),
+                        incomplete: false,
+                        location: "".to_owned(),
+                        do_not_count_win_stats: false,
+                        comments: None,
+                        played_item: PlayedItem {
+                            name: "Lost Ruins of Arnak".to_owned(),
+                        },
+                        players: vec![],
+                    },
+                    Play {
+                        id: 83_820_037,
+                        date: NaiveDate::from_ymd_opt(2024, 4, 13).unwrap(),
+                        quantity: 1,
+                        duration: Duration::minutes(120),
+                        incomplete: false,
+                        location: "".to_owned(),
+                        do_not_count_win_stats: false,
+                        comments: Some(
+                            "Fun game, first time playing. Played with 4 people.".to_owned()
+                        ),
+                        played_item: PlayedItem {
+                            name: "Lost Ruins of Arnak".to_owned(),
+                        },
+                        players: vec![Player {
+                            username: Some("BluebearBGG".to_owned()),
+                            user_id: Some(3_855_477),
+                            name: "Matthew".to_owned(),
+                            start_position: "".to_owned(),
+                            color: "".to_owned(),
+                            score: "".to_owned(),
+                            first_time_playing: false,
+                            rating: 0,
+                            won: false,
+                        },],
+                    },
+                ],
+            }
+        );
     }
 }

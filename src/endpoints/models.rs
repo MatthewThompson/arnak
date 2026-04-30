@@ -69,6 +69,44 @@ impl Display for ItemType {
     }
 }
 
+/// The subset of all item types on Boardgamegeek, including things that you can log a play for.
+/// Typically a type of boardgame or an accessory.
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum ItemSubType {
+    /// A board game. In many cases the underlying API will also include
+    /// board game expansions under this type, unless explicitly excluded.
+    BoardGame,
+    /// A board game expansion.
+    BoardGameExpansion,
+    /// An accessory for a board game. This can include things such as playmats
+    /// and miniatures.
+    BoardGameAccessory,
+    /// A different edition of an existing game.
+    BoardGameCompilation,
+    /// A different implementation of an existing game.
+    BoardGameImplementation,
+}
+
+impl From<ItemSubType> for ItemType {
+    fn from(sub_type: ItemSubType) -> Self {
+        match sub_type {
+            ItemSubType::BoardGame => ItemType::BoardGame,
+            ItemSubType::BoardGameExpansion => ItemType::BoardGameExpansion,
+            ItemSubType::BoardGameAccessory => ItemType::BoardGameAccessory,
+            ItemSubType::BoardGameCompilation => ItemType::BoardGameCompilation,
+            ItemSubType::BoardGameImplementation => ItemType::BoardGameImplementation,
+        }
+    }
+}
+
+impl Display for ItemSubType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let item_type = ItemType::from(self.clone());
+        item_type.fmt(f)
+    }
+}
+
 /// The type of an item that can be returned from the collections endpoint.
 /// Either a board game, a board game expansion, or board game accessory, a subset ot
 /// [`ItemType`].
