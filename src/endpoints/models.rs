@@ -102,7 +102,7 @@ impl From<ItemSubType> for ItemType {
 
 impl Display for ItemSubType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let item_type = ItemType::from(self.clone());
+        let item_type = ItemType::from(*self);
         item_type.fmt(f)
     }
 }
