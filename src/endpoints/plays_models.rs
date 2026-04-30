@@ -46,7 +46,10 @@ pub struct Play {
     #[serde(rename = "item")]
     pub played_item: PlayedItem,
     /// The players who played.
-    #[serde(default = "Vec::new", deserialize_with = "deserialize_nested_players_list")]
+    #[serde(
+        default = "Vec::new",
+        deserialize_with = "deserialize_nested_players_list"
+    )]
     pub players: Vec<Player>,
     /// Any user written comments about this session.
     #[serde(default)]
@@ -61,17 +64,15 @@ pub struct PlayedItem {
     // TODO item_type (new des for "thing"), id (serde rename), subtypes (boardgame)
 }
 
-// Since the list of players in nested inside a `players` xml tag. We need to use this struct with a custom
-// deserializer in order to have just a vec on the returned object.
+// Since the list of players in nested inside a `players` xml tag. We need to use this struct with a
+// custom deserializer in order to have just a vec on the returned object.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 struct PlayersXml {
     #[serde(default = "Vec::new", rename = "player")]
     players: Vec<Player>,
 }
 
-fn deserialize_nested_players_list<'de, D>(
-    deserializer: D,
-) -> Result<Vec<Player>, D::Error>
+fn deserialize_nested_players_list<'de, D>(deserializer: D) -> Result<Vec<Player>, D::Error>
 where
     D: serde::de::Deserializer<'de>,
 {
