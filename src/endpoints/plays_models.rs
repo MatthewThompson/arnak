@@ -2,6 +2,7 @@ use chrono::{Duration, NaiveDate};
 use serde::Deserialize;
 
 use crate::deserialize::deserialize_minutes;
+use crate::ItemSubType;
 
 /// A play is a recorded instance of someone playing a game. This struct includes one page of a list
 /// of plays, along with the total number in the list.
@@ -59,9 +60,43 @@ pub struct Play {
 /// The item, usually a game, that was played.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct PlayedItem {
-    /// The name of the item that was played
+    /// The name of the item that was played.
     pub name: String,
-    // TODO item_type (new des for "thing"), id (serde rename), subtypes (boardgame)
+    /// The unique identifier for this item.
+    #[serde(rename = "objectid")]
+    pub id: u64,
+    /// The list of types the item is, such as board game, or board game and board game expansion.
+    #[serde(
+        default = "Vec::new",
+        deserialize_with = "deserialize_nested_sub_types_list",
+        rename = "subtypes"
+    )]
+    pub sub_types: Vec<ItemSubType>,
+}
+
+// Since the list of sub types in nested inside a `subtypes` xml tag. We need to use this struct
+// with a custom deserializer in order to have just a vec on the returned object.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+struct SubTypesXml {
+    #[serde(default = "Vec::new", rename = "subtype")]
+    sub_types: Vec<SubTypeXml>,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+struct SubTypeXml {
+    value: ItemSubType,
+}
+
+fn deserialize_nested_sub_types_list<'de, D>(deserializer: D) -> Result<Vec<ItemSubType>, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    let sub_types_xml = SubTypesXml::deserialize(deserializer)?;
+    Ok(sub_types_xml
+        .sub_types
+        .into_iter()
+        .map(|xml| xml.value)
+        .collect())
 }
 
 // Since the list of players in nested inside a `players` xml tag. We need to use this struct with a

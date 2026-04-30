@@ -220,6 +220,25 @@ mod tests {
                 page: 1,
                 plays: vec![
                     Play {
+                        id: 113_391_260,
+                        date: NaiveDate::from_ymd_opt(2026, 4, 30).unwrap(),
+                        quantity: 1,
+                        duration: Duration::minutes(60),
+                        incomplete: false,
+                        location: "kitchen".to_owned(),
+                        do_not_count_win_stats: false,
+                        comments: Some("blah".to_owned()),
+                        played_item: PlayedItem {
+                            name: "Lost Ruins of Arnak: The Missing Expedition".to_owned(),
+                            id: 382_350,
+                            sub_types: vec![
+                                ItemSubType::BoardGame,
+                                ItemSubType::BoardGameExpansion
+                            ],
+                        },
+                        players: vec![],
+                    },
+                    Play {
                         id: 112_947_972,
                         date: NaiveDate::from_ymd_opt(2026, 4, 18).unwrap(),
                         quantity: 2,
@@ -230,6 +249,8 @@ mod tests {
                         comments: None,
                         played_item: PlayedItem {
                             name: "Lost Ruins of Arnak".to_owned(),
+                            id: 312_484,
+                            sub_types: vec![ItemSubType::BoardGame],
                         },
                         players: vec![Player {
                             username: Some("BluebearBGG".to_owned()),
@@ -244,20 +265,6 @@ mod tests {
                         },],
                     },
                     Play {
-                        id: 84_729_716,
-                        date: NaiveDate::from_ymd_opt(2024, 5, 6).unwrap(),
-                        quantity: 1,
-                        duration: Duration::minutes(0),
-                        incomplete: false,
-                        location: "".to_owned(),
-                        do_not_count_win_stats: false,
-                        comments: None,
-                        played_item: PlayedItem {
-                            name: "Lost Ruins of Arnak".to_owned(),
-                        },
-                        players: vec![],
-                    },
-                    Play {
                         id: 83_820_037,
                         date: NaiveDate::from_ymd_opt(2024, 4, 13).unwrap(),
                         quantity: 1,
@@ -270,6 +277,8 @@ mod tests {
                         ),
                         played_item: PlayedItem {
                             name: "Lost Ruins of Arnak".to_owned(),
+                            id: 312_484,
+                            sub_types: vec![ItemSubType::BoardGame],
                         },
                         players: vec![Player {
                             username: Some("BluebearBGG".to_owned()),

@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <plays username="bluebearbgg" userid="3855477" total="3" page="1" termsofuse="https://boardgamegeek.com/xmlapi/termsofuse">
+    <play id="113391260" date="2026-04-30" quantity="1" length="60" incomplete="0" nowinstats="0" location="kitchen">
+        <item name="Lost Ruins of Arnak: The Missing Expedition" objecttype="thing" objectid="382350">
+            <subtypes>
+                <subtype value="boardgame"/>
+                <subtype value="boardgameexpansion"/>
+            </subtypes>
+        </item>
+        <comments>blah</comments>
+    </play>
     <play id="112947972" date="2026-04-18" quantity="2" length="1310" incomplete="1" nowinstats="0" location="kitchen">
         <item name="Lost Ruins of Arnak" objecttype="thing" objectid="312484">
             <subtypes>
@@ -9,13 +18,6 @@
         <players>
             <player username="BluebearBGG" userid="3855477" name="Matthew Thompson" startposition="1" color="blue" score="999" new="1" rating="0" win="1"/>
         </players>
-    </play>
-    <play id="84729716" date="2024-05-06" quantity="1" length="0" incomplete="0" nowinstats="0" location="">
-        <item name="Lost Ruins of Arnak" objecttype="thing" objectid="312484">
-            <subtypes>
-                <subtype value="boardgame"/>
-            </subtypes>
-        </item>
     </play>
     <play id="83820037" date="2024-04-13" quantity="1" length="120" incomplete="0" nowinstats="0" location="">
         <item name="Lost Ruins of Arnak" objecttype="thing" objectid="312484">
