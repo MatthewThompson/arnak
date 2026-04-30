@@ -357,13 +357,13 @@ impl CollectionQueryParams {
 #[derive(Clone, Debug)]
 struct CollectionQueryBuilder<'q> {
     base: BaseCollectionQuery<'q>,
-    params: CollectionQueryParams,
+    params: &'q CollectionQueryParams,
 }
 
 impl<'builder> CollectionQueryBuilder<'builder> {
     // Constructs a new query builder from a base query, and the rest of the
     // parameters.
-    fn new(base: BaseCollectionQuery<'builder>, params: CollectionQueryParams) -> Self {
+    fn new(base: BaseCollectionQuery<'builder>, params: &'builder CollectionQueryParams) -> Self {
         Self { base, params }
     }
 
@@ -382,10 +382,10 @@ impl<'builder> CollectionQueryBuilder<'builder> {
         if !self.params.item_ids.is_empty() {
             query_params.push(self.params.item_ids.into_query_param("id"));
         }
-        if let Some(item_type) = self.params.item_type {
+        if let Some(item_type) = &self.params.item_type {
             query_params.push(item_type.into_query_param("subtype"));
         }
-        if let Some(exclude_item_type) = self.params.exclude_item_type {
+        if let Some(exclude_item_type) = &self.params.exclude_item_type {
             query_params.push(exclude_item_type.into_query_param("excludesubtype"));
         }
         if let Some(include_version_info) = self.params.include_version_info {
@@ -496,7 +496,7 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
     pub async fn get(
         &self,
         username: &'api str,
-        query_params: CollectionQueryParams,
+        query_params: &CollectionQueryParams,
     ) -> Result<Collection<T>> {
         let query = CollectionQueryBuilder::new(T::base_query(username), query_params);
 
@@ -514,7 +514,7 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
     ) -> Result<Collection<T>> {
         self.get(
             username,
-            query_params.item_type(CollectionItemType::BoardGameAccessory),
+            &query_params.item_type(CollectionItemType::BoardGameAccessory),
         )
         .await
     }
@@ -522,13 +522,13 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
     /// Gets all the items in a collection that the given user owns.
     pub async fn get_owned(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::new().include_owned(true);
-        self.get(username, query_params).await
+        self.get(username, &query_params).await
     }
 
     /// Gets all the items in a collection that the given user has on their wishlist.
     pub async fn get_wishlist(&self, username: &'api str) -> Result<Collection<T>> {
         let query_params = CollectionQueryParams::new().include_wishlist(true);
-        self.get(username, query_params).await
+        self.get(username, &query_params).await
     }
 
     /// Gets all the games that support any player counts in a given range.
@@ -539,7 +539,7 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
         &self,
         username: &'api str,
         player_counts: RangeInclusive<u32>,
-        query_params: CollectionQueryParams,
+        query_params: &CollectionQueryParams,
     ) -> Result<Collection<T>> {
         let mut collection = self.get(username, query_params).await?;
 
@@ -558,7 +558,7 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
         &self,
         username: &'api str,
         player_count: u32,
-        query_params: CollectionQueryParams,
+        query_params: &CollectionQueryParams,
     ) -> Result<Collection<T>> {
         let mut collection = self.get(username, query_params).await?;
 
@@ -913,7 +913,7 @@ mod tests {
 
         let query = CollectionQueryParams::new().include_version_info(true);
 
-        let collection = api.collection_brief().get("somename", query).await;
+        let collection = api.collection_brief().get("somename", &query).await;
         mock.assert_async().await;
 
         assert!(collection.is_ok(), "error returned when okay expected");
@@ -1185,7 +1185,7 @@ mod tests {
                     .date(),
             );
 
-        let _ = api.collection().get("someone", query).await;
+        let _ = api.collection().get("someone", &query).await;
         mock.assert_async().await;
     }
 
@@ -1214,7 +1214,7 @@ mod tests {
 
         let collection = api
             .collection()
-            .get_by_player_counts("someone", 16..=17, CollectionQueryParams::new())
+            .get_by_player_counts("someone", 16..=17, &CollectionQueryParams::new())
             .await;
         mock.assert_async().await;
 
@@ -1305,7 +1305,7 @@ mod tests {
 
         let collection = api
             .collection()
-            .get_by_player_counts("someone", 1..=16, CollectionQueryParams::new())
+            .get_by_player_counts("someone", 1..=16, &CollectionQueryParams::new())
             .await;
         mock.assert_async().await;
 
@@ -1337,7 +1337,7 @@ mod tests {
 
         let collection = api
             .collection()
-            .get_by_player_counts("someone", 17..=17, CollectionQueryParams::new())
+            .get_by_player_counts("someone", 17..=17, &CollectionQueryParams::new())
             .await;
         mock.assert_async().await;
 
@@ -1376,7 +1376,7 @@ mod tests {
 
         let collection = api
             .collection()
-            .get_by_player_count("someone", 16, CollectionQueryParams::new())
+            .get_by_player_count("someone", 16, &CollectionQueryParams::new())
             .await;
         mock.assert_async().await;
 
@@ -1465,7 +1465,7 @@ mod tests {
 
         let collection = api
             .collection()
-            .get_by_player_count("someone", 2, CollectionQueryParams::new())
+            .get_by_player_count("someone", 2, &CollectionQueryParams::new())
             .await;
         mock.assert_async().await;
 
@@ -1500,7 +1500,7 @@ mod tests {
 
         let collection = api
             .collection()
-            .get_by_player_count("someone", 17, CollectionQueryParams::new())
+            .get_by_player_count("someone", 17, &CollectionQueryParams::new())
             .await;
         mock.assert_async().await;
 
@@ -1680,7 +1680,7 @@ mod tests {
 
         let collection = api
             .collection()
-            .get("somename", CollectionQueryParams::new())
+            .get("somename", &CollectionQueryParams::new())
             .await;
         mock.assert_async().await;
 
@@ -1718,7 +1718,7 @@ mod tests {
 
         let collection = api
             .collection()
-            .get("somename", CollectionQueryParams::new())
+            .get("somename", &CollectionQueryParams::new())
             .await;
         mock.assert_async().await;
 

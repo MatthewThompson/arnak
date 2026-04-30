@@ -1,4 +1,5 @@
 use chrono::NaiveDate;
+use std::string::ToString;
 
 use crate::{CollectionItemType, GameType, ItemSubType, ItemType, PlaysItemType, WishlistPriority};
 
@@ -42,37 +43,37 @@ impl IntoQueryParam for f32 {
     }
 }
 
-impl IntoQueryParam for NaiveDate {
+impl IntoQueryParam for &NaiveDate {
     fn into_query_param(self, key: &str) -> QueryParam<'_> {
         (key, self.format("%Y-%m-%d").to_string())
     }
 }
 
-impl IntoQueryParam for ItemType {
+impl IntoQueryParam for &ItemType {
     fn into_query_param(self, key: &str) -> QueryParam<'_> {
         (key, self.to_string())
     }
 }
 
-impl IntoQueryParam for ItemSubType {
+impl IntoQueryParam for &ItemSubType {
     fn into_query_param(self, key: &str) -> QueryParam<'_> {
         (key, self.to_string())
     }
 }
 
-impl IntoQueryParam for CollectionItemType {
+impl IntoQueryParam for &CollectionItemType {
     fn into_query_param(self, key: &str) -> QueryParam<'_> {
         (key, self.to_string())
     }
 }
 
-impl IntoQueryParam for GameType {
+impl IntoQueryParam for &GameType {
     fn into_query_param(self, key: &str) -> QueryParam<'_> {
         (key, self.to_string())
     }
 }
 
-impl IntoQueryParam for WishlistPriority {
+impl IntoQueryParam for &WishlistPriority {
     fn into_query_param(self, key: &str) -> QueryParam<'_> {
         match self {
             WishlistPriority::DontBuyThis => (key, "5".to_owned()),
@@ -84,7 +85,7 @@ impl IntoQueryParam for WishlistPriority {
     }
 }
 
-impl IntoQueryParam for PlaysItemType {
+impl IntoQueryParam for &PlaysItemType {
     fn into_query_param(self, key: &str) -> QueryParam<'_> {
         match self {
             PlaysItemType::Family => (key, "family".to_owned()),
@@ -93,11 +94,11 @@ impl IntoQueryParam for PlaysItemType {
     }
 }
 
-impl<Stringable: ToString> IntoQueryParam for Vec<Stringable> {
+impl<Stringable: ToString> IntoQueryParam for &Vec<Stringable> {
     fn into_query_param(self, key: &str) -> QueryParam<'_> {
         let value_list = self
-            .into_iter()
-            .map(|v| v.to_string())
+            .iter()
+            .map(ToString::to_string)
             .collect::<Vec<String>>()
             .join(",");
         (key, value_list)
