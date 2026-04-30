@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 
-use crate::{CollectionItemType, GameType, ItemSubType, ItemType, WishlistPriority};
+use crate::{CollectionItemType, GameType, ItemSubType, ItemType, PlaysItemType, WishlistPriority};
 
 pub(crate) type QueryParam<'a> = (&'a str, String);
 
@@ -80,6 +80,15 @@ impl IntoQueryParam for WishlistPriority {
             WishlistPriority::LikeToHave => (key, "3".to_owned()),
             WishlistPriority::LoveToHave => (key, "2".to_owned()),
             WishlistPriority::MustHave => (key, "1".to_owned()),
+        }
+    }
+}
+
+impl IntoQueryParam for PlaysItemType {
+    fn into_query_param(self, key: &str) -> QueryParam<'_> {
+        match self {
+            PlaysItemType::Family => (key, "family".to_owned()),
+            PlaysItemType::Thing => (key, "thing".to_owned()),
         }
     }
 }

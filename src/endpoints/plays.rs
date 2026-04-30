@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 
-use crate::{BoardGameGeekApi, IntoQueryParam, ItemSubType, ItemType, Plays, QueryParam, Result};
+use crate::{BoardGameGeekApi, IntoQueryParam, ItemSubType, Plays, QueryParam, Result};
 
 /// All optional query parameters for making a request to the plays endpoint.
 #[derive(Clone, Debug, Default)]
@@ -42,11 +42,19 @@ impl PlaysQueryParams {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+pub(crate) enum PlaysItemType {
+    Thing,
+    Family,
+}
+
 #[derive(Clone, Debug)]
 enum PlaysQuery<'n> {
     QueryByUser(&'n str),
-    // TODO replace with new type (only thing and family)
-    QueryById { id: u64, item_type: ItemType },
+    QueryById {
+        id: u64,
+        plays_item_type: PlaysItemType,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -68,9 +76,12 @@ impl<'builder> PlaysQueryBuilder<'builder> {
             PlaysQuery::QueryByUser(username) => {
                 query_params.push(username.into_query_param("username"));
             },
-            PlaysQuery::QueryById { id, item_type } => {
+            PlaysQuery::QueryById {
+                id,
+                plays_item_type,
+            } => {
                 query_params.push(id.into_query_param("id"));
-                query_params.push(item_type.into_query_param("type"));
+                query_params.push(plays_item_type.into_query_param("type"));
             },
         }
 
@@ -124,13 +135,32 @@ impl<'api> PlaysApi<'api> {
     pub async fn get_by_item_id(
         &self,
         item_id: u64,
-        item_type: ItemType,
         query_params: PlaysQueryParams,
     ) -> Result<Plays> {
         let query = PlaysQueryBuilder::new(
             PlaysQuery::QueryById {
                 id: item_id,
-                item_type,
+                plays_item_type: PlaysItemType::Thing,
+            },
+            query_params,
+        );
+
+        let request = self.api.build_request(self.endpoint, &query.build());
+        let response = self.api.execute_request::<Plays>(request).await?;
+
+        Ok(response)
+    }
+
+    /// Get a list of recorded game plays for a specific game family.
+    pub async fn get_by_family_id(
+        &self,
+        family_id: u64,
+        query_params: PlaysQueryParams,
+    ) -> Result<Plays> {
+        let query = PlaysQueryBuilder::new(
+            PlaysQuery::QueryById {
+                id: family_id,
+                plays_item_type: PlaysItemType::Family,
             },
             query_params,
         );
