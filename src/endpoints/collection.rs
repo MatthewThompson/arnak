@@ -382,10 +382,10 @@ impl<'builder> CollectionQueryBuilder<'builder> {
         if !self.params.item_ids.is_empty() {
             query_params.push(self.params.item_ids.into_query_param("id"));
         }
-        if let Some(item_type) = &self.params.item_type {
+        if let Some(item_type) = self.params.item_type {
             query_params.push(item_type.into_query_param("subtype"));
         }
-        if let Some(exclude_item_type) = &self.params.exclude_item_type {
+        if let Some(exclude_item_type) = self.params.exclude_item_type {
             query_params.push(exclude_item_type.into_query_param("excludesubtype"));
         }
         if let Some(include_version_info) = self.params.include_version_info {

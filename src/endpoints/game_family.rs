@@ -29,13 +29,13 @@ impl GameFamilyQueryParams {
 
 // Struct for building a query for the request to the game family endpoint.
 #[derive(Clone, Debug)]
-struct GameFamilyQueryBuilder {
-    params: GameFamilyQueryParams,
+struct GameFamilyQueryBuilder<'builder> {
+    params: &'builder GameFamilyQueryParams,
 }
 
-impl<'builder> GameFamilyQueryBuilder {
+impl<'builder> GameFamilyQueryBuilder<'builder> {
     // Constructs a new query builder from the query params.
-    fn new(params: GameFamilyQueryParams) -> Self {
+    fn new(params: &'builder GameFamilyQueryParams) -> Self {
         Self { params }
     }
 
@@ -69,7 +69,8 @@ impl<'api> GameFamilyApi<'api> {
 
     /// Gets a family of games by ID.
     pub async fn get_by_id(&self, id: u64) -> Result<GameFamily> {
-        let query = GameFamilyQueryBuilder::new(GameFamilyQueryParams::new().game_family_id(id));
+        let params = GameFamilyQueryParams::new().game_family_id(id);
+        let query = GameFamilyQueryBuilder::new(&params);
 
         let request = self.api.build_request(self.endpoint, &query.build());
         let mut response = self.api.execute_request::<GameFamilies>(request).await?;
@@ -85,7 +86,8 @@ impl<'api> GameFamilyApi<'api> {
 
     /// Gets families of games by their IDs.
     pub async fn get_by_ids(&self, ids: Vec<u64>) -> Result<Vec<GameFamily>> {
-        let query = GameFamilyQueryBuilder::new(GameFamilyQueryParams::new().game_family_ids(ids));
+        let params = GameFamilyQueryParams::new().game_family_ids(ids);
+        let query = GameFamilyQueryBuilder::new(&params);
 
         let request = self.api.build_request(self.endpoint, &query.build());
         let response = self.api.execute_request::<GameFamilies>(request).await?;
