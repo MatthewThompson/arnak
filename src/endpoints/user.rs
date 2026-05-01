@@ -55,13 +55,13 @@ impl UserQueryParams {
 }
 
 #[derive(Clone, Debug)]
-struct UserQueryBuilder<'q> {
-    username: &'q str,
-    params: UserQueryParams,
+struct UserQueryBuilder<'builder> {
+    username: &'builder str,
+    params: &'builder UserQueryParams,
 }
 
 impl<'builder> UserQueryBuilder<'builder> {
-    fn new(username: &'builder str, params: UserQueryParams) -> Self {
+    fn new(username: &'builder str, params: &'builder UserQueryParams) -> Self {
         Self { username, params }
     }
 
@@ -106,7 +106,7 @@ impl<'api> UserApi<'api> {
     }
 
     /// Get a user by their username.
-    pub async fn get(&self, username: &str, query_params: UserQueryParams) -> Result<User> {
+    pub async fn get(&self, username: &str, query_params: &UserQueryParams) -> Result<User> {
         let query = UserQueryBuilder::new(username, query_params);
 
         let request = self.api.build_request(self.endpoint, &query.build());
@@ -146,7 +146,7 @@ mod tests {
             .create_async()
             .await;
 
-        let user = api.user().get("bluebearbgg", UserQueryParams::new()).await;
+        let user = api.user().get("bluebearbgg", &UserQueryParams::new()).await;
         mock.assert_async().await;
 
         assert!(user.is_ok(), "error returned when okay expected");
@@ -220,7 +220,7 @@ mod tests {
             .include_hot_list(true)
             .include_top_list(true)
             .page(4);
-        let user = api.user().get("bluebearbgg", params).await;
+        let user = api.user().get("bluebearbgg", &params).await;
         mock.assert_async().await;
 
         assert!(user.is_ok(), "error returned when okay expected");
