@@ -48,15 +48,15 @@ impl SearchQueryParams {
 
 // Struct for building a query for the request to the search endpoint.
 #[derive(Clone, Debug)]
-struct SearchQueryBuilder<'q> {
-    search_query: &'q str,
-    params: SearchQueryParams,
+struct SearchQueryBuilder<'builder> {
+    search_query: &'builder str,
+    params: &'builder SearchQueryParams,
 }
 
 impl<'builder> SearchQueryBuilder<'builder> {
     // Constructs a new query builder from a search query, and the rest of the
     // parameters.
-    fn new(search_query: &'builder str, params: SearchQueryParams) -> Self {
+    fn new(search_query: &'builder str, params: &'builder SearchQueryParams) -> Self {
         Self {
             search_query,
             params,
@@ -105,7 +105,8 @@ impl<'api> SearchApi<'api> {
     /// once with the type [`ItemType::BoardGame`] and once with the type
     /// [`ItemType::BoardGameExpansion`].
     pub async fn search_games(&self, query: &str) -> Result<Vec<SearchResult>> {
-        let query = SearchQueryBuilder::new(query, SearchQueryParams::new());
+        let params = SearchQueryParams::new();
+        let query = SearchQueryBuilder::new(query, &params);
 
         let request = self.api.build_request(self.endpoint, &query.build());
         let response = self.api.execute_request::<SearchResults>(request).await?;
@@ -119,13 +120,15 @@ impl<'api> SearchApi<'api> {
     /// once with the type [`ItemType::BoardGame`] and once with the type
     /// [`ItemType::BoardGameExpansion`].
     pub async fn search_games_exact(&self, query: &str) -> Result<Vec<SearchResult>> {
-        let query = SearchQueryBuilder::new(query, SearchQueryParams::new().exact(true));
+        let params = SearchQueryParams::new().exact(true);
+        let query = SearchQueryBuilder::new(query, &params);
 
         let request = self.api.build_request(self.endpoint, &query.build());
         let response = self.api.execute_request::<SearchResults>(request).await?;
 
         Ok(response.results)
     }
+
     /// Searches with a given query, only searching for items with the provided types. If none are
     /// provided then it will default to searching within board games and board game expansions,
     /// the same functionality as calling `search_games`
@@ -134,7 +137,8 @@ impl<'api> SearchApi<'api> {
         query: &str,
         item_types: Vec<ItemType>,
     ) -> Result<Vec<SearchResult>> {
-        let query = SearchQueryBuilder::new(query, SearchQueryParams::new().item_types(item_types));
+        let params = SearchQueryParams::new().item_types(item_types);
+        let query = SearchQueryBuilder::new(query, &params);
 
         let request = self.api.build_request(self.endpoint, &query.build());
         let response = self.api.execute_request::<SearchResults>(request).await?;
@@ -150,10 +154,8 @@ impl<'api> SearchApi<'api> {
         query: &str,
         item_types: Vec<ItemType>,
     ) -> Result<Vec<SearchResult>> {
-        let query = SearchQueryBuilder::new(
-            query,
-            SearchQueryParams::new().item_types(item_types).exact(true),
-        );
+        let params = SearchQueryParams::new().item_types(item_types).exact(true);
+        let query = SearchQueryBuilder::new(query, &params);
 
         let request = self.api.build_request(self.endpoint, &query.build());
         let response = self.api.execute_request::<SearchResults>(request).await?;
