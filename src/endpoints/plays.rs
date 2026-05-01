@@ -58,13 +58,13 @@ enum PlaysQuery<'q> {
 }
 
 #[derive(Clone, Debug)]
-struct PlaysQueryBuilder<'q> {
-    query: PlaysQuery<'q>,
-    params: PlaysQueryParams,
+struct PlaysQueryBuilder<'builder> {
+    query: PlaysQuery<'builder>,
+    params: &'builder PlaysQueryParams,
 }
 
 impl<'builder> PlaysQueryBuilder<'builder> {
-    fn new(query: PlaysQuery<'builder>, params: PlaysQueryParams) -> Self {
+    fn new(query: PlaysQuery<'builder>, params: &'builder PlaysQueryParams) -> Self {
         Self { query, params }
     }
 
@@ -121,7 +121,7 @@ impl<'api> PlaysApi<'api> {
     pub async fn get_by_username(
         &self,
         username: &str,
-        query_params: PlaysQueryParams,
+        query_params: &PlaysQueryParams,
     ) -> Result<Plays> {
         let query = PlaysQueryBuilder::new(PlaysQuery::QueryByUser(username), query_params);
 
@@ -135,7 +135,7 @@ impl<'api> PlaysApi<'api> {
     pub async fn get_by_item_id(
         &self,
         item_id: u64,
-        query_params: PlaysQueryParams,
+        query_params: &PlaysQueryParams,
     ) -> Result<Plays> {
         let query = PlaysQueryBuilder::new(
             PlaysQuery::QueryById {
@@ -155,7 +155,7 @@ impl<'api> PlaysApi<'api> {
     pub async fn get_by_family_id(
         &self,
         family_id: u64,
-        query_params: PlaysQueryParams,
+        query_params: &PlaysQueryParams,
     ) -> Result<Plays> {
         let query = PlaysQueryBuilder::new(
             PlaysQuery::QueryById {
@@ -204,7 +204,7 @@ mod tests {
 
         let plays = api
             .plays()
-            .get_by_username("BluebearBgg", PlaysQueryParams::new())
+            .get_by_username("BluebearBgg", &PlaysQueryParams::new())
             .await;
         mock.assert_async().await;
 
@@ -328,7 +328,7 @@ mod tests {
             .max_date(NaiveDate::from_ymd_opt(2026, 6, 2).unwrap())
             .sub_type(ItemSubType::BoardGameExpansion)
             .page(1);
-        let plays = api.plays().get_by_item_id(382_350, params).await;
+        let plays = api.plays().get_by_item_id(382_350, &params).await;
         mock.assert_async().await;
 
         assert!(plays.is_ok(), "error returned when okay expected");
