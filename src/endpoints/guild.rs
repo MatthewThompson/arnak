@@ -2,7 +2,7 @@ use super::Guild;
 use crate::{BoardGameGeekApi, IntoQueryParam, QueryParam, Result};
 
 /// Which field to sort the list of members by, either username or date joined.
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum GuildMemberSortBy {
     /// Sort by username alphabetically, ascending.
     Username,
@@ -50,13 +50,13 @@ impl GuildQueryParams {
 }
 
 #[derive(Clone, Debug)]
-struct GuildQueryBuilder {
+struct GuildQueryBuilder<'builder> {
     guild_id: u64,
-    params: GuildQueryParams,
+    params: &'builder GuildQueryParams,
 }
 
-impl<'builder> GuildQueryBuilder {
-    fn new(guild_id: u64, params: GuildQueryParams) -> Self {
+impl<'builder> GuildQueryBuilder<'builder> {
+    fn new(guild_id: u64, params: &'builder GuildQueryParams) -> Self {
         Self { guild_id, params }
     }
 
@@ -95,7 +95,7 @@ impl<'api> GuildApi<'api> {
     }
 
     /// Gets a guild via the provided query params.
-    pub async fn get(&self, guild_id: u64, query_params: GuildQueryParams) -> Result<Guild> {
+    pub async fn get(&self, guild_id: u64, query_params: &GuildQueryParams) -> Result<Guild> {
         let query = GuildQueryBuilder::new(guild_id, query_params);
 
         let request = self.api.build_request(self.endpoint, &query.build());
@@ -133,7 +133,7 @@ mod tests {
             .create_async()
             .await;
 
-        let guild = api.guild().get(13, GuildQueryParams::new()).await;
+        let guild = api.guild().get(13, &GuildQueryParams::new()).await;
         mock.assert_async().await;
 
         assert!(guild.is_ok(), "error returned when okay expected");
@@ -189,7 +189,7 @@ mod tests {
 
         let guild = api
             .guild()
-            .get(13, GuildQueryParams::new().include_member_page(2))
+            .get(13, &GuildQueryParams::new().include_member_page(2))
             .await;
         mock.assert_async().await;
 
@@ -261,7 +261,7 @@ mod tests {
         let params = GuildQueryParams::new()
             .include_member_page(5)
             .sort_by(GuildMemberSortBy::DateJoined);
-        let guild = api.guild().get(13, params).await;
+        let guild = api.guild().get(13, &params).await;
         mock.assert_async().await;
 
         assert!(guild.is_ok(), "error returned when okay expected");
