@@ -195,8 +195,8 @@ mod tests {
 
     use super::*;
     use crate::{
-        Dimensions, Game, GameAccessory, GameArtist, GameCategory, GameCondition, GameDesigner,
-        GameFamilyName, GameMechanic, GamePublisher, GameStats, GameType, GameVersion,
+        Dimensions, Game, GameAccessory, GameArtist, GameCategory, GameDesigner, GameFamilyName,
+        GameMechanic, GamePublisher, GameStats, GameType, GameVersion, ItemCondition,
         ItemFamilyRank, Language, LanguageDependence, LanguageDependencePoll, MarketplaceListing,
         PlayerAge, PlayerCount, Price, RankValue, RatingComment, RatingCommentPage, RatingValue,
         SuggestedPlayerAge, SuggestedPlayerAgePoll, SuggestedPlayerCount, SuggestedPlayerCountPoll,
@@ -1079,7 +1079,7 @@ mod tests {
                             currency: "USD".to_owned(),
                             value: "44.99".to_owned(),
                         },
-                        condition: GameCondition::New,
+                        condition: ItemCondition::New,
                         notes: "".to_owned(),
                         link: "https://boardgamegeek.com/market/product/2408401".to_owned(),
                     },
@@ -1089,7 +1089,7 @@ mod tests {
                             currency: "EUR".to_owned(),
                             value: "68.00".to_owned(),
                         },
-                        condition: GameCondition::LikeNew,
+                        condition: ItemCondition::LikeNew,
                         notes: "new in shrink.".to_owned(),
                         link: "https://boardgamegeek.com/market/product/2479138".to_owned(),
                     },
@@ -1099,7 +1099,7 @@ mod tests {
                             currency: "USD".to_owned(),
                             value: "25.00".to_owned(),
                         },
-                        condition: GameCondition::VeryGood,
+                        condition: ItemCondition::VeryGood,
                         notes: "Buyer to pay shipping.".to_owned(),
                         link: "https://boardgamegeek.com/market/product/3498577".to_owned(),
                     },

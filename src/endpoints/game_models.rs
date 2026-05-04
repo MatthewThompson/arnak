@@ -12,7 +12,7 @@ use crate::deserialize::{
     date_time_with_zone_from_string, xml_ranks_to_ranks, XmlDateTimeValue, XmlFloatValue,
     XmlIntValue, XmlLink, XmlName, XmlRanks, XmlSignedValue, XmlStringValue,
 };
-use crate::{NameType, XmlVersions};
+use crate::{NameType, XmlGameVersions};
 
 // A struct containing the list of requested games with the full details.
 #[derive(Clone, Debug, Deserialize)]
@@ -670,13 +670,13 @@ impl<'de> Deserialize<'de> for Video {
 // A list of marketplace listings. Define the type in xml that can be deserialised, but pull out the
 // nested list in the game details deserialise implementation
 #[derive(Clone, Debug, Deserialize, PartialEq)]
-struct XmlMarketplaceListings {
+pub(crate) struct XmlMarketplaceListings {
     // List of listings, each in an XML tag called `listing`
     #[serde(rename = "listing")]
-    listings: Vec<MarketplaceListing>,
+    pub(crate) listings: Vec<MarketplaceListing>,
 }
 
-/// A game sale listing, for people selling games on the site.
+/// A sale listing, for people selling games or game accessories on the site.
 #[derive(Clone, Debug, PartialEq)]
 pub struct MarketplaceListing {
     /// The date and time when this listing was listed.
@@ -684,7 +684,7 @@ pub struct MarketplaceListing {
     /// Price of the game.
     pub price: Price,
     /// The condition of the game, if it is new or used and what quality it is in if used.
-    pub condition: GameCondition,
+    pub condition: ItemCondition,
     /// Any custom notes about the game for sale.
     pub notes: String,
     /// Link to buy the game on the site.
@@ -715,7 +715,7 @@ struct XmlMarketplaceLink {
 /// The condition of a game for sale.
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "lowercase")]
-pub enum GameCondition {
+pub enum ItemCondition {
     /// Condition good enough to play, but no better.
     Acceptable,
     /// Game is in good condition.
@@ -731,7 +731,7 @@ pub enum GameCondition {
 // XML representation of the market place listing condition
 #[derive(Debug, Deserialize)]
 pub(crate) struct XmlGameCondition {
-    pub(crate) value: GameCondition,
+    pub(crate) value: ItemCondition,
 }
 
 impl<'de> Deserialize<'de> for MarketplaceListing {
@@ -1171,7 +1171,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                             if versions.is_some() {
                                 return Err(serde::de::Error::duplicate_field("versions"));
                             }
-                            let versions_xml: XmlVersions = map.next_value()?;
+                            let versions_xml: XmlGameVersions = map.next_value()?;
                             versions = Some(versions_xml.versions);
                         },
                         Field::Videos => {
