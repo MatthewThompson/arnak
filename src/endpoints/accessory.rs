@@ -236,6 +236,8 @@ mod tests {
                     Game { id: 68448, name: "7 Wonders".to_owned() },
                     Game { id: 316377, name: "7 Wonders (Second Edition)".to_owned() },
                 ],
+                designers: vec![],
+                artists: vec![],
                 publishers: vec![
                     GamePublisher { id: 28595, name: "The Broken Token".to_owned() },
                     GamePublisher { id: 4384, name: "Repos Production".to_owned() },

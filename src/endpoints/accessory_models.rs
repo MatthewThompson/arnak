@@ -4,7 +4,8 @@ use serde::Deserialize;
 
 use crate::deserialize::{XmlLink, XmlName, XmlSignedValue};
 use crate::{
-    Game, GamePublisher, MarketplaceListing, NameType, RatingCommentPage, XmlMarketplaceListings,
+    Game, GameArtist, GameDesigner, GamePublisher, MarketplaceListing, NameType, RatingCommentPage,
+    XmlMarketplaceListings,
 };
 
 // A struct containing the list of requested accessories with the full details.
@@ -42,6 +43,10 @@ pub struct AccessoryDetails {
     pub year_published: i64,
     /// A list of games that this is an accessory for.
     pub accessory_for: Vec<Game>,
+    /// The designer of this accessory.
+    pub designers: Vec<GameDesigner>,
+    /// A list of artists for this game.
+    pub artists: Vec<GameArtist>,
     /// The list of publishers for this accessory.
     pub publishers: Vec<GamePublisher>,
     /// Information for the various versions of the accessory.
@@ -124,6 +129,8 @@ impl<'de> Deserialize<'de> for AccessoryDetails {
                 let mut year_published = None;
                 // Link tags
                 let mut accessory_for = vec![];
+                let mut designers = vec![];
+                let mut artists = vec![];
                 let mut publishers = vec![];
                 // Other
                 let mut versions = None;
@@ -193,6 +200,18 @@ impl<'de> Deserialize<'de> for AccessoryDetails {
                                         name: link.value,
                                     });
                                 },
+                                crate::ItemType::BoardGameDesigner => {
+                                    designers.push(GameDesigner {
+                                        id: link.id,
+                                        name: link.value,
+                                    });
+                                },
+                                crate::ItemType::BoardGameArtist => {
+                                    artists.push(GameArtist {
+                                        id: link.id,
+                                        name: link.value,
+                                    });
+                                },
                                 crate::ItemType::BoardGamePublisher => {
                                     publishers.push(GamePublisher {
                                         id: link.id,
@@ -253,6 +272,8 @@ impl<'de> Deserialize<'de> for AccessoryDetails {
                     thumbnail,
                     year_published,
                     accessory_for,
+                    designers,
+                    artists,
                     publishers,
                     versions,
                     marketplace_listings,
