@@ -64,7 +64,8 @@ pub struct AccessoryDetails {
     pub rating_comments: Option<RatingCommentPage>,
 }
 
-// Intermediary struct representing the list of versions in XML, so we can extract just a vector to return on the accessory details type.
+// Intermediary struct representing the list of versions in XML, so we can extract just a vector to
+// return on the accessory details type.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub(crate) struct XmlAccessoryVersions {
     #[serde(rename = "item")]

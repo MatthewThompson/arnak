@@ -322,7 +322,8 @@ pub struct ItemFamilyRank {
     pub bayesian_average: RatingValue,
 }
 
-// Intermediary struct representing the list of versions in XML, so we can extract just a vector to return on the game details type.
+// Intermediary struct representing the list of versions in XML, so we can extract just a vector to
+// return on the game details type.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub(crate) struct XmlGameVersions {
     #[serde(rename = "item")]
