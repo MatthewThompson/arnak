@@ -217,8 +217,6 @@ mod tests {
             .await;
         mock.assert_async().await;
 
-        println!("{:?}", accessory);
-
         assert!(accessory.is_ok(), "error returned when okay expected");
         let accessory = accessory.unwrap();
 
