@@ -185,9 +185,14 @@ impl<'api> AccessoryApi<'api> {
 
 #[cfg(test)]
 mod tests {
+    use chrono::{DateTime, NaiveDate, Utc};
     use mockito::Matcher;
 
-    use crate::{AccessoryDetails, AccessoryQueryParams, BoardGameGeekApi, Game, GamePublisher};
+    use crate::{
+        AccessoryDetails, AccessoryQueryParams, AccessoryVersion, BoardGameGeekApi, Game,
+        GameArtist, GameDesigner, GamePublisher, ItemCondition, MarketplaceListing, Price,
+        RatingComment, RatingCommentPage,
+    };
 
     #[tokio::test]
     async fn get_by_id() {
@@ -243,6 +248,194 @@ mod tests {
                 versions: vec![],
                 marketplace_listings: vec![],
                 rating_comments: None,
+            },
+        );
+    }
+
+    #[tokio::test]
+    async fn get_by_ids() {
+        let mut server = mockito::Server::new_async().await;
+        let api = BoardGameGeekApi {
+            base_url: server.url(),
+            client: reqwest::Client::new(),
+        };
+
+        let mock = server
+            .mock("GET", "/thing")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("type".to_owned(), "boardgameaccessory".to_owned()),
+                Matcher::UrlEncoded("id".to_owned(), "22510,207791".to_owned()),
+                Matcher::UrlEncoded("versions".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("marketplace".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("comments".to_owned(), "1".to_owned()),
+                Matcher::UrlEncoded("ratingcomments".to_owned(), "1".to_owned()),
+            ]))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("test_data/accessory/accessory_full.xml")
+                    .expect("failed to load test data"),
+            )
+            .create_async()
+            .await;
+
+        let params = AccessoryQueryParams::new()
+            .include_versions(true)
+            .include_marketplace_data(true)
+            .include_comments(true)
+            .include_rating_comments(true);
+        let accessory = api
+            .accessory()
+            .get_by_ids(vec![22_510, 207_791], &params)
+            .await;
+        mock.assert_async().await;
+
+        assert!(accessory.is_ok(), "error returned when okay expected");
+        let accessory = accessory.unwrap();
+
+        assert_eq!(accessory.len(), 2);
+        assert_eq!(
+            accessory[0],
+            AccessoryDetails {
+                id: 22_510,
+                name: "Wings of War: Miniatures".to_owned(),
+                alternate_names: vec!["Wings of War: WW1 Airplane Packs".to_owned()],
+                description: "Wings of War Airplane Packs provide miniatures for the Wings of War system. Each Airplane Pack includes one pre-painted, pre-assembled 1/144 scale model plane with gaming base, the relative airplane card and its deck of Maneuver cards. A Wings of War Deluxe set is also available.".to_owned(),
+                image: Some("https://cf.geekdo-images.com/qGV1v8Ye0FKTxZNCF1ZINw__original/img/49pxPDdA4CHNFZOMQM1UTM8FNL4=/0x0/filters:format(jpeg)/pic830522.jpg".to_owned()),
+                thumbnail: Some("https://cf.geekdo-images.com/qGV1v8Ye0FKTxZNCF1ZINw__small/img/vgAzbZuLXNSawia3yp4BAPT_2is=/fit-in/200x150/filters:strip_icc()/pic830522.jpg".to_owned()),
+                year_published: 2007,
+                accessory_for: vec![
+                    Game { id: 15_953, name: "Wings of War: Burning Drachens".to_owned() },
+                    Game { id: 31_552, name: "Wings of War: Deluxe Set".to_owned() },
+                ],
+                designers: vec![
+                    GameDesigner {
+                        id: 546,
+                        name: "Andrea Angiolino".to_owned(),
+                    },
+                    GameDesigner {
+                        id: 547,
+                        name: "Pier Giorgio Paglia".to_owned(),
+                    },
+                ],
+                artists: vec![
+                    GameArtist { id: 12475, name: "Vincenzo Auletta".to_owned() },
+                    GameArtist { id: 12474, name: "Dario Calì".to_owned() },
+                    GameArtist { id: 20670, name: "Fabio Maiorana".to_owned() },
+                ],
+                publishers: vec![
+                    GamePublisher { id: 17, name: "Fantasy Flight Games".to_owned() },
+                    GamePublisher { id: 504, name: "Nexus Editrice".to_owned() },
+                    GamePublisher { id: 3446, name: "Ubik".to_owned() },
+                ],
+                versions: vec![
+                    AccessoryVersion {
+                        id: 168_378,
+                        name: "Wings of War: Miniatures".to_owned(),
+                        thumbnail: None,
+                        image: None,
+                    },
+                    AccessoryVersion {
+                        id: 168_379,
+                        name: "Wings of War: Miniatures".to_owned(),
+                        thumbnail: Some("https://cf.geekdo-images.com/-qODJQlE2-T0ZhrcO6514g__small/img/SdSbI2zcepfXJqwWx-MOHG9vY9I=/fit-in/200x150/filters:strip_icc()/pic318897.jpg".to_owned()),
+                        image: Some("https://cf.geekdo-images.com/-qODJQlE2-T0ZhrcO6514g__original/img/8y314LQOOa0dDqCWXwR_DK7LKbU=/0x0/filters:format(jpeg)/pic318897.jpg".to_owned()),
+                    },
+                ],
+                marketplace_listings: vec![
+                    MarketplaceListing {
+                        list_date: DateTime::from_naive_utc_and_offset(NaiveDate::from_ymd_opt(2024, 9, 18).unwrap().and_hms_opt(21, 40, 57).unwrap(), Utc),
+                        price: Price { currency: "USD".to_owned(), value: "44.99".to_owned() },
+                        condition: ItemCondition::New,
+                        notes: "Buy this".to_owned(),
+                        link: "https://boardgamegeek.com/market/product/3549459".to_owned(),
+                    },
+                    MarketplaceListing {
+                        list_date: DateTime::from_naive_utc_and_offset(NaiveDate::from_ymd_opt(2024, 9, 18).unwrap().and_hms_opt(21, 43, 24).unwrap(), Utc),
+                        price: Price { currency: "USD".to_owned(), value: "44.99".to_owned() },
+                        condition: ItemCondition::New,
+                        notes: "and this!".to_owned(),
+                        link: "https://boardgamegeek.com/market/product/3549461".to_owned(),
+                    },
+                ],
+                rating_comments: Some(RatingCommentPage {
+                    total_items: 502,
+                    page_number: 1,
+                    comments: vec![
+                        RatingComment { username: "user1".to_owned(), rating: None, comment: "Looks interesting".to_owned() },
+                        RatingComment { username: "user2".to_owned(), rating: Some(5.0), comment: "Must have more minis!".to_owned() },
+                    ],
+                }),
+            },
+        );
+        assert_eq!(
+            accessory[1],
+            AccessoryDetails {
+                id: 207_791,
+                name: "Scythe: Board Extension".to_owned(),
+                alternate_names: vec![],
+                description: "The board extension slides next to the back side of the standard game board, creating a complete board with 70% bigger hexes (the content is the same). All units and resources in Scythe are kept on the board, so the larger hexes provide more space. The standard game board is 624x818mm (24.6 x 32.2 in), and it grows to 818x939mm (32.2 x 37.0 in) with this extension.".to_owned(),
+                image: Some("https://cf.geekdo-images.com/Z9mTOM4Bvpuyg-D0s0IRZw__original/img/46Xr6DJoXX0YS3Fm4USxPd_UVA8=/0x0/filters:format(jpeg)/pic3403769.jpg".to_owned()),
+                thumbnail: Some("https://cf.geekdo-images.com/Z9mTOM4Bvpuyg-D0s0IRZw__small/img/539zzfs3dwbbN2SNhuqpexiay-s=/fit-in/200x150/filters:strip_icc()/pic3403769.jpg".to_owned()),
+                year_published: 2016,
+                accessory_for: vec![
+                    Game { id: 169_786, name: "Scythe".to_owned() },
+                ],
+                designers: vec![
+                    GameDesigner { id: 62_640, name: "Jamey Stegmaier".to_owned() },
+                ],
+                artists: vec![
+                    GameArtist { id: 33_148, name: "Jakub Rozalski".to_owned() },
+                ],
+                publishers: vec![
+                    GamePublisher { id: 23_202, name: "Stonemaier Games".to_owned() },
+                ],
+                versions: vec![
+                    AccessoryVersion {
+                        id: 324_209,
+                        name: "Scythe: Board Extension".to_owned(),
+                        thumbnail: Some("https://cf.geekdo-images.com/Z9mTOM4Bvpuyg-D0s0IRZw__small/img/539zzfs3dwbbN2SNhuqpexiay-s=/fit-in/200x150/filters:strip_icc()/pic3403769.jpg".to_owned()),
+                        image: Some("https://cf.geekdo-images.com/Z9mTOM4Bvpuyg-D0s0IRZw__original/img/46Xr6DJoXX0YS3Fm4USxPd_UVA8=/0x0/filters:format(jpeg)/pic3403769.jpg".to_owned()),
+                    },
+                ],
+                marketplace_listings: vec![
+                    MarketplaceListing {
+                        list_date: DateTime::from_naive_utc_and_offset(NaiveDate::from_ymd_opt(2022, 10, 14).unwrap().and_hms_opt(11, 52, 3).unwrap(), Utc),
+                        price: Price { currency: "GBP".to_owned(), value: "12.00".to_owned() },
+                        condition: ItemCondition::New,
+                        notes: "".to_owned(),
+                        link: "https://boardgamegeek.com/market/product/2986606".to_owned(),
+                    },
+                    MarketplaceListing {
+                        list_date: DateTime::from_naive_utc_and_offset(NaiveDate::from_ymd_opt(2023, 10, 28).unwrap().and_hms_opt(18, 11, 7).unwrap(), Utc),
+                        price: Price { currency: "EUR".to_owned(), value: "10.00".to_owned() },
+                        condition: ItemCondition::LikeNew,
+                        notes: "Only one use.".to_owned(),
+                        link: "https://boardgamegeek.com/market/product/3293476".to_owned(),
+                    },
+                    MarketplaceListing {
+                        list_date: DateTime::from_naive_utc_and_offset(NaiveDate::from_ymd_opt(2025, 12, 8).unwrap().and_hms_opt(20, 22, 51).unwrap(), Utc),
+                        price: Price { currency: "EUR".to_owned(), value: "19.00".to_owned() },
+                        condition: ItemCondition::New,
+                        notes: "Brand new copy of the game, in shrink wrap.".to_owned(),
+                        link: "https://boardgamegeek.com/market/product/3908894".to_owned(),
+                    },
+                ],
+                rating_comments: Some(RatingCommentPage {
+                    total_items: 59,
+                    page_number: 1,
+                    comments: vec![
+                        RatingComment {
+                            username: "blah".to_owned(),
+                            rating: Some(10.0),
+                            comment: "Makes everything that much more epic.".to_owned(),
+                        },
+                        RatingComment {
+                            username: "aaa".to_owned(),
+                            rating: Some(10.0),
+                            comment: "The big map does better the experience of the game in a way I didn't predict.".to_owned(),
+                        },
+                    ],
+                }),
             },
         );
     }

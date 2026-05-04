@@ -2,7 +2,7 @@ use core::fmt;
 
 use serde::Deserialize;
 
-use crate::deserialize::{XmlLink, XmlName, XmlSignedValue};
+use crate::deserialize::{XmlLink, XmlName, XmlSignedValue, XmlStringValue};
 use crate::{
     Game, GameArtist, GameDesigner, GamePublisher, MarketplaceListing, NameType, RatingCommentPage,
     XmlMarketplaceListings,
@@ -81,12 +81,23 @@ pub struct AccessoryVersion {
     /// The ID of this accessory.
     pub id: u64,
     /// The name of the accessory.
-    #[serde(rename = "canonicalname")]
+    #[serde(
+        deserialize_with = "deserialize_accessory_version_name",
+        rename = "canonicalname",
+    )]
     pub name: String,
     /// A link to a jpg image for the accessory.
     pub image: Option<String>,
     /// A link to a jpg thumbnail image for the accessory.
     pub thumbnail: Option<String>,
+}
+
+fn deserialize_accessory_version_name<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    let name_value_xml = XmlStringValue::deserialize(deserializer)?;
+    Ok(name_value_xml.value)
 }
 
 impl<'de> Deserialize<'de> for AccessoryDetails {
