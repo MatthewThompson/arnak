@@ -322,12 +322,9 @@ pub struct ItemFamilyRank {
     pub bayesian_average: RatingValue,
 }
 
-// A user's collection on boardgamegeek.
+// Intermediary struct representing the list of versions in XML, so we can extract just a vector to return on the game details type.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub(crate) struct XmlGameVersions {
-    // List of versions, each in an XML tag called `item`, within an outer
-    // `version`. We use this intermediary type to get out just the first,
-    // since we only expect 1.
     #[serde(rename = "item")]
     pub(crate) versions: Vec<GameVersion>,
 }

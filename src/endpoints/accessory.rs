@@ -20,9 +20,9 @@ pub struct AccessoryQueryParams {
     // A rating comment is a rating for a accessory, which will also include a comment if there was
     // one. Sorted by rating descending. Cannot be used in conjunction with comments.
     include_rating_comments: Option<bool>,
-    // Which page of comments and videos to return. Default 1.
+    // Which page of comments to return. Default 1.
     page: Option<u64>,
-    // Size of the comment and video pages, between 10 and 100.
+    // Size of the comment page, between 10 and 100.
     page_size: Option<u64>,
 }
 
@@ -147,7 +147,7 @@ impl<'api> AccessoryApi<'api> {
         }
     }
 
-    /// Searches for a board game or expansion by a given ID.
+    /// Searches for a board game accessory by a given ID.
     pub async fn get_by_id(
         &self,
         id: u64,
@@ -167,8 +167,7 @@ impl<'api> AccessoryApi<'api> {
         }
     }
 
-    /// Searches for board games or expansions by given IDs. Can return both games and expansions
-    /// together.
+    /// Searches for board games accessories by given IDs.
     pub async fn get_by_ids(
         &self,
         ids: Vec<u64>,

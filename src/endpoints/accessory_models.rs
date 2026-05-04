@@ -38,7 +38,6 @@ pub struct AccessoryDetails {
     pub image: Option<String>,
     /// A link to a jpg thumbnail image for the accessory. Can by empty.
     pub thumbnail: Option<String>,
-    // TODO check if this is always 0
     /// The year the accessory was first published.
     pub year_published: i64,
     /// A list of games that this is an accessory for.
@@ -65,12 +64,9 @@ pub struct AccessoryDetails {
     pub rating_comments: Option<RatingCommentPage>,
 }
 
-// A user's collection on boardgamegeek.
+// Intermediary struct representing the list of versions in XML, so we can extract just a vector to return on the accessory details type.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub(crate) struct XmlAccessoryVersions {
-    // List of versions, each in an XML tag called `item`, within an outer
-    // `version`. We use this intermediary type to get out just the first,
-    // since we only expect 1.
     #[serde(rename = "item")]
     pub(crate) versions: Vec<AccessoryVersion>,
 }
