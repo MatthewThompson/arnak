@@ -8,6 +8,11 @@
 pub(crate) mod models;
 pub use models::*;
 
+pub(crate) mod accessory_models;
+pub use accessory_models::*;
+pub(crate) mod accessory;
+pub use accessory::*;
+
 pub(crate) mod collection_models;
 pub use collection_models::*;
 pub(crate) mod collection;

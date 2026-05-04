@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items termsofuse="https://boardgamegeek.com/xmlapi/termsofuse">
+    <item type="boardgameaccessory" id="22510">
+        <thumbnail>https://cf.geekdo-images.com/qGV1v8Ye0FKTxZNCF1ZINw__small/img/vgAzbZuLXNSawia3yp4BAPT_2is=/fit-in/200x150/filters:strip_icc()/pic830522.jpg</thumbnail>
+        <image>https://cf.geekdo-images.com/qGV1v8Ye0FKTxZNCF1ZINw__original/img/49pxPDdA4CHNFZOMQM1UTM8FNL4=/0x0/filters:format(jpeg)/pic830522.jpg</image>
+        <name type="primary" sortindex="1" value="Wings of War: Miniatures"/>
+        <name type="alternate" sortindex="1" value="Wings of War: WW1 Airplane Packs"/>
+        <description>Wings of War Airplane Packs provide miniatures for the Wings of War system. Each Airplane Pack includes one pre-painted, pre-assembled 1/144 scale model plane with gaming base, the relative airplane card and its deck of Maneuver cards. A Wings of War Deluxe set is also available.</description>
+        <yearpublished value="2007"/>
+        <link type="boardgamedesigner" id="546" value="Andrea Angiolino"/>
+        <link type="boardgamedesigner" id="547" value="Pier Giorgio Paglia"/>
+        <link type="boardgameartist" id="12475" value="Vincenzo Auletta"/>
+        <link type="boardgameartist" id="12474" value="Dario Calì"/>
+        <link type="boardgameartist" id="20670" value="Fabio Maiorana"/>
+        <link type="boardgamepublisher" id="17" value="Fantasy Flight Games"/>
+        <link type="boardgamepublisher" id="504" value="Nexus Editrice"/>
+        <link type="boardgamepublisher" id="3446" value="Ubik"/>
+        <link type="boardgameaccessory" id="15953" value="Wings of War: Burning Drachens" inbound="true"/>
+        <link type="boardgameaccessory" id="31552" value="Wings of War: Deluxe Set" inbound="true"/>
+        <versions>
+            <item type="bgaccessoryversion" id="168378">
+                <canonicalname value="Wings of War: Miniatures"></canonicalname>
+            </item>
+            <item type="bgaccessoryversion" id="168379">
+                <thumbnail>https://cf.geekdo-images.com/-qODJQlE2-T0ZhrcO6514g__small/img/SdSbI2zcepfXJqwWx-MOHG9vY9I=/fit-in/200x150/filters:strip_icc()/pic318897.jpg</thumbnail>
+                <image>https://cf.geekdo-images.com/-qODJQlE2-T0ZhrcO6514g__original/img/8y314LQOOa0dDqCWXwR_DK7LKbU=/0x0/filters:format(jpeg)/pic318897.jpg</image>
+                <canonicalname value="Wings of War: Miniatures"></canonicalname>
+            </item>
+        </versions>
+        <comments page="1" totalitems="502">
+            <comment username="user1" rating="N/A" value="Looks interesting"/>
+            <comment username="user2" rating="5" value="Must have more minis!"/>
+        </comments>
+        <marketplacelistings>
+            <listing>
+                <listdate value="Wed, 18 Sep 2024 21:40:57 +0000"/>
+                <price currency="USD" value="44.99"/>
+                <condition value="new"/>
+                <notes value="Buy this"/>
+                <link href="https://boardgamegeek.com/market/product/3549459" title="marketlisting"/>
+            </listing>
+            <listing>
+                <listdate value="Wed, 18 Sep 2024 21:43:24 +0000"/>
+                <price currency="USD" value="44.99"/>
+                <condition value="new"/>
+                <notes value="and this!"/>
+                <link href="https://boardgamegeek.com/market/product/3549461" title="marketlisting"/>
+            </listing>
+        </marketplacelistings>
+    </item>
+    <item type="boardgameaccessory" id="207791">
+        <thumbnail>https://cf.geekdo-images.com/Z9mTOM4Bvpuyg-D0s0IRZw__small/img/539zzfs3dwbbN2SNhuqpexiay-s=/fit-in/200x150/filters:strip_icc()/pic3403769.jpg</thumbnail>
+        <image>https://cf.geekdo-images.com/Z9mTOM4Bvpuyg-D0s0IRZw__original/img/46Xr6DJoXX0YS3Fm4USxPd_UVA8=/0x0/filters:format(jpeg)/pic3403769.jpg</image>
+        <name type="primary" sortindex="1" value="Scythe: Board Extension"/>
+        <description>The board extension slides next to the back side of the standard game board, creating a complete board with 70% bigger hexes (the content is the same). All units and resources in Scythe are kept on the board, so the larger hexes provide more space. The standard game board is 624x818mm (24.6 x 32.2 in), and it grows to 818x939mm (32.2 x 37.0 in) with this extension.</description>
+        <yearpublished value="2016"/>
+        <link type="boardgamedesigner" id="62640" value="Jamey Stegmaier"/>
+        <link type="boardgameartist" id="33148" value="Jakub Rozalski"/>
+        <link type="boardgamepublisher" id="23202" value="Stonemaier Games"/>
+        <link type="boardgameaccessory" id="169786" value="Scythe" inbound="true"/>
+        <versions>
+            <item type="bgaccessoryversion" id="324209">
+                <thumbnail>https://cf.geekdo-images.com/Z9mTOM4Bvpuyg-D0s0IRZw__small/img/539zzfs3dwbbN2SNhuqpexiay-s=/fit-in/200x150/filters:strip_icc()/pic3403769.jpg</thumbnail>
+                <image>https://cf.geekdo-images.com/Z9mTOM4Bvpuyg-D0s0IRZw__original/img/46Xr6DJoXX0YS3Fm4USxPd_UVA8=/0x0/filters:format(jpeg)/pic3403769.jpg</image>
+                <canonicalname value="Scythe: Board Extension"></canonicalname>
+            </item>
+        </versions>
+        <comments page="1" totalitems="59">
+            <comment username="blah" rating="10" value="Makes everything that much more epic."/>
+            <comment username="aaa" rating="10" value="The big map does better the experience of the game in a way I didn't predict."/>
+        </comments>
+        <marketplacelistings>
+            <listing>
+                <listdate value="Fri, 14 Oct 2022 11:52:03 +0000"/>
+                <price currency="GBP" value="12.00"/>
+                <condition value="new"/>
+                <notes value=""/>
+                <link href="https://boardgamegeek.com/market/product/2986606" title="marketlisting"/>
+            </listing>
+            <listing>
+                <listdate value="Sat, 28 Oct 2023 18:11:07 +0000"/>
+                <price currency="EUR" value="10.00"/>
+                <condition value="likenew"/>
+                <notes value="Only one use."/>
+                <link href="https://boardgamegeek.com/market/product/3293476" title="marketlisting"/>
+            </listing>
+            <listing>
+                <listdate value="Mon, 08 Dec 2025 20:22:51 +0000"/>
+                <price currency="EUR" value="19.00"/>
+                <condition value="new"/>
+                <notes value="Brand new copy of the game, in shrink wrap."/>
+                <link href="https://boardgamegeek.com/market/product/3908894" title="marketlisting"/>
+            </listing>
+        </marketplacelistings>
+    </item>
+</items>

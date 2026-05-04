@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items termsofuse="https://boardgamegeek.com/xmlapi/termsofuse">
+    <item type="boardgameaccessory" id="196929">
+        <thumbnail>https://cf.geekdo-images.com/fIVmsro-RGJVBQzWlDy3Jw__small/img/GryodmBvp6vGamX_K2kZ1nuM-C0=/fit-in/200x150/filters:strip_icc()/pic7149814.jpg</thumbnail>
+        <image>https://cf.geekdo-images.com/fIVmsro-RGJVBQzWlDy3Jw__original/img/4OvrN4QJGvzMRx20XNx7FGhYJMo=/0x0/filters:format(jpeg)/pic7149814.jpg</image>
+        <name type="primary" sortindex="1" value="7 Wonders: Metal Coins"/>
+        <name type="alternate" sortindex="1" value="7 Wonders: Wondrous Metal Coins"/>
+        <description>These high-quality metal coins replace the cardboard coins contained in the 7 Wonders core game and the 7 Wonders: Leaders expansion.</description>
+        <yearpublished value="0"/>
+        <link type="boardgamepublisher" id="28595" value="The Broken Token"/>
+        <link type="boardgamepublisher" id="4384" value="Repos Production"/>
+        <link type="boardgameaccessory" id="68448" value="7 Wonders" inbound="true"/>
+        <link type="boardgameaccessory" id="316377" value="7 Wonders (Second Edition)" inbound="true"/>
+    </item>
+</items>

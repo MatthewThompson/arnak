@@ -8,8 +8,8 @@ use crate::deserialize::deserialize_xml_string;
 use crate::endpoints::collection::CollectionApi;
 use crate::user::UserApi;
 use crate::{
-    deserialize_maybe_error, CollectionItem, CollectionItemBrief, Error, GameApi, GameFamilyApi,
-    GuildApi, HotListApi, PlaysApi, Result, SearchApi,
+    deserialize_maybe_error, AccessoryApi, CollectionItem, CollectionItemBrief, Error, GameApi,
+    GameFamilyApi, GuildApi, HotListApi, PlaysApi, Result, SearchApi,
 };
 
 fn http_client_from_token(auth_token: &str) -> Result<reqwest::Client> {
@@ -46,6 +46,12 @@ impl BoardGameGeekApi {
             base_url: String::from(BoardGameGeekApi::BASE_URL),
             client: http_client_from_token(auth_token)?,
         })
+    }
+
+    /// Returns the accessory endpoint of the API, which is used for querying game accessories by
+    /// their ID.
+    pub fn accessory(&self) -> AccessoryApi<'_> {
+        AccessoryApi::new(self)
     }
 
     /// Returns the collection endpoint of the API, which is used for querying a
