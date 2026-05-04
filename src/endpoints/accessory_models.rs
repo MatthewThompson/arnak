@@ -83,7 +83,7 @@ pub struct AccessoryVersion {
     /// The name of the accessory.
     #[serde(
         deserialize_with = "deserialize_accessory_version_name",
-        rename = "canonicalname",
+        rename = "canonicalname"
     )]
     pub name: String,
     /// A link to a jpg image for the accessory.
