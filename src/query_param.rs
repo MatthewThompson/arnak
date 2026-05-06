@@ -2,7 +2,7 @@ use std::string::ToString;
 
 use chrono::NaiveDate;
 
-use crate::{CollectionItemType, GameType, ItemSubType, ItemType, PlaysItemType, WishlistPriority};
+use crate::{CollectionItemType, GameType, ItemDomain, ItemSubType, ItemType, WishlistPriority};
 
 pub(crate) type QueryParam<'a> = (&'a str, String);
 
@@ -86,11 +86,11 @@ impl IntoQueryParam for &WishlistPriority {
     }
 }
 
-impl IntoQueryParam for &PlaysItemType {
+impl IntoQueryParam for &ItemDomain {
     fn into_query_param(self, key: &str) -> QueryParam<'_> {
         match self {
-            PlaysItemType::Family => (key, "family".to_owned()),
-            PlaysItemType::Thing => (key, "thing".to_owned()),
+            ItemDomain::Family => (key, "family".to_owned()),
+            ItemDomain::Item => (key, "thing".to_owned()),
         }
     }
 }

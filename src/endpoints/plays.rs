@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 
-use crate::{BoardGameGeekApi, IntoQueryParam, ItemSubType, Plays, QueryParam, Result};
+use crate::{BoardGameGeekApi, IntoQueryParam, ItemDomain, ItemSubType, Plays, QueryParam, Result};
 
 /// All optional query parameters for making a request to the plays endpoint.
 #[derive(Clone, Debug, Default)]
@@ -42,18 +42,12 @@ impl PlaysQueryParams {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-pub(crate) enum PlaysItemType {
-    Thing,
-    Family,
-}
-
 #[derive(Clone, Debug)]
 enum PlaysQuery<'q> {
     QueryByUser(&'q str),
     QueryById {
         id: u64,
-        plays_item_type: PlaysItemType,
+        plays_item_domain: ItemDomain,
     },
 }
 
@@ -78,10 +72,10 @@ impl<'builder> PlaysQueryBuilder<'builder> {
             },
             PlaysQuery::QueryById {
                 id,
-                plays_item_type,
+                plays_item_domain,
             } => {
                 query_params.push(id.into_query_param("id"));
-                query_params.push(plays_item_type.into_query_param("type"));
+                query_params.push(plays_item_domain.into_query_param("type"));
             },
         }
 
@@ -140,7 +134,7 @@ impl<'api> PlaysApi<'api> {
         let query = PlaysQueryBuilder::new(
             PlaysQuery::QueryById {
                 id: item_id,
-                plays_item_type: PlaysItemType::Thing,
+                plays_item_domain: ItemDomain::Item,
             },
             query_params,
         );
@@ -160,7 +154,7 @@ impl<'api> PlaysApi<'api> {
         let query = PlaysQueryBuilder::new(
             PlaysQuery::QueryById {
                 id: family_id,
-                plays_item_type: PlaysItemType::Family,
+                plays_item_domain: ItemDomain::Family,
             },
             query_params,
         );

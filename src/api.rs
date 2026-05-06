@@ -8,8 +8,8 @@ use crate::deserialize::deserialize_xml_string;
 use crate::endpoints::collection::CollectionApi;
 use crate::user::UserApi;
 use crate::{
-    deserialize_maybe_error, AccessoryApi, CollectionItem, CollectionItemBrief, Error, GameApi,
-    GameFamilyApi, GuildApi, HotListApi, PlaysApi, Result, SearchApi,
+    deserialize_maybe_error, AccessoryApi, CollectionItem, CollectionItemBrief, Error,
+    ForumGroupApi, GameApi, GameFamilyApi, GuildApi, HotListApi, PlaysApi, Result, SearchApi,
 };
 
 fn http_client_from_token(auth_token: &str) -> Result<reqwest::Client> {
@@ -75,6 +75,12 @@ impl BoardGameGeekApi {
     /// items they have manually added to the collection.
     pub fn collection_brief(&self) -> CollectionApi<'_, CollectionItemBrief> {
         CollectionApi::new(self)
+    }
+
+    /// Returns the forum group endpoint of the API, which is used for querying forums specific to a
+    /// certain game or game family.
+    pub fn forum_group(&self) -> ForumGroupApi<'_> {
+        ForumGroupApi::new(self)
     }
 
     /// Returns the game family endpoint of the API, which is used for querying

@@ -107,8 +107,19 @@ impl Display for ItemSubType {
     }
 }
 
+/// A domain of item that can either be an item (game, expansion, accessory), or a game family.
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
+pub enum ItemDomain {
+    /// The item domain is used to refer to things like games, expansions, accessories.
+    #[serde(rename = "thing")]
+    Item,
+    /// The family domain specifically refers to game families.
+    #[serde(rename = "family")]
+    Family,
+}
+
 /// The type of an item that can be returned from the collections endpoint.
-/// Either a board game, a board game expansion, or board game accessory, a subset ot
+/// Either a board game, a board game expansion, or board game accessory, a subset of
 /// [`ItemType`].
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
@@ -123,13 +134,20 @@ pub enum CollectionItemType {
     BoardGameAccessory,
 }
 
+impl From<CollectionItemType> for ItemType {
+    fn from(collection_item_type: CollectionItemType) -> Self {
+        match collection_item_type {
+            CollectionItemType::BoardGame => ItemType::BoardGame,
+            CollectionItemType::BoardGameExpansion => ItemType::BoardGameExpansion,
+            CollectionItemType::BoardGameAccessory => ItemType::BoardGameAccessory,
+        }
+    }
+}
+
 impl Display for CollectionItemType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            CollectionItemType::BoardGame => write!(f, "boardgame"),
-            CollectionItemType::BoardGameExpansion => write!(f, "boardgameexpansion"),
-            CollectionItemType::BoardGameAccessory => write!(f, "boardgameaccessory"),
-        }
+        let item_type = ItemType::from(*self);
+        item_type.fmt(f)
     }
 }
 
@@ -147,12 +165,19 @@ pub enum GameType {
     BoardGameExpansion,
 }
 
+impl From<GameType> for ItemType {
+    fn from(game_type: GameType) -> Self {
+        match game_type {
+            GameType::BoardGame => ItemType::BoardGame,
+            GameType::BoardGameExpansion => ItemType::BoardGameExpansion,
+        }
+    }
+}
+
 impl Display for GameType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            GameType::BoardGame => write!(f, "boardgame"),
-            GameType::BoardGameExpansion => write!(f, "boardgameexpansion"),
-        }
+        let item_type = ItemType::from(*self);
+        item_type.fmt(f)
     }
 }
 
