@@ -10,7 +10,6 @@ pub struct ForumGroup {
     /// The ID of the game or game family that these forums pertain to.
     #[serde(rename = "id")]
     pub domain_id: u64,
-    // TODO refactor and rename this type from the plays endpoint
     /// The type of domain, whether it is for a game or a game family.
     #[serde(rename = "type")]
     pub forum_domain: ItemDomain,
@@ -38,7 +37,6 @@ pub struct ForumDetails {
     /// The total number of posts in this forum.
     #[serde(rename = "numposts")]
     pub number_of_posts: u64,
-    // TODO probably need custom des to make this be None when empty string
     /// The date and time of the last post in this forum, or none if there are no posts yet.
     #[serde(
         rename = "lastpostdate",

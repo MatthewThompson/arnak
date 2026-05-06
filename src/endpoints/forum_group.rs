@@ -19,9 +19,8 @@ impl<'builder> ForumGroupQueryBuilder {
     }
 }
 
-/// Plays endpoint of the API. Used for returning information about recordings of instances of games
-/// being played. Plays can be queried either by user or by item ID, either way they are returned in
-/// reverse chronological order.
+/// Forum group endpoint of the API. Used for returning list of details for forums specific to a
+/// certain domain. For example, all the forums for a certain game, or game family.
 pub struct ForumGroupApi<'api> {
     pub(crate) api: &'api BoardGameGeekApi,
     endpoint: &'static str,
