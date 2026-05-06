@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<forums type="thing" id="13" termsofuse="https://boardgamegeek.com/xmlapi/termsofuse">
+    <forum id="297" groupid="0" title="Reviews" noposting="0" description="Post your game reviews in this forum." numthreads="199" numposts="1597" lastpostdate=""/>
+    <forum id="926" groupid="0" title="Sessions" noposting="0" description="Post your session reports here." numthreads="440" numposts="1043" lastpostdate="Wed, 16 Apr 2025 21:21:12 +0000"/>
+</forums>

@@ -147,6 +147,21 @@ where
     Ok(DateTime::<Utc>::from(date_time))
 }
 
+pub(crate) fn deserialize_maybe_date_time_with_zone<'de, D>(
+    deserializer: D,
+) -> Result<Option<DateTime<Utc>>, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    if s.is_empty() {
+        return Ok(None);
+    }
+    let date_time = DateTime::parse_from_str(&s, DATE_TIME_ZONE_LONG_FORMAT)
+        .map_err(serde::de::Error::custom)?;
+    Ok(Some(DateTime::<Utc>::from(date_time)))
+}
+
 // Intermediary struct needed due to the way the XML is structured
 #[derive(Debug, Deserialize)]
 pub(crate) struct XmlRanks {
