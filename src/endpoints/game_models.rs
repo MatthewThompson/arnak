@@ -57,9 +57,6 @@ pub struct GameDetails {
     /// Poll results for whether each number of players is recommended, not recommended,
     /// or best. Includes options outside of the suggested minimum and maximum player counts.
     pub suggested_player_count: SuggestedPlayerCountPoll,
-    // TODO move to a field of the poll
-    ///
-    pub poll_summary: PollSummary,
     /// The amount of time the game is suggested to take to play.
     pub playing_time: Duration,
     /// Minimum amount of time the game is suggested to take to play.
@@ -213,13 +210,63 @@ pub struct SuggestedPlayerCountPoll {
     /// Results for this poll, contains a separate vote for each player count option, including an
     /// option for the max player count or above.
     pub results: Vec<SuggestedPlayerCount>,
+    /// An optional summary outlining the best voted option.
+    pub summary: Option<PollSummary>,
 }
 
-///
-#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+/// A brief summary of the poll, outlining
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PollSummary {
-    ///
-    pub name: String,
+    /// A short description of which is the overall best option.
+    pub best_with: String,
+    /// A short description of which option recommended.
+    pub recommended_with: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct PollSummaryWithName {
+    name: String,
+    best_with: String,
+    recommended_with: String,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+struct PollSummaryXml {
+    name: String,
+    results: Vec<PollSummaryResult>,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+struct PollSummaryResult {
+    name: String,
+    value: String,
+}
+
+impl<'de> Deserialize<'de> for PollSummaryWithName {
+    fn deserialize<D>(deserializer: D) -> Result<PollSummaryWithName, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        let summary: PollSummaryXml = serde::de::Deserialize::deserialize(deserializer)?;
+        let mut best_with = None;
+        let mut recommended_with = None;
+        for result in summary.results {
+            if result.name == "bestwith" {
+                best_with = Some(result.value);
+            } else if result.name == "recommmendedwith" {
+                recommended_with = Some(result.value);
+            }
+        }
+
+        Ok(PollSummaryWithName {
+            name: summary.name,
+            best_with: best_with
+                .ok_or_else(|| serde::de::Error::missing_field("result name=\"bestwith\""))?,
+            recommended_with: recommended_with.ok_or_else(|| {
+                serde::de::Error::missing_field("result name=\"recommendedwith\"")
+            })?,
+        })
+    }
 }
 
 /// A suggested player count, along with community votes as to whether it is recommended or not.
@@ -249,6 +296,7 @@ impl TryFrom<Poll> for SuggestedPlayerCountPoll {
                 .into_iter()
                 .map(SuggestedPlayerCount::try_from)
                 .collect::<Result<Vec<SuggestedPlayerCount>, Self::Error>>()?,
+            summary: None,
         })
     }
 }
@@ -344,6 +392,8 @@ pub struct SuggestedPlayerAgePoll {
     /// Results for this poll, contains a separate vote for each age from 2, going up in 2s from 6.
     /// And an option for 21 and up.
     pub results: Vec<SuggestedPlayerAge>,
+    /// An optional summary outlining the best voted option.
+    pub summary: Option<PollSummary>,
 }
 
 /// A suggested minimum player age, along with how many users voted for this age.
@@ -391,6 +441,7 @@ impl TryFrom<Poll> for SuggestedPlayerAgePoll {
                     })
                 })
                 .collect::<Result<Vec<SuggestedPlayerAge>, Self::Error>>()?,
+            summary: None,
         })
     }
 }
@@ -429,6 +480,8 @@ pub struct LanguageDependencePoll {
     /// Results for this poll, contains 5 levels of severity ranging from no necessary in game text
     /// to being unplayable in another language.
     pub results: Vec<LanguageDependence>,
+    /// An optional summary outlining the best voted option.
+    pub summary: Option<PollSummary>,
 }
 
 /// A suggested minimum player age, along with how many users voted for this age.
@@ -469,6 +522,7 @@ impl TryFrom<Poll> for LanguageDependencePoll {
                     })
                 })
                 .collect::<Result<Vec<LanguageDependence>, Self::Error>>()?,
+            summary: None,
         })
     }
 }
@@ -879,6 +933,9 @@ where
     }
 }
 
+const PLAYER_COUNT_POLL_NAME: &str = "suggested_numplayers";
+const PLAYER_AGE_POLL_NAME: &str = "suggested_playerage";
+const LANGUAGE_DEPENDENCE_POLL_NAME: &str = "language_dependence";
 impl<'de> Deserialize<'de> for GameDetails {
     fn deserialize<D: serde::de::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[derive(Deserialize)]
@@ -949,9 +1006,11 @@ impl<'de> Deserialize<'de> for GameDetails {
                 let mut publishers = vec![];
                 // Polls
                 let mut suggested_player_count = None;
-                let mut poll_summary = None;
+                let mut player_count_poll_summary = None;
                 let mut suggested_player_age = None;
+                let mut player_age_poll_summary = None;
                 let mut suggested_language_dependence = None;
+                let mut language_dependence_poll_summary = None;
                 // Stats and optional
                 let mut stats = None;
                 let mut versions = None;
@@ -1134,7 +1193,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                         Field::Poll => {
                             let poll: Poll = map.next_value()?;
 
-                            if poll.name == "suggested_numplayers" {
+                            if poll.name == PLAYER_COUNT_POLL_NAME {
                                 if suggested_player_count.is_some() {
                                     return Err(serde::de::Error::duplicate_field(
                                         "poll name=\"suggested_numplayers\"",
@@ -1142,7 +1201,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                                 }
                                 suggested_player_count =
                                     Some(poll.try_into().map_err(serde::de::Error::custom)?);
-                            } else if poll.name == "suggested_playerage" {
+                            } else if poll.name == PLAYER_AGE_POLL_NAME {
                                 if suggested_player_age.is_some() {
                                     return Err(serde::de::Error::duplicate_field(
                                         "poll name=\"suggested_playerage\"",
@@ -1150,7 +1209,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                                 }
                                 suggested_player_age =
                                     Some(poll.try_into().map_err(serde::de::Error::custom)?);
-                            } else if poll.name == "language_dependence" {
+                            } else if poll.name == LANGUAGE_DEPENDENCE_POLL_NAME {
                                 if suggested_language_dependence.is_some() {
                                     return Err(serde::de::Error::duplicate_field(
                                         "poll name=\"language_dependence\"",
@@ -1166,8 +1225,14 @@ impl<'de> Deserialize<'de> for GameDetails {
                             }
                         },
                         Field::PollSummary => {
-                            // TODO
-                            poll_summary = map.next_value()?;
+                            let poll_summary: PollSummaryWithName = map.next_value()?;
+                            if poll_summary.name == PLAYER_COUNT_POLL_NAME {
+                                player_count_poll_summary = Some(poll_summary);
+                            } else if poll_summary.name == PLAYER_AGE_POLL_NAME {
+                                player_age_poll_summary = Some(poll_summary);
+                            } else if poll_summary.name == LANGUAGE_DEPENDENCE_POLL_NAME {
+                                language_dependence_poll_summary = Some(poll_summary);
+                            }
                         },
                         Field::Statistics => {
                             if stats.is_some() {
@@ -1247,18 +1312,35 @@ impl<'de> Deserialize<'de> for GameDetails {
                     max_play_time.ok_or_else(|| serde::de::Error::missing_field("maxplaytime"))?;
                 let min_age = min_age.ok_or_else(|| serde::de::Error::missing_field("minage"))?;
 
-                let suggested_player_count = suggested_player_count.ok_or_else(|| {
+                let mut suggested_player_count: SuggestedPlayerCountPoll = suggested_player_count
+                    .ok_or_else(|| {
                     serde::de::Error::missing_field("poll name=\"suggested_numplayers\"")
                 })?;
-                let poll_summary =
-                    poll_summary.ok_or_else(|| serde::de::Error::missing_field("poll-summary"))?;
+                if let Some(summary) = player_count_poll_summary {
+                    suggested_player_count.summary = Some(PollSummary {
+                        recommended_with: summary.recommended_with,
+                        best_with: summary.best_with,
+                    });
+                }
                 let suggested_player_age = suggested_player_age.ok_or_else(|| {
                     serde::de::Error::missing_field("poll name=\"suggested_playerage\"")
                 })?;
+                if let Some(summary) = player_age_poll_summary {
+                    suggested_player_count.summary = Some(PollSummary {
+                        recommended_with: summary.recommended_with,
+                        best_with: summary.best_with,
+                    });
+                }
                 let suggested_language_dependence =
                     suggested_language_dependence.ok_or_else(|| {
                         serde::de::Error::missing_field("poll name=\"language_dependence\"")
                     })?;
+                if let Some(summary) = language_dependence_poll_summary {
+                    suggested_player_count.summary = Some(PollSummary {
+                        recommended_with: summary.recommended_with,
+                        best_with: summary.best_with,
+                    });
+                }
 
                 let stats = stats.ok_or_else(|| serde::de::Error::missing_field("statistics"))?;
                 let versions = versions.unwrap_or_default();
@@ -1282,7 +1364,6 @@ impl<'de> Deserialize<'de> for GameDetails {
                     min_players,
                     max_players,
                     suggested_player_count,
-                    poll_summary,
                     playing_time,
                     min_play_time,
                     max_play_time,

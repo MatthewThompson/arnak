@@ -201,9 +201,9 @@ mod tests {
         Dimensions, Game, GameAccessory, GameArtist, GameCategory, GameDesigner, GameFamilyName,
         GameMechanic, GamePublisher, GameStats, GameType, GameVersion, ItemCondition,
         ItemFamilyRank, Language, LanguageDependence, LanguageDependencePoll, MarketplaceListing,
-        PlayerAge, PlayerCount, PollSummary, Price, RankValue, RatingComment, RatingCommentPage,
-        RatingValue, SuggestedPlayerAge, SuggestedPlayerAgePoll, SuggestedPlayerCount,
-        SuggestedPlayerCountPoll, UserBrief, Video, VideoCategory,
+        PlayerAge, PlayerCount, Price, RankValue, RatingComment, RatingCommentPage, RatingValue,
+        SuggestedPlayerAge, SuggestedPlayerAgePoll, SuggestedPlayerCount, SuggestedPlayerCountPoll,
+        UserBrief, Video, VideoCategory,
     };
 
     #[tokio::test]
@@ -285,9 +285,7 @@ mod tests {
                             not_recommended_votes: 361,
                         },
                     ],
-                },
-                poll_summary: PollSummary {
-                    name: "suggested_playerage".to_owned(),
+                    summary: None,
                 },
                 playing_time: Duration::minutes(120),
                 min_play_time: Duration::minutes(30),
@@ -326,6 +324,7 @@ mod tests {
                             votes: 0,
                         },
                     ],
+                    summary: None,
                 },
                 suggested_language_dependence: LanguageDependencePoll {
                     title: "Language Dependence".to_owned(),
@@ -357,6 +356,7 @@ mod tests {
                             votes: 2,
                         },
                     ],
+                    summary: None,
                 },
                 categories: vec![
                     GameCategory {
@@ -546,9 +546,7 @@ mod tests {
                             not_recommended_votes: 42,
                         },
                     ],
-                },
-                poll_summary: PollSummary {
-                    name: "suggested_playerage".to_owned(),
+                    summary: None,
                 },
                 playing_time: Duration::minutes(120),
                 min_play_time: Duration::minutes(30),
@@ -587,6 +585,7 @@ mod tests {
                             votes: 0,
                         },
                     ],
+                    summary: None,
                 },
                 suggested_language_dependence: LanguageDependencePoll {
                     title: "Language Dependence".to_owned(),
@@ -618,6 +617,7 @@ mod tests {
                             votes: 1,
                         },
                     ],
+                    summary: None,
                 },
                 categories: vec![
                     GameCategory {
@@ -820,9 +820,7 @@ mod tests {
                             not_recommended_votes: 361,
                         },
                     ],
-                },
-                poll_summary: PollSummary {
-                    name: "suggested_playerage".to_owned(),
+                    summary: None,
                 },
                 playing_time: Duration::minutes(120),
                 min_play_time: Duration::minutes(30),
@@ -861,6 +859,7 @@ mod tests {
                             votes: 0,
                         },
                     ],
+                    summary: None,
                 },
                 suggested_language_dependence: LanguageDependencePoll {
                     title: "Language Dependence".to_owned(),
@@ -892,6 +891,7 @@ mod tests {
                             votes: 2,
                         },
                     ],
+                    summary: None,
                 },
                 categories: vec![
                     GameCategory {
@@ -1240,9 +1240,7 @@ mod tests {
                             not_recommended_votes: 361,
                         },
                     ],
-                },
-                poll_summary: PollSummary {
-                    name: "suggested_playerage".to_owned(),
+                    summary: None,
                 },
                 playing_time: Duration::minutes(120),
                 min_play_time: Duration::minutes(30),
@@ -1281,6 +1279,7 @@ mod tests {
                             votes: 0,
                         },
                     ],
+                    summary: None,
                 },
                 suggested_language_dependence: LanguageDependencePoll {
                     title: "Language Dependence".to_owned(),
@@ -1312,6 +1311,7 @@ mod tests {
                             votes: 2,
                         },
                     ],
+                    summary: None,
                 },
                 categories: vec![
                     GameCategory {
@@ -1490,9 +1490,7 @@ mod tests {
                             not_recommended_votes: 42,
                         },
                     ],
-                },
-                poll_summary: PollSummary {
-                    name: "suggested_playerage".to_owned(),
+                    summary: None,
                 },
                 playing_time: Duration::minutes(120),
                 min_play_time: Duration::minutes(30),
@@ -1531,6 +1529,7 @@ mod tests {
                             votes: 0,
                         },
                     ],
+                    summary: None,
                 },
                 suggested_language_dependence: LanguageDependencePoll {
                     title: "Language Dependence".to_owned(),
@@ -1562,6 +1561,7 @@ mod tests {
                             votes: 1,
                         },
                     ],
+                    summary: None,
                 },
                 categories: vec![
                     GameCategory {
