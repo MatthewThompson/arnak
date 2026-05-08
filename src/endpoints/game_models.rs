@@ -214,7 +214,7 @@ pub struct SuggestedPlayerCountPoll {
     pub summary: Option<PollSummary>,
 }
 
-/// A brief summary of the poll, outlining
+/// A brief summary of the poll, outlining the best and recommended options based on the votes.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PollSummary {
     /// A short description of which is the overall best option.
@@ -1326,7 +1326,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                     serde::de::Error::missing_field("poll name=\"suggested_playerage\"")
                 })?;
                 if let Some(summary) = player_age_poll_summary {
-                    suggested_player_count.summary = Some(PollSummary {
+                    suggested_player_age.summary = Some(PollSummary {
                         recommended_with: summary.recommended_with,
                         best_with: summary.best_with,
                     });
@@ -1336,7 +1336,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                         serde::de::Error::missing_field("poll name=\"language_dependence\"")
                     })?;
                 if let Some(summary) = language_dependence_poll_summary {
-                    suggested_player_count.summary = Some(PollSummary {
+                    suggested_language_dependence.summary = Some(PollSummary {
                         recommended_with: summary.recommended_with,
                         best_with: summary.best_with,
                     });
