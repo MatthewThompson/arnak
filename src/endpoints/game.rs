@@ -94,14 +94,14 @@ impl GameQueryParams {
 // Struct for building a query for the request to the game endpoint.
 #[derive(Clone, Debug)]
 struct GameQueryBuilder<'builder> {
-    game_ids: Vec<u64>,
+    game_ids: &'builder [u64],
     params: &'builder GameQueryParams,
 }
 
 impl<'builder> GameQueryBuilder<'builder> {
     // Constructs a new query builder from a list of IDs to request, and the rest of the
     // parameters.
-    fn new(game_ids: Vec<u64>, params: &'builder GameQueryParams) -> Self {
+    fn new(game_ids: &'builder [u64], params: &'builder GameQueryParams) -> Self {
         Self { game_ids, params }
     }
 
@@ -158,7 +158,8 @@ impl<'api> GameApi<'api> {
 
     /// Searches for a board game or expansion by a given ID.
     pub async fn get_by_id(&self, id: u64, query_params: &GameQueryParams) -> Result<GameDetails> {
-        let query = GameQueryBuilder::new(vec![id], query_params);
+        let id_vec = &[id];
+        let query = GameQueryBuilder::new(id_vec, query_params);
 
         let request = self.api.build_request(self.endpoint, &query.build());
         let mut games = self.api.execute_request::<Games>(request).await?;
@@ -176,7 +177,7 @@ impl<'api> GameApi<'api> {
     /// together.
     pub async fn get_by_ids(
         &self,
-        ids: Vec<u64>,
+        ids: &[u64],
         query_params: &GameQueryParams,
     ) -> Result<Vec<GameDetails>> {
         let query = GameQueryBuilder::new(ids, query_params);
@@ -198,9 +199,9 @@ mod tests {
         Dimensions, Game, GameAccessory, GameArtist, GameCategory, GameDesigner, GameFamilyName,
         GameMechanic, GamePublisher, GameStats, GameType, GameVersion, ItemCondition,
         ItemFamilyRank, Language, LanguageDependence, LanguageDependencePoll, MarketplaceListing,
-        PlayerAge, PlayerCount, Price, RankValue, RatingComment, RatingCommentPage, RatingValue,
-        SuggestedPlayerAge, SuggestedPlayerAgePoll, SuggestedPlayerCount, SuggestedPlayerCountPoll,
-        UserBrief, Video, VideoCategory,
+        PlayerAge, PlayerCount, PollSummary, Price, RankValue, RatingComment, RatingCommentPage,
+        RatingValue, SuggestedPlayerAge, SuggestedPlayerAgePoll, SuggestedPlayerCount,
+        SuggestedPlayerCountPoll, UserBrief, Video, VideoCategory,
     };
 
     #[tokio::test]
@@ -282,6 +283,10 @@ mod tests {
                             not_recommended_votes: 361,
                         },
                     ],
+                    summary: Some(PollSummary {
+                        best_with: "Best with 3 players".to_owned(),
+                        recommended_with: "Recommended with 1–4 players".to_owned(),
+                    }),
                 },
                 playing_time: Duration::minutes(120),
                 min_play_time: Duration::minutes(30),
@@ -320,6 +325,7 @@ mod tests {
                             votes: 0,
                         },
                     ],
+                    summary: None,
                 },
                 suggested_language_dependence: LanguageDependencePoll {
                     title: "Language Dependence".to_owned(),
@@ -351,6 +357,7 @@ mod tests {
                             votes: 2,
                         },
                     ],
+                    summary: None,
                 },
                 categories: vec![
                     GameCategory {
@@ -395,6 +402,7 @@ mod tests {
                 expansion_for: vec![],
                 accessories: vec![],
                 compilations: vec![],
+                integrations: vec![],
                 reimplementations: vec![],
                 designers: vec![
                     GameDesigner {
@@ -539,6 +547,7 @@ mod tests {
                             not_recommended_votes: 42,
                         },
                     ],
+                    summary: None,
                 },
                 playing_time: Duration::minutes(120),
                 min_play_time: Duration::minutes(30),
@@ -577,6 +586,7 @@ mod tests {
                             votes: 0,
                         },
                     ],
+                    summary: None,
                 },
                 suggested_language_dependence: LanguageDependencePoll {
                     title: "Language Dependence".to_owned(),
@@ -608,6 +618,7 @@ mod tests {
                             votes: 1,
                         },
                     ],
+                    summary: None,
                 },
                 categories: vec![
                     GameCategory {
@@ -661,6 +672,7 @@ mod tests {
                     },
                 ],
                 compilations: vec![],
+                integrations: vec![],
                 reimplementations: vec![],
                 designers: vec![
                     GameDesigner {
@@ -809,6 +821,7 @@ mod tests {
                             not_recommended_votes: 361,
                         },
                     ],
+                    summary: None,
                 },
                 playing_time: Duration::minutes(120),
                 min_play_time: Duration::minutes(30),
@@ -847,6 +860,7 @@ mod tests {
                             votes: 0,
                         },
                     ],
+                    summary: None,
                 },
                 suggested_language_dependence: LanguageDependencePoll {
                     title: "Language Dependence".to_owned(),
@@ -878,6 +892,7 @@ mod tests {
                             votes: 2,
                         },
                     ],
+                    summary: None,
                 },
                 categories: vec![
                     GameCategory {
@@ -922,6 +937,7 @@ mod tests {
                 expansion_for: vec![],
                 accessories: vec![],
                 compilations: vec![],
+                integrations: vec![],
                 reimplementations: vec![],
                 designers: vec![
                     GameDesigner {
@@ -1165,7 +1181,10 @@ mod tests {
             .include_rating_comments(true)
             .page(1)
             .page_size(3);
-        let games = api.game().get_by_ids(vec![312_484, 341_254], &params).await;
+        let games = api
+            .game()
+            .get_by_ids(&vec![312_484, 341_254], &params)
+            .await;
         mock.assert_async().await;
 
         assert!(games.is_ok(), "error returned when okay expected");
@@ -1222,6 +1241,7 @@ mod tests {
                             not_recommended_votes: 361,
                         },
                     ],
+                    summary: None,
                 },
                 playing_time: Duration::minutes(120),
                 min_play_time: Duration::minutes(30),
@@ -1260,6 +1280,7 @@ mod tests {
                             votes: 0,
                         },
                     ],
+                    summary: None,
                 },
                 suggested_language_dependence: LanguageDependencePoll {
                     title: "Language Dependence".to_owned(),
@@ -1291,6 +1312,7 @@ mod tests {
                             votes: 2,
                         },
                     ],
+                    summary: None,
                 },
                 categories: vec![
                     GameCategory {
@@ -1335,6 +1357,7 @@ mod tests {
                 expansion_for: vec![],
                 accessories: vec![],
                 compilations: vec![],
+                integrations: vec![],
                 reimplementations: vec![],
                 designers: vec![
                     GameDesigner {
@@ -1468,6 +1491,7 @@ mod tests {
                             not_recommended_votes: 42,
                         },
                     ],
+                    summary: None,
                 },
                 playing_time: Duration::minutes(120),
                 min_play_time: Duration::minutes(30),
@@ -1506,6 +1530,7 @@ mod tests {
                             votes: 0,
                         },
                     ],
+                    summary: None,
                 },
                 suggested_language_dependence: LanguageDependencePoll {
                     title: "Language Dependence".to_owned(),
@@ -1537,6 +1562,7 @@ mod tests {
                             votes: 1,
                         },
                     ],
+                    summary: None,
                 },
                 categories: vec![
                     GameCategory {
@@ -1590,6 +1616,7 @@ mod tests {
                     },
                 ],
                 compilations: vec![],
+                integrations: vec![],
                 reimplementations: vec![],
                 designers: vec![
                     GameDesigner {

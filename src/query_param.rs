@@ -105,3 +105,14 @@ impl<Stringable: ToString> IntoQueryParam for &Vec<Stringable> {
         (key, value_list)
     }
 }
+
+impl<Stringable: ToString> IntoQueryParam for &[Stringable] {
+    fn into_query_param(self, key: &str) -> QueryParam<'_> {
+        let value_list = self
+            .iter()
+            .map(ToString::to_string)
+            .collect::<Vec<String>>()
+            .join(",");
+        (key, value_list)
+    }
+}

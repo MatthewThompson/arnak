@@ -562,8 +562,8 @@ impl<'api, T: CollectionType<'api> + 'api> CollectionApi<'api, T> {
     ) -> Result<Collection<T>> {
         let mut collection = self.get(username, query_params).await?;
 
-        collection.items.retain(|items| {
-            let stats = items.get_stats();
+        collection.items.retain(|item| {
+            let stats = item.get_stats();
             player_count <= stats.max_players && player_count >= stats.min_players
         });
         Ok(collection)

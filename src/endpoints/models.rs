@@ -38,6 +38,8 @@ pub enum ItemType {
     BoardGameMechanic,
     /// A different edition of an existing game.
     BoardGameCompilation,
+    /// A game integration.
+    BoardGameIntegration,
     /// A different implementation of an existing game.
     BoardGameImplementation,
     /// A different version of a game.
@@ -62,6 +64,7 @@ impl Display for ItemType {
             ItemType::BoardGameCategory => write!(f, "boardgamecategory"),
             ItemType::BoardGameMechanic => write!(f, "boardgamemechanic"),
             ItemType::BoardGameCompilation => write!(f, "boardgamecompilation"),
+            ItemType::BoardGameIntegration => write!(f, "boardgameintegration"),
             ItemType::BoardGameImplementation => write!(f, "boardgameimplementation"),
             ItemType::BoardGameVersion => write!(f, "boardgameversion"),
             ItemType::Language => write!(f, "language"),
@@ -255,6 +258,16 @@ pub struct GameFamilyName {
 /// A different edition or compilation of a game.
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct GameCompilation {
+    /// The ID of the compilation.
+    pub id: u64,
+    /// The name of the compilation.
+    #[serde(rename = "value")]
+    pub name: String,
+}
+
+/// A different edition or compilation of a game.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct GameIntegration {
     /// The ID of the compilation.
     pub id: u64,
     /// The name of the compilation.
