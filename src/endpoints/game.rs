@@ -191,8 +191,6 @@ impl<'api> GameApi<'api> {
 
 #[cfg(test)]
 mod tests {
-    use std::vec;
-
     use chrono::{Duration, TimeZone, Utc};
     use mockito::Matcher;
 
