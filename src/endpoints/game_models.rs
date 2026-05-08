@@ -1322,16 +1322,17 @@ impl<'de> Deserialize<'de> for GameDetails {
                         best_with: summary.best_with,
                     });
                 }
-                let suggested_player_age = suggested_player_age.ok_or_else(|| {
-                    serde::de::Error::missing_field("poll name=\"suggested_playerage\"")
-                })?;
+                let mut suggested_player_age: SuggestedPlayerAgePoll = suggested_player_age
+                    .ok_or_else(|| {
+                        serde::de::Error::missing_field("poll name=\"suggested_playerage\"")
+                    })?;
                 if let Some(summary) = player_age_poll_summary {
                     suggested_player_age.summary = Some(PollSummary {
                         recommended_with: summary.recommended_with,
                         best_with: summary.best_with,
                     });
                 }
-                let suggested_language_dependence =
+                let mut suggested_language_dependence: LanguageDependencePoll =
                     suggested_language_dependence.ok_or_else(|| {
                         serde::de::Error::missing_field("poll name=\"language_dependence\"")
                     })?;
