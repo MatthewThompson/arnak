@@ -199,9 +199,9 @@ mod tests {
         Dimensions, Game, GameAccessory, GameArtist, GameCategory, GameDesigner, GameFamilyName,
         GameMechanic, GamePublisher, GameStats, GameType, GameVersion, ItemCondition,
         ItemFamilyRank, Language, LanguageDependence, LanguageDependencePoll, MarketplaceListing,
-        PlayerAge, PlayerCount, Price, RankValue, RatingComment, RatingCommentPage, RatingValue,
-        SuggestedPlayerAge, SuggestedPlayerAgePoll, SuggestedPlayerCount, SuggestedPlayerCountPoll,
-        UserBrief, Video, VideoCategory,
+        PlayerAge, PlayerCount, PollSummary, Price, RankValue, RatingComment, RatingCommentPage,
+        RatingValue, SuggestedPlayerAge, SuggestedPlayerAgePoll, SuggestedPlayerCount,
+        SuggestedPlayerCountPoll, UserBrief, Video, VideoCategory,
     };
 
     #[tokio::test]
@@ -283,7 +283,10 @@ mod tests {
                             not_recommended_votes: 361,
                         },
                     ],
-                    summary: None,
+                    summary: Some(PollSummary {
+                        best_with: "Best with 3 players".to_owned(),
+                        recommended_with: "Recommended with 1–4 players".to_owned(),
+                    }),
                 },
                 playing_time: Duration::minutes(120),
                 min_play_time: Duration::minutes(30),

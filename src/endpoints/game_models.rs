@@ -233,6 +233,7 @@ struct PollSummaryWithName {
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 struct PollSummaryXml {
     name: String,
+    #[serde(rename = "result")]
     results: Vec<PollSummaryResult>,
 }
 
