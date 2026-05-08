@@ -198,9 +198,9 @@ mod tests {
         Dimensions, Game, GameAccessory, GameArtist, GameCategory, GameDesigner, GameFamilyName,
         GameMechanic, GamePublisher, GameStats, GameType, GameVersion, ItemCondition,
         ItemFamilyRank, Language, LanguageDependence, LanguageDependencePoll, MarketplaceListing,
-        PlayerAge, PlayerCount, Price, RankValue, RatingComment, RatingCommentPage, RatingValue,
-        SuggestedPlayerAge, SuggestedPlayerAgePoll, SuggestedPlayerCount, SuggestedPlayerCountPoll,
-        UserBrief, Video, VideoCategory,
+        PlayerAge, PlayerCount, PollSummary, Price, RankValue, RatingComment, RatingCommentPage,
+        RatingValue, SuggestedPlayerAge, SuggestedPlayerAgePoll, SuggestedPlayerCount,
+        SuggestedPlayerCountPoll, UserBrief, Video, VideoCategory,
     };
 
     #[tokio::test]
@@ -282,6 +282,9 @@ mod tests {
                             not_recommended_votes: 361,
                         },
                     ],
+                },
+                poll_summary: PollSummary {
+                    name: "suggested_playerage".to_owned(),
                 },
                 playing_time: Duration::minutes(120),
                 min_play_time: Duration::minutes(30),
@@ -395,6 +398,7 @@ mod tests {
                 expansion_for: vec![],
                 accessories: vec![],
                 compilations: vec![],
+                integrations: vec![],
                 reimplementations: vec![],
                 designers: vec![
                     GameDesigner {
@@ -540,6 +544,9 @@ mod tests {
                         },
                     ],
                 },
+                poll_summary: PollSummary {
+                    name: "suggested_playerage".to_owned(),
+                },
                 playing_time: Duration::minutes(120),
                 min_play_time: Duration::minutes(30),
                 max_play_time: Duration::minutes(120),
@@ -661,6 +668,7 @@ mod tests {
                     },
                 ],
                 compilations: vec![],
+                integrations: vec![],
                 reimplementations: vec![],
                 designers: vec![
                     GameDesigner {
@@ -810,6 +818,9 @@ mod tests {
                         },
                     ],
                 },
+                poll_summary: PollSummary {
+                    name: "suggested_playerage".to_owned(),
+                },
                 playing_time: Duration::minutes(120),
                 min_play_time: Duration::minutes(30),
                 max_play_time: Duration::minutes(120),
@@ -922,6 +933,7 @@ mod tests {
                 expansion_for: vec![],
                 accessories: vec![],
                 compilations: vec![],
+                integrations: vec![],
                 reimplementations: vec![],
                 designers: vec![
                     GameDesigner {
@@ -1223,6 +1235,9 @@ mod tests {
                         },
                     ],
                 },
+                poll_summary: PollSummary {
+                    name: "suggested_playerage".to_owned(),
+                },
                 playing_time: Duration::minutes(120),
                 min_play_time: Duration::minutes(30),
                 max_play_time: Duration::minutes(120),
@@ -1335,6 +1350,7 @@ mod tests {
                 expansion_for: vec![],
                 accessories: vec![],
                 compilations: vec![],
+                integrations: vec![],
                 reimplementations: vec![],
                 designers: vec![
                     GameDesigner {
@@ -1469,6 +1485,9 @@ mod tests {
                         },
                     ],
                 },
+                poll_summary: PollSummary {
+                    name: "suggested_playerage".to_owned(),
+                },
                 playing_time: Duration::minutes(120),
                 min_play_time: Duration::minutes(30),
                 max_play_time: Duration::minutes(120),
@@ -1590,6 +1609,7 @@ mod tests {
                     },
                 ],
                 compilations: vec![],
+                integrations: vec![],
                 reimplementations: vec![],
                 designers: vec![
                     GameDesigner {

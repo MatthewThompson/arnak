@@ -12,7 +12,7 @@ use crate::deserialize::{
     date_time_with_zone_from_string, xml_ranks_to_ranks, XmlDateTimeValue, XmlFloatValue,
     XmlIntValue, XmlLink, XmlName, XmlRanks, XmlSignedValue, XmlStringValue,
 };
-use crate::{NameType, XmlGameVersions};
+use crate::{GameIntegration, NameType, XmlGameVersions};
 
 // A struct containing the list of requested games with the full details.
 #[derive(Clone, Debug, Deserialize)]
@@ -57,6 +57,9 @@ pub struct GameDetails {
     /// Poll results for whether each number of players is recommended, not recommended,
     /// or best. Includes options outside of the suggested minimum and maximum player counts.
     pub suggested_player_count: SuggestedPlayerCountPoll,
+    // TODO move to a field of the poll
+    ///
+    pub poll_summary: PollSummary,
     /// The amount of time the game is suggested to take to play.
     pub playing_time: Duration,
     /// Minimum amount of time the game is suggested to take to play.
@@ -91,6 +94,8 @@ pub struct GameDetails {
     pub accessories: Vec<GameAccessory>,
     /// A list of compilations for this game.
     pub compilations: Vec<GameCompilation>,
+    /// A list of integratiosn for this game.
+    pub integrations: Vec<GameIntegration>,
     /// A list of reimplementations of this game.
     pub reimplementations: Vec<GameImplementation>,
     /// The designer of this game.
@@ -208,6 +213,13 @@ pub struct SuggestedPlayerCountPoll {
     /// Results for this poll, contains a separate vote for each player count option, including an
     /// option for the max player count or above.
     pub results: Vec<SuggestedPlayerCount>,
+}
+
+///
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+pub struct PollSummary {
+    ///
+    pub name: String,
 }
 
 /// A suggested player count, along with community votes as to whether it is recommended or not.
@@ -887,6 +899,8 @@ impl<'de> Deserialize<'de> for GameDetails {
             MinAge,
             Link,
             Poll,
+            #[serde(rename = "poll-summary")]
+            PollSummary,
             Statistics,
             Versions,
             Videos,
@@ -928,12 +942,14 @@ impl<'de> Deserialize<'de> for GameDetails {
                 let mut expansion_links = vec![];
                 let mut accessories = vec![];
                 let mut compilations = vec![];
+                let mut integrations = vec![];
                 let mut reimplementations = vec![];
                 let mut designers = vec![];
                 let mut artists = vec![];
                 let mut publishers = vec![];
                 // Polls
                 let mut suggested_player_count = None;
+                let mut poll_summary = None;
                 let mut suggested_player_age = None;
                 let mut suggested_language_dependence = None;
                 // Stats and optional
@@ -1096,6 +1112,12 @@ impl<'de> Deserialize<'de> for GameDetails {
                                         name: link.value,
                                     });
                                 },
+                                crate::ItemType::BoardGameIntegration => {
+                                    integrations.push(GameIntegration {
+                                        id: link.id,
+                                        name: link.value,
+                                    });
+                                },
                                 crate::ItemType::BoardGameImplementation => {
                                     reimplementations.push(GameImplementation {
                                         id: link.id,
@@ -1142,6 +1164,10 @@ impl<'de> Deserialize<'de> for GameDetails {
                                     poll.name
                                 )));
                             }
+                        },
+                        Field::PollSummary => {
+                            // TODO
+                            poll_summary = map.next_value()?;
                         },
                         Field::Statistics => {
                             if stats.is_some() {
@@ -1224,6 +1250,8 @@ impl<'de> Deserialize<'de> for GameDetails {
                 let suggested_player_count = suggested_player_count.ok_or_else(|| {
                     serde::de::Error::missing_field("poll name=\"suggested_numplayers\"")
                 })?;
+                let poll_summary =
+                    poll_summary.ok_or_else(|| serde::de::Error::missing_field("poll-summary"))?;
                 let suggested_player_age = suggested_player_age.ok_or_else(|| {
                     serde::de::Error::missing_field("poll name=\"suggested_playerage\"")
                 })?;
@@ -1254,6 +1282,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                     min_players,
                     max_players,
                     suggested_player_count,
+                    poll_summary,
                     playing_time,
                     min_play_time,
                     max_play_time,
@@ -1267,6 +1296,7 @@ impl<'de> Deserialize<'de> for GameDetails {
                     expansion_for,
                     accessories,
                     compilations,
+                    integrations,
                     reimplementations,
                     designers,
                     artists,
