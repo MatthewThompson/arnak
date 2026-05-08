@@ -158,7 +158,7 @@ impl<'api> GameApi<'api> {
 
     /// Searches for a board game or expansion by a given ID.
     pub async fn get_by_id(&self, id: u64, query_params: &GameQueryParams) -> Result<GameDetails> {
-        let id_vec = &vec![id];
+        let id_vec = &[id];
         let query = GameQueryBuilder::new(id_vec, query_params);
 
         let request = self.api.build_request(self.endpoint, &query.build());
