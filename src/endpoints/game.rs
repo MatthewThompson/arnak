@@ -94,14 +94,14 @@ impl GameQueryParams {
 // Struct for building a query for the request to the game endpoint.
 #[derive(Clone, Debug)]
 struct GameQueryBuilder<'builder> {
-    game_ids: Vec<u64>,
+    game_ids: &'builder [u64],
     params: &'builder GameQueryParams,
 }
 
 impl<'builder> GameQueryBuilder<'builder> {
     // Constructs a new query builder from a list of IDs to request, and the rest of the
     // parameters.
-    fn new(game_ids: Vec<u64>, params: &'builder GameQueryParams) -> Self {
+    fn new(game_ids: &'builder [u64], params: &'builder GameQueryParams) -> Self {
         Self { game_ids, params }
     }
 
@@ -158,7 +158,8 @@ impl<'api> GameApi<'api> {
 
     /// Searches for a board game or expansion by a given ID.
     pub async fn get_by_id(&self, id: u64, query_params: &GameQueryParams) -> Result<GameDetails> {
-        let query = GameQueryBuilder::new(vec![id], query_params);
+        let id_vec = &vec![id];
+        let query = GameQueryBuilder::new(id_vec, query_params);
 
         let request = self.api.build_request(self.endpoint, &query.build());
         let mut games = self.api.execute_request::<Games>(request).await?;
@@ -176,7 +177,7 @@ impl<'api> GameApi<'api> {
     /// together.
     pub async fn get_by_ids(
         &self,
-        ids: Vec<u64>,
+        ids: &[u64],
         query_params: &GameQueryParams,
     ) -> Result<Vec<GameDetails>> {
         let query = GameQueryBuilder::new(ids, query_params);
@@ -190,6 +191,8 @@ impl<'api> GameApi<'api> {
 
 #[cfg(test)]
 mod tests {
+    use std::vec;
+
     use chrono::{Duration, TimeZone, Utc};
     use mockito::Matcher;
 
@@ -1177,7 +1180,10 @@ mod tests {
             .include_rating_comments(true)
             .page(1)
             .page_size(3);
-        let games = api.game().get_by_ids(vec![312_484, 341_254], &params).await;
+        let games = api
+            .game()
+            .get_by_ids(&vec![312_484, 341_254], &params)
+            .await;
         mock.assert_async().await;
 
         assert!(games.is_ok(), "error returned when okay expected");
