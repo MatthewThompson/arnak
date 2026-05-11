@@ -87,14 +87,14 @@ impl AccessoryQueryParams {
 // Struct for building a query for the request to the accessory endpoint.
 #[derive(Clone, Debug)]
 struct AccessoryQueryBuilder<'builder> {
-    game_ids: Vec<u64>,
+    game_ids: &'builder [u64],
     params: &'builder AccessoryQueryParams,
 }
 
 impl<'builder> AccessoryQueryBuilder<'builder> {
     // Constructs a new query builder from a list of IDs to request, and the rest of the
     // parameters.
-    fn new(game_ids: Vec<u64>, params: &'builder AccessoryQueryParams) -> Self {
+    fn new(game_ids: &'builder [u64], params: &'builder AccessoryQueryParams) -> Self {
         Self { game_ids, params }
     }
 
@@ -153,7 +153,8 @@ impl<'api> AccessoryApi<'api> {
         id: u64,
         query_params: &AccessoryQueryParams,
     ) -> Result<AccessoryDetails> {
-        let query = AccessoryQueryBuilder::new(vec![id], query_params);
+        let ids = &[id];
+        let query = AccessoryQueryBuilder::new(ids, query_params);
 
         let request = self.api.build_request(self.endpoint, &query.build());
         let mut accessories = self.api.execute_request::<Accessories>(request).await?;
@@ -170,7 +171,7 @@ impl<'api> AccessoryApi<'api> {
     /// Searches for board games accessories by given IDs.
     pub async fn get_by_ids(
         &self,
-        ids: Vec<u64>,
+        ids: &[u64],
         query_params: &AccessoryQueryParams,
     ) -> Result<Vec<AccessoryDetails>> {
         let query = AccessoryQueryBuilder::new(ids, query_params);
@@ -284,7 +285,7 @@ mod tests {
             .include_rating_comments(true);
         let accessory = api
             .accessory()
-            .get_by_ids(vec![22_510, 207_791], &params)
+            .get_by_ids(&vec![22_510, 207_791], &params)
             .await;
         mock.assert_async().await;
 
