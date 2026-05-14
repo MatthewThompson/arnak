@@ -58,6 +58,11 @@ pub use search_models::*;
 pub(crate) mod search;
 pub use search::*;
 
+pub(crate) mod thread_models;
+pub use thread_models::*;
+pub(crate) mod thread;
+pub use thread::*;
+
 pub(crate) mod user_models;
 pub use user_models::*;
 pub(crate) mod user;

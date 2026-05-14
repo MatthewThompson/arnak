@@ -6,10 +6,10 @@ use tokio::time::sleep;
 
 use crate::deserialize::deserialize_xml_string;
 use crate::endpoints::collection::CollectionApi;
-use crate::user::UserApi;
 use crate::{
     deserialize_maybe_error, AccessoryApi, CollectionItem, CollectionItemBrief, Error, ForumApi,
     ForumGroupApi, GameApi, GameFamilyApi, GuildApi, HotListApi, PlaysApi, Result, SearchApi,
+    ThreadApi, UserApi,
 };
 
 fn http_client_from_token(auth_token: &str) -> Result<reqwest::Client> {
@@ -123,6 +123,12 @@ impl BoardGameGeekApi {
     /// board games by name.
     pub fn search(&self) -> SearchApi<'_> {
         SearchApi::new(self)
+    }
+
+    /// Returns the thread endpoint of the API, which is used for searching for
+    /// forum threads.
+    pub fn thread(&self) -> ThreadApi<'_> {
+        ThreadApi::new(self)
     }
 
     /// Returns the user endpoint of the API, which is used for querying users
