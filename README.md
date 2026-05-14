@@ -18,7 +18,7 @@ on the respective site collections.
 This example uses [Tokio](https://tokio.rs), so it would also be needed as a dependency:
 ```toml
 [dependencies]
-arnak = { version = "0.6.0" }
+arnak = { version = "0.7.0" }
 tokio = { version = "1" }
 ```
 
@@ -40,22 +40,58 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## Endpoints
 
+### Accessory
+
+Request details for a board game accessory, such as a playmat or meeple, by ID.
+
 ### Collection
 
 For a given user, return their collection of board games. This does not just mean games owned by the user, but also ones on their wishlist,
 previously owned, etc...
 
+### Collection Brief
+
+Same as the collection endpoint, but without some additional stats for each item in the collection.
+
+### Forum
+
+Request a forum by its ID, along with the list of threads in that forum.
+
+### Forum Group
+
+Request information about a forum group, which is a list of forums under a certain domain such as for a specific game or game family. Will return the list of forums in that forum group.
+
 ### Game Family
 
 Request a family or number of families by their IDs. A game family is a group of games and expansions that fall under a certain group or name. For example Catan and Carcassone both have game families containing all of their respective expansions and related games.
+
+### Game
+
+Request details for a board game or expansion by ID.
+
+### Guild
+
+Request details about a guild and its members by ID.
+
+### Hot list
+
+Returns the top 10 currently trending games.
+
+### Plays
+
+Request recorded plays either by game or by user.
 
 ### Search
 
 Search for a game, returning everything that matches the search. Also includes a `search_exact` function that will only return exact name matches.
 
-### Hot list
+### Thread
 
-Returns the top 10 currently trending games.
+Retrieve threads by ID.
+
+### User
+
+Request user information by their username.
 
 ## Known issues
 
