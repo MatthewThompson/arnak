@@ -8,7 +8,7 @@ use crate::deserialize::deserialize_xml_string;
 use crate::endpoints::collection::CollectionApi;
 use crate::user::UserApi;
 use crate::{
-    deserialize_maybe_error, AccessoryApi, CollectionItem, CollectionItemBrief, Error,
+    deserialize_maybe_error, AccessoryApi, CollectionItem, CollectionItemBrief, Error, ForumApi,
     ForumGroupApi, GameApi, GameFamilyApi, GuildApi, HotListApi, PlaysApi, Result, SearchApi,
 };
 
@@ -75,6 +75,12 @@ impl BoardGameGeekApi {
     /// items they have manually added to the collection.
     pub fn collection_brief(&self) -> CollectionApi<'_, CollectionItemBrief> {
         CollectionApi::new(self)
+    }
+
+    /// Returns the forum endpoint of the API, which is used for querying forums to retrieved the
+    /// threads that they contain. Response returns one page of threads.
+    pub fn forum(&self) -> ForumApi<'_> {
+        ForumApi::new(self)
     }
 
     /// Returns the forum group endpoint of the API, which is used for querying forums specific to a
