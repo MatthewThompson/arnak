@@ -1,6 +1,6 @@
 use std::string::ToString;
 
-use chrono::NaiveDate;
+use chrono::{NaiveDate, NaiveDateTime};
 
 use crate::{CollectionItemType, GameType, ItemDomain, ItemSubType, ItemType, WishlistPriority};
 
@@ -47,6 +47,12 @@ impl IntoQueryParam for f32 {
 impl IntoQueryParam for &NaiveDate {
     fn into_query_param(self, key: &str) -> QueryParam<'_> {
         (key, self.format("%Y-%m-%d").to_string())
+    }
+}
+
+impl IntoQueryParam for &NaiveDateTime {
+    fn into_query_param(self, key: &str) -> QueryParam<'_> {
+        (key, self.format("%Y-%m-%d %H:%M:%S").to_string())
     }
 }
 
