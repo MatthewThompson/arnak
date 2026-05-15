@@ -241,24 +241,27 @@ pub(crate) struct XmlItemFamilyRank {
     /// such as party games or strategy games. We use this to determine whether to set it
     /// on the item's rank, or in their list of sub family ranks. But the field is not set
     /// on the actual [`GameFamilyRank`] struct
-    #[serde(rename = "type")]
+    #[serde(rename = "@type")]
     pub(crate) game_family_type: ItemFamilyType,
     /// ID of the game family.
+    #[serde(rename = "@id")]
     pub(crate) id: u64,
     /// Name of the game type. "boardgame" used as the generic subtype that
     /// includes all board games.
+    #[serde(rename = "@name")]
     pub(crate) name: String,
     /// User friendly name in the format "GENRE game rank" e.g. "Party Game
     /// Rank".
-    #[serde(rename = "friendlyname")]
+    #[serde(rename = "@friendlyname")]
     pub(crate) friendly_name: String,
     /// The overall rank on the site within this type of game.
+    #[serde(rename = "@value")]
     pub(crate) value: RankValue,
     /// The score out of 10, as a bayesian average.
     ///
     /// This is what boardgamegeek calls a Geek Rating. It is the average rating
     /// that the users have given it along with a few thousand 5.5 ratings added
     /// in too.
-    #[serde(rename = "bayesaverage")]
+    #[serde(rename = "@bayesaverage")]
     pub(crate) bayesian_average: RatingValue,
 }
