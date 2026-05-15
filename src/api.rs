@@ -162,6 +162,7 @@ impl BoardGameGeekApi {
         match parse_result {
             Ok(result) => Ok(result),
             Err(e) => {
+                dbg!(&e);
                 // The API returns a 200 but with an XML error in some cases,
                 // such as a username not found, so we try to parse that first
                 // for a more specific error.

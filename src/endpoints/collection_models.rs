@@ -24,7 +24,7 @@ pub struct Collection<T> {
     /// When a user's collection is requested, if the data is not ready the request will be queued
     /// and a 202 accepted status will be returned, with a message to
     #[serde(
-        rename = "pubdate",
+        rename = "@pubdate",
         deserialize_with = "deserialize_date_time_with_zone"
     )]
     pub published_date: DateTime<Utc>,
@@ -38,13 +38,13 @@ pub struct Collection<T> {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemBrief {
     /// The ID of the item.
-    #[serde(rename = "objectid")]
+    #[serde(rename = "@objectid")]
     pub id: u64,
     /// The collection ID of the object.
-    #[serde(rename = "collid")]
+    #[serde(rename = "@collid")]
     pub collection_id: u64,
     /// The type of collection item, which will either be boardgame, expansion, or accessory.
-    #[serde(rename = "subtype")]
+    #[serde(rename = "@subtype")]
     pub item_type: CollectionItemType,
     /// The name of the item.
     pub name: String,
@@ -63,13 +63,13 @@ pub struct CollectionItemBrief {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItem {
     /// The ID of the item.
-    #[serde(rename = "objectid")]
+    #[serde(rename = "@objectid")]
     pub id: u64,
     /// The collection ID of the object.
-    #[serde(rename = "collid")]
+    #[serde(rename = "@collid")]
     pub collection_id: u64,
     /// The type of collection item, which will either be boardgame, expansion, or accessory.
-    #[serde(rename = "subtype")]
+    #[serde(rename = "@subtype")]
     pub item_type: CollectionItemType,
     /// The name of the item.
     pub name: String,
@@ -99,34 +99,34 @@ pub struct CollectionItem {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemStatus {
     /// User owns the item.
-    #[serde(deserialize_with = "deserialize_1_0_bool")]
+    #[serde(rename = "@own", deserialize_with = "deserialize_1_0_bool")]
     pub own: bool,
     /// User has previously owned the item.
-    #[serde(rename = "prevowned", deserialize_with = "deserialize_1_0_bool")]
+    #[serde(rename = "@prevowned", deserialize_with = "deserialize_1_0_bool")]
     pub previously_owned: bool,
     /// User wants to trade away the item.
-    #[serde(rename = "fortrade", deserialize_with = "deserialize_1_0_bool")]
+    #[serde(rename = "@fortrade", deserialize_with = "deserialize_1_0_bool")]
     pub for_trade: bool,
     /// User wants to receive the item in a trade.
-    #[serde(rename = "want", deserialize_with = "deserialize_1_0_bool")]
+    #[serde(rename = "@want", deserialize_with = "deserialize_1_0_bool")]
     pub want_in_trade: bool,
     /// User wants to play the item.
-    #[serde(rename = "wanttoplay", deserialize_with = "deserialize_1_0_bool")]
+    #[serde(rename = "@wanttoplay", deserialize_with = "deserialize_1_0_bool")]
     pub want_to_play: bool,
     /// User wants to buy the item.
-    #[serde(rename = "wanttobuy", deserialize_with = "deserialize_1_0_bool")]
+    #[serde(rename = "@wanttobuy", deserialize_with = "deserialize_1_0_bool")]
     pub want_to_buy: bool,
     /// User pre-ordered the item.
-    #[serde(rename = "preordered", deserialize_with = "deserialize_1_0_bool")]
+    #[serde(rename = "@preordered", deserialize_with = "deserialize_1_0_bool")]
     pub pre_ordered: bool,
     /// User has the item on their wishlist.
-    #[serde(deserialize_with = "deserialize_1_0_bool")]
+    #[serde(rename = "@wishlist", deserialize_with = "deserialize_1_0_bool")]
     pub wishlist: bool,
     /// The priority of the wishlist.
-    #[serde(default, rename = "wishlistpriority")]
+    #[serde(default, rename = "@wishlistpriority")]
     pub wishlist_priority: Option<WishlistPriority>,
     /// When the collection status was last modified.
-    #[serde(rename = "lastmodified", deserialize_with = "deserialize_date_time")]
+    #[serde(rename = "@lastmodified", deserialize_with = "deserialize_date_time")]
     pub last_modified: DateTime<Utc>,
 }
 
@@ -191,34 +191,34 @@ where
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemStatsBrief {
     /// Minimum players the game supports.
-    #[serde(default, rename = "minplayers")]
+    #[serde(default, rename = "@minplayers")]
     pub min_players: u32,
     /// Maximum players the game supports.
-    #[serde(default, rename = "maxplayers")]
+    #[serde(default, rename = "@maxplayers")]
     pub max_players: u32,
     /// Minimum amount of time the game is suggested to take to play.
     #[serde(
         default,
-        rename = "minplaytime",
+        rename = "@minplaytime",
         deserialize_with = "deserialize_minutes"
     )]
     pub min_playtime: Duration,
     /// Maximum amount of time the game is suggested to take to play.
     #[serde(
         default,
-        rename = "maxplaytime",
+        rename = "@maxplaytime",
         deserialize_with = "deserialize_minutes"
     )]
     pub max_playtime: Duration,
     /// The amount of time the game is suggested to take to play.
     #[serde(
         default,
-        rename = "playingtime",
+        rename = "@playingtime",
         deserialize_with = "deserialize_minutes"
     )]
     pub playing_time: Duration,
     /// The number of people that own this game.
-    #[serde(rename = "numowned")]
+    #[serde(rename = "@numowned")]
     pub owned_by: u64,
     /// Information about the rating that this user, as well as all users, have
     /// given this game.
@@ -230,34 +230,34 @@ pub struct CollectionItemStatsBrief {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct CollectionItemStats {
     /// Minimum players the game supports.
-    #[serde(default, rename = "minplayers")]
+    #[serde(default, rename = "@minplayers")]
     pub min_players: u32,
     /// Maximum players the game supports.
-    #[serde(default, rename = "maxplayers")]
+    #[serde(default, rename = "@maxplayers")]
     pub max_players: u32,
     /// Minimum amount of time the game is suggested to take to play.
     #[serde(
         default,
-        rename = "minplaytime",
+        rename = "@minplaytime",
         deserialize_with = "deserialize_minutes"
     )]
     pub min_playtime: Duration,
     /// Maximum amount of time the game is suggested to take to play.
     #[serde(
         default,
-        rename = "maxplaytime",
+        rename = "@maxplaytime",
         deserialize_with = "deserialize_minutes"
     )]
     pub max_playtime: Duration,
     /// The amount of time the game is suggested to take to play.
     #[serde(
         default,
-        rename = "playingtime",
+        rename = "@playingtime",
         deserialize_with = "deserialize_minutes"
     )]
     pub playing_time: Duration,
     /// The number of people that own this game.
-    #[serde(rename = "numowned")]
+    #[serde(rename = "@numowned")]
     pub owned_by: u64,
     /// Information about the rating that this user, as well as all users, have
     /// given this game.
@@ -283,6 +283,7 @@ impl<'de> Deserialize<'de> for CollectionItemRatingBrief {
         #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "lowercase")]
         enum Field {
+            #[serde(rename = "@value")]
             Value,
             Average,
             BayesAverage,
@@ -324,15 +325,15 @@ impl<'de> Deserialize<'de> for CollectionItemRatingBrief {
                             if average.is_some() {
                                 return Err(serde::de::Error::duplicate_field("average"));
                             }
-                            let average_xml_tag: XmlFloatValue = map.next_value()?;
-                            average = Some(average_xml_tag.value);
+                            let average_xml: XmlFloatValue = map.next_value()?;
+                            average = Some(average_xml.value);
                         },
                         Field::BayesAverage => {
                             if bayesian_average.is_some() {
                                 return Err(serde::de::Error::duplicate_field("bayesaverage"));
                             }
-                            let bayesian_average_xml_tag: XmlFloatValue = map.next_value()?;
-                            bayesian_average = Some(bayesian_average_xml_tag.value);
+                            let bayesian_average_xml: XmlFloatValue = map.next_value()?;
+                            bayesian_average = Some(bayesian_average_xml.value);
                         },
                     }
                 }
@@ -348,7 +349,12 @@ impl<'de> Deserialize<'de> for CollectionItemRatingBrief {
                 })
             }
         }
-        deserializer.deserialize_any(CollectionItemRatingBriefVisitor)
+        const FIELDS: &[&str] = &["@value", "average", "bayesaverage"];
+        deserializer.deserialize_struct(
+            "CollectionItemRatingBrief",
+            FIELDS,
+            CollectionItemRatingBriefVisitor,
+        )
     }
 }
 
@@ -382,6 +388,7 @@ impl<'de> Deserialize<'de> for CollectionItemRating {
         #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "lowercase")]
         enum Field {
+            #[serde(rename = "@value")]
             Value,
             UsersRated,
             Average,
@@ -432,36 +439,36 @@ impl<'de> Deserialize<'de> for CollectionItemRating {
                             if users_rated.is_some() {
                                 return Err(serde::de::Error::duplicate_field("usersrated"));
                             }
-                            let users_rated_xml_tag: XmlIntValue = map.next_value()?;
-                            users_rated = Some(users_rated_xml_tag.value);
+                            let users_rated_xml: XmlIntValue = map.next_value()?;
+                            users_rated = Some(users_rated_xml.value);
                         },
                         Field::Average => {
                             if average.is_some() {
                                 return Err(serde::de::Error::duplicate_field("average"));
                             }
-                            let average_xml_tag: XmlFloatValue = map.next_value()?;
-                            average = Some(average_xml_tag.value);
+                            let average_xml: XmlFloatValue = map.next_value()?;
+                            average = Some(average_xml.value);
                         },
                         Field::Bayesaverage => {
                             if bayesian_average.is_some() {
                                 return Err(serde::de::Error::duplicate_field("bayesaverage"));
                             }
-                            let bayesian_average_xml_tag: XmlFloatValue = map.next_value()?;
-                            bayesian_average = Some(bayesian_average_xml_tag.value);
+                            let bayesian_average_xml: XmlFloatValue = map.next_value()?;
+                            bayesian_average = Some(bayesian_average_xml.value);
                         },
                         Field::StdDev => {
                             if standard_deviation.is_some() {
                                 return Err(serde::de::Error::duplicate_field("stddev"));
                             }
-                            let standard_deviation_xml_tag: XmlFloatValue = map.next_value()?;
-                            standard_deviation = Some(standard_deviation_xml_tag.value);
+                            let standard_deviation_xml: XmlFloatValue = map.next_value()?;
+                            standard_deviation = Some(standard_deviation_xml.value);
                         },
                         Field::Median => {
                             if median.is_some() {
                                 return Err(serde::de::Error::duplicate_field("median"));
                             }
-                            let median_xml_tag: XmlFloatValue = map.next_value()?;
-                            median = Some(median_xml_tag.value);
+                            let median_xml: XmlFloatValue = map.next_value()?;
+                            median = Some(median_xml.value);
                         },
                         Field::Ranks => {
                             let ranks_xml: XmlRanks = map.next_value()?;
@@ -497,7 +504,16 @@ impl<'de> Deserialize<'de> for CollectionItemRating {
                 })
             }
         }
-        deserializer.deserialize_any(CollectionItemRatingVisitor)
+        const FIELDS: &[&str] = &[
+            "@value",
+            "usersrated",
+            "average",
+            "bayesaverage",
+            "stddev",
+            "median",
+            "ranks",
+        ];
+        deserializer.deserialize_struct("CollectionItemRating", FIELDS, CollectionItemRatingVisitor)
     }
 }
 
