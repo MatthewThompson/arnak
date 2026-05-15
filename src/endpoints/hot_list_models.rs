@@ -34,7 +34,9 @@ impl<'de> Deserialize<'de> for HotListGame {
         #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "lowercase")]
         enum Field {
+            #[serde(rename = "@id")]
             ID,
+            #[serde(rename = "@rank")]
             Rank,
             Thumbnail,
             Name,
@@ -87,22 +89,22 @@ impl<'de> Deserialize<'de> for HotListGame {
                             if thumbnail.is_some() {
                                 return Err(serde::de::Error::duplicate_field("thumbnail"));
                             }
-                            let thumbnail_xml_tag: XmlStringValue = map.next_value()?;
-                            thumbnail = Some(thumbnail_xml_tag.value);
+                            let thumbnail_xml: XmlStringValue = map.next_value()?;
+                            thumbnail = Some(thumbnail_xml.value);
                         },
                         Field::Name => {
                             if name.is_some() {
                                 return Err(serde::de::Error::duplicate_field("name"));
                             }
-                            let name_xml_tag: XmlStringValue = map.next_value()?;
-                            name = Some(name_xml_tag.value);
+                            let name_xml: XmlStringValue = map.next_value()?;
+                            name = Some(name_xml.value);
                         },
                         Field::YearPublished => {
                             if year_published.is_some() {
                                 return Err(serde::de::Error::duplicate_field("yearpublished"));
                             }
-                            let year_published_xml_tag: XmlSignedValue = map.next_value()?;
-                            year_published = Some(year_published_xml_tag.value);
+                            let year_published_xml: XmlSignedValue = map.next_value()?;
+                            year_published = Some(year_published_xml.value);
                         },
                     }
                 }
@@ -120,6 +122,7 @@ impl<'de> Deserialize<'de> for HotListGame {
                 })
             }
         }
-        deserializer.deserialize_any(HotListGameVisitor)
+        const FIELDS: &[&str] = &["@id", "@rank", "thumbnail", "name", "yearpublished"];
+        deserializer.deserialize_struct("HotListGame", FIELDS, HotListGameVisitor)
     }
 }

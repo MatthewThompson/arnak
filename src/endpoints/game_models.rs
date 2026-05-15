@@ -129,7 +129,7 @@ pub struct GameDetails {
 
 /// Various statistics for the game, including the number of users who own the game as
 /// well as the ratings.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct GameStats {
     /// The number of users who have rated this game.
     pub users_rated: u64,
@@ -232,6 +232,7 @@ struct PollSummaryWithName {
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 struct PollSummaryXml {
+    #[serde(rename = "@name")]
     name: String,
     #[serde(rename = "result")]
     results: Vec<PollSummaryResult>,
@@ -239,7 +240,9 @@ struct PollSummaryXml {
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 struct PollSummaryResult {
+    #[serde(rename = "@name")]
     name: String,
+    #[serde(rename = "@value")]
     value: String,
 }
 
@@ -532,11 +535,13 @@ impl TryFrom<Poll> for LanguageDependencePoll {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 struct Poll {
     // Fixed slug name for the poll.
+    #[serde(rename = "@name")]
     name: String,
     // Pretty formatted title for the poll.
+    #[serde(rename = "@title")]
     title: String,
     // The total number of users who have voted on this poll.
-    #[serde(rename = "totalvotes")]
+    #[serde(rename = "@totalvotes")]
     total_voters: u64,
     // List of results.
     results: Vec<PollResults>,
@@ -546,7 +551,7 @@ struct Poll {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 struct PollResults {
     // Only included in the player count vote, the number of players this vote result is for.
-    #[serde(default, rename = "numplayers")]
+    #[serde(default, rename = "@numplayers")]
     number_of_players: Option<PlayerCount>,
     // List of results.
     #[serde(rename = "result")]
@@ -559,11 +564,13 @@ struct PollResult {
     // Only included for language dependence poll, level of dependence where the higher the value
     // the more dependent the game is on knowing the language.
     #[serde(default)]
+    #[serde(rename = "@level")]
     level: Option<u64>,
     // Name of the vote option.
+    #[serde(rename = "@value")]
     value: String,
     // How many people voted for it.
-    #[serde(rename = "numvotes")]
+    #[serde(rename = "@numvotes")]
     number_of_votes: u64,
 }
 
@@ -620,13 +627,21 @@ impl<'de> Deserialize<'de> for Video {
         #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "lowercase")]
         enum Field {
+            #[serde(rename = "@id")]
             Id,
+            #[serde(rename = "@title")]
             Title,
+            #[serde(rename = "@category")]
             Category,
+            #[serde(rename = "@language")]
             Language,
+            #[serde(rename = "@link")]
             Link,
+            #[serde(rename = "@username")]
             Username,
+            #[serde(rename = "@userid")]
             UserId,
+            #[serde(rename = "@postdate")]
             PostDate,
         }
 
@@ -730,7 +745,17 @@ impl<'de> Deserialize<'de> for Video {
                 })
             }
         }
-        deserializer.deserialize_any(VideoVisitor)
+        const FIELDS: &[&str] = &[
+            "@id",
+            "@title",
+            "@category",
+            "@language",
+            "@link",
+            "@username",
+            "@userid",
+            "@postdate",
+        ];
+        deserializer.deserialize_struct("Video", FIELDS, VideoVisitor)
     }
 }
 
@@ -762,10 +787,12 @@ pub struct MarketplaceListing {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Price {
     /// The name of the currency for this price value.
+    #[serde(rename = "@currency")]
     pub currency: String,
     /// The amount the game costs, as a string so the consumer can decide
     /// to convert to float, or a decimal, or an integer for the dollar/euro/gbp and another
     /// integer for the cents/pence or keep as a string depending on use case.
+    #[serde(rename = "@value")]
     pub value: String,
 }
 
@@ -773,9 +800,11 @@ pub struct Price {
 #[derive(Debug, Deserialize)]
 struct XmlMarketplaceLink {
     // Link to this listing on the site.
+    #[serde(rename = "@href")]
     href: String,
     // Fixed at `marketlisting` so we don't include it in the proper type.
     #[allow(dead_code)]
+    #[serde(rename = "@title")]
     title: String,
 }
 
@@ -798,6 +827,7 @@ pub enum ItemCondition {
 // XML representation of the market place listing condition
 #[derive(Debug, Deserialize)]
 pub(crate) struct XmlGameCondition {
+    #[serde(rename = "@value")]
     pub(crate) value: ItemCondition,
 }
 
@@ -886,7 +916,8 @@ impl<'de> Deserialize<'de> for MarketplaceListing {
                 })
             }
         }
-        deserializer.deserialize_any(MarketplaceListingVisitor)
+        const FIELDS: &[&str] = &["listdate", "price", "condition", "notes", "link"];
+        deserializer.deserialize_struct("MarketplaceListing", FIELDS, MarketplaceListingVisitor)
     }
 }
 
@@ -894,10 +925,10 @@ impl<'de> Deserialize<'de> for MarketplaceListing {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct RatingCommentPage {
     /// The total number of comments overall, not the number in this page.
-    #[serde(rename = "totalitems")]
+    #[serde(rename = "@totalitems")]
     pub total_items: u64,
     /// The index of this page, starting from 1.
-    #[serde(rename = "page")]
+    #[serde(rename = "@page")]
     pub page_number: u64,
     /// A list of members in this guid.
     #[serde(rename = "comment")]
@@ -908,12 +939,13 @@ pub struct RatingCommentPage {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct RatingComment {
     /// The user who left the comment.
+    #[serde(rename = "@username")]
     pub username: String,
     /// The rating, between 0 and 10, that the user left on the game.
-    #[serde(deserialize_with = "deserialize_rating")]
+    #[serde(rename = "@rating", deserialize_with = "deserialize_rating")]
     pub rating: Option<f64>,
     /// The text comment the user left on this game, may be empty.
-    #[serde(rename = "value")]
+    #[serde(rename = "@value")]
     pub comment: String,
 }
 
@@ -942,8 +974,10 @@ impl<'de> Deserialize<'de> for GameDetails {
         #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "lowercase")]
         enum Field {
-            Type,
+            #[serde(rename = "@id")]
             Id,
+            #[serde(rename = "@type")]
+            Type,
             Thumbnail,
             Image,
             Name,
@@ -1392,6 +1426,29 @@ impl<'de> Deserialize<'de> for GameDetails {
                 })
             }
         }
-        deserializer.deserialize_any(GameDetailsVisitor)
+        const FIELDS: &[&str] = &[
+            "@id",
+            "@type",
+            "thumbnail",
+            "image",
+            "name",
+            "description",
+            "yearpublished",
+            "minplayers",
+            "maxplayers",
+            "playingtime",
+            "minplaytime",
+            "maxplaytime",
+            "minage",
+            "link",
+            "poll",
+            "poll-summary",
+            "statistics",
+            "versions",
+            "videos",
+            "marketplacelistings",
+            "comments",
+        ];
+        deserializer.deserialize_struct("GameDetails", FIELDS, GameDetailsVisitor)
     }
 }

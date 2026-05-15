@@ -163,7 +163,7 @@ impl<'api> AccessoryApi<'api> {
             0 => Err(Error::ItemNotFound),
             1 => Ok(accessories.accessories.remove(0)),
             len => Err(Error::UnexpectedResponseError(format!(
-                "expected 1 game but got {len}",
+                "expected 1 accessory but got {len}",
             ))),
         }
     }

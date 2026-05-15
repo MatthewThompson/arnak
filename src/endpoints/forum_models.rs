@@ -7,14 +7,16 @@ use crate::deserialize::deserialize_date_time_with_zone;
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Forum {
     /// The unique identifier for this forum.
+    #[serde(rename = "@id")]
     pub id: u64,
     /// The title of the forum, containing the topic that the threads should be related to.
+    #[serde(rename = "@title")]
     pub title: String,
     /// The total number of threads in this forum.
-    #[serde(rename = "numthreads")]
+    #[serde(rename = "@numthreads")]
     pub number_of_threads: u64,
     /// The total number of posts in all the threads in this forum.
-    #[serde(rename = "numposts")]
+    #[serde(rename = "@numposts")]
     pub number_of_posts: u64,
     /// Metadata for the threads in this forum
     #[serde(
@@ -34,23 +36,26 @@ pub struct Forum {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct ThreadDetails {
     /// The ID of the thread.
+    #[serde(rename = "@id")]
     pub id: u64,
     /// The subject of the thread.
+    #[serde(rename = "@subject")]
     pub subject: String,
     /// The user that created the thread.
+    #[serde(rename = "@author")]
     pub author: String,
     /// The number of posts in the thread.
-    #[serde(rename = "numarticles")]
+    #[serde(rename = "@numarticles")]
     pub number_of_articles: u64,
     /// The date that the thread was posted.
     #[serde(
-        rename = "postdate",
+        rename = "@postdate",
         deserialize_with = "deserialize_date_time_with_zone"
     )]
     pub post_date: DateTime<Utc>,
     /// The date that the last post in the thread was posted.
     #[serde(
-        rename = "lastpostdate",
+        rename = "@lastpostdate",
         deserialize_with = "deserialize_date_time_with_zone"
     )]
     pub last_post_date: DateTime<Utc>,

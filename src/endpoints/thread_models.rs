@@ -5,11 +5,13 @@ use serde::Deserialize;
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Thread {
     /// ID of the thread.
+    #[serde(rename = "@id")]
     pub id: u64,
     /// The number of articles in the thread.
-    #[serde(rename = "numarticles")]
+    #[serde(rename = "@numarticles")]
     pub number_of_articles: u64,
     /// Link to the thread in boardgamegeek.com.
+    #[serde(rename = "@link")]
     pub link: String,
     /// Topic for the thread.
     pub subject: String,
@@ -27,19 +29,22 @@ pub struct Thread {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct ThreadPost {
     /// ID of the post.
+    #[serde(rename = "@id")]
     pub id: u64,
     /// The username of the user who posted.
+    #[serde(rename = "@username")]
     pub username: String,
     /// Link to the post in boardgamegeek.com.
+    #[serde(rename = "@link")]
     pub link: String,
     /// The date the post was posted.
-    #[serde(rename = "postdate")]
+    #[serde(rename = "@postdate")]
     pub post_date: DateTime<Utc>,
     /// The date of the most recent edit, same as post date if no edits..
-    #[serde(rename = "editdate")]
+    #[serde(rename = "@editdate")]
     pub edit_date: DateTime<Utc>,
     /// The number of times this post has been edited
-    #[serde(rename = "numedits")]
+    #[serde(rename = "@numedits")]
     pub number_of_edits: u64,
     /// The subject, which is often the same as the thread subject for the first post, and "Re:
     /// that subject" for the rest.

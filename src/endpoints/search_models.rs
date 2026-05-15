@@ -33,7 +33,9 @@ impl<'de> Deserialize<'de> for SearchResult {
         #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "lowercase")]
         enum Field {
+            #[serde(rename = "@id")]
             ID,
+            #[serde(rename = "@type")]
             Type,
             Name,
             YearPublished,
@@ -103,6 +105,7 @@ impl<'de> Deserialize<'de> for SearchResult {
                 })
             }
         }
-        deserializer.deserialize_any(SearchResultVisitor)
+        const FIELDS: &[&str] = &["@id", "@type", "name", "yearpublished"];
+        deserializer.deserialize_struct("SearchResult", FIELDS, SearchResultVisitor)
     }
 }

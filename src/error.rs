@@ -132,7 +132,7 @@ pub(crate) fn deserialize_maybe_error(api_response: &str) -> Option<Error> {
 // of `message` tags. Usually with just one error inside.
 #[derive(Debug, Deserialize)]
 pub(crate) struct ApiXmlErrorList {
-    #[serde(rename = "$value")]
+    #[serde(rename = "#content")]
     errors: Vec<ApiXmlError>,
 }
 

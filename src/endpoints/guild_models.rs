@@ -8,12 +8,14 @@ use crate::deserialize::deserialize_date_time_with_zone;
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Guild {
     /// The ID of the guild.
+    #[serde(rename = "@id")]
     pub id: u64,
     /// The name of the guild.
+    #[serde(rename = "@name")]
     pub name: String,
     /// The date and time the guild was created.
     #[serde(
-        rename = "created",
+        rename = "@created",
         deserialize_with = "deserialize_date_time_with_zone"
     )]
     pub created_at: DateTime<Utc>,
@@ -40,10 +42,10 @@ pub struct Guild {
 pub struct MemberPage {
     /// The total number of members in the guild. Not the number in this
     /// page.
-    #[serde(rename = "count")]
+    #[serde(rename = "@count")]
     pub total_members: u64,
     /// The index of this page, starting from 1.
-    #[serde(rename = "page")]
+    #[serde(rename = "@page")]
     pub page_number: u64,
     /// A list of members in this guid.
     #[serde(rename = "member")]
@@ -56,9 +58,10 @@ pub struct MemberPage {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Member {
     /// The username of the guild member.
+    #[serde(rename = "@name")]
     pub name: String,
     /// The date and time the user joined the guild, in Utc.
-    #[serde(rename = "date", deserialize_with = "deserialize_date_time_with_zone")]
+    #[serde(rename = "@date", deserialize_with = "deserialize_date_time_with_zone")]
     pub date_joined: DateTime<Utc>,
 }
 

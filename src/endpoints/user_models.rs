@@ -61,14 +61,17 @@ struct ItemList {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct ListItem {
     /// The ID of this item.
+    #[serde(rename = "@id")]
     pub id: u64,
     /// The name of the game or person. It can also be a name of a mechanic such as worker
     /// placement.
+    #[serde(rename = "@name")]
     pub name: String,
     /// A number 1 through 10, with 1 being top of the list.
+    #[serde(rename = "@rank")]
     pub rank: u64,
     /// The type of item, which may be a game, person, event.
-    #[serde(rename = "type")]
+    #[serde(rename = "@type")]
     pub item_type: ListItemType,
 }
 
@@ -98,8 +101,10 @@ pub enum ListItemType {
 #[derive(Clone, Debug, Default, Deserialize, PartialEq)]
 pub struct GuildList {
     /// The total number of guilds this user belongs to.
+    #[serde(rename = "@total")]
     pub total: u64,
     /// The page number for the guilds in the list.
+    #[serde(rename = "@page")]
     pub page: u64,
     /// The list of guilds.
     #[serde(default, rename = "guild")]
@@ -110,8 +115,10 @@ pub struct GuildList {
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 pub struct GuildBrief {
     /// The ID of the guild.
+    #[serde(rename = "@id")]
     pub id: u64,
     /// The name of the guild that the user belongs to.
+    #[serde(rename = "@name")]
     pub name: String,
 }
 
@@ -120,8 +127,10 @@ pub struct GuildBrief {
 #[derive(Clone, Debug, Default, Deserialize, PartialEq)]
 pub struct BuddyList {
     /// The total number of buddies this user has.
+    #[serde(rename = "@total")]
     pub total: u64,
     /// The page number for the buddies in the list.
+    #[serde(rename = "@page")]
     pub page: u64,
     /// The list of buddies.
     #[serde(default, rename = "buddy")]
@@ -132,8 +141,10 @@ pub struct BuddyList {
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 pub struct Buddy {
     /// The ID of the user.
+    #[serde(rename = "@id")]
     pub id: u64,
     /// The user's username.
+    #[serde(rename = "@name")]
     pub name: String,
 }
 
@@ -142,8 +153,11 @@ impl<'de> Deserialize<'de> for User {
         #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "lowercase")]
         enum Field {
+            #[serde(rename = "@termsofuse")]
             TermsOfUse,
+            #[serde(rename = "@id")]
             Id,
+            #[serde(rename = "@name")]
             Name,
             FirstName,
             LastName,
@@ -408,6 +422,29 @@ impl<'de> Deserialize<'de> for User {
                 })
             }
         }
-        deserializer.deserialize_any(UserVisitor)
+        const FIELDS: &[&str] = &[
+            "@termsofuse",
+            "@id",
+            "@name",
+            "firstname",
+            "lastname",
+            "avatarlink",
+            "yearregistered",
+            "lastlogin",
+            "stateorprovince",
+            "country",
+            "webaddress",
+            "xboxaccount",
+            "wiiaccount",
+            "psnaccount",
+            "battlenetaccount",
+            "steamaccount",
+            "traderating",
+            "top",
+            "hot",
+            "guilds",
+            "buddies",
+        ];
+        deserializer.deserialize_struct("User", FIELDS, UserVisitor)
     }
 }
