@@ -21,6 +21,8 @@
 
 #![deny(clippy::pedantic, clippy::cargo)]
 #![allow(
+    // Hard to avoid, can be caused by dev dependencies too
+    clippy::multiple_crate_versions,
     // Seems to be returning false positives on CI.
     clippy::needless_lifetimes,
     // Collection status would indeed be better as an enum, but the problem is that it is technically allowed for the
