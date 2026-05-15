@@ -76,6 +76,7 @@ pub(crate) struct XmlAccessoryVersions {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct AccessoryVersion {
     /// The ID of this accessory.
+    #[serde(rename = "@id")]
     pub id: u64,
     /// The name of the accessory.
     #[serde(
