@@ -762,10 +762,12 @@ pub struct MarketplaceListing {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Price {
     /// The name of the currency for this price value.
+    #[serde(rename = "@currency")]
     pub currency: String,
     /// The amount the game costs, as a string so the consumer can decide
     /// to convert to float, or a decimal, or an integer for the dollar/euro/gbp and another
     /// integer for the cents/pence or keep as a string depending on use case.
+    #[serde(rename = "@value")]
     pub value: String,
 }
 
@@ -773,9 +775,11 @@ pub struct Price {
 #[derive(Debug, Deserialize)]
 struct XmlMarketplaceLink {
     // Link to this listing on the site.
+    #[serde(rename = "@href")]
     href: String,
     // Fixed at `marketlisting` so we don't include it in the proper type.
     #[allow(dead_code)]
+    #[serde(rename = "@title")]
     title: String,
 }
 
@@ -886,7 +890,14 @@ impl<'de> Deserialize<'de> for MarketplaceListing {
                 })
             }
         }
-        deserializer.deserialize_any(MarketplaceListingVisitor)
+        const FIELDS: &[&str] = &[
+            "listdate",
+            "price",
+            "condition",
+            "notes",
+            "link",
+        ];
+        deserializer.deserialize_struct("MarketplaceListing", FIELDS, MarketplaceListingVisitor)
     }
 }
 
@@ -894,10 +905,10 @@ impl<'de> Deserialize<'de> for MarketplaceListing {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct RatingCommentPage {
     /// The total number of comments overall, not the number in this page.
-    #[serde(rename = "totalitems")]
+    #[serde(rename = "@totalitems")]
     pub total_items: u64,
     /// The index of this page, starting from 1.
-    #[serde(rename = "page")]
+    #[serde(rename = "@page")]
     pub page_number: u64,
     /// A list of members in this guid.
     #[serde(rename = "comment")]
@@ -908,12 +919,13 @@ pub struct RatingCommentPage {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct RatingComment {
     /// The user who left the comment.
+    #[serde(rename = "@username")]
     pub username: String,
     /// The rating, between 0 and 10, that the user left on the game.
-    #[serde(deserialize_with = "deserialize_rating")]
+    #[serde(rename = "@rating", deserialize_with = "deserialize_rating")]
     pub rating: Option<f64>,
     /// The text comment the user left on this game, may be empty.
-    #[serde(rename = "value")]
+    #[serde(rename = "@value")]
     pub comment: String,
 }
 
