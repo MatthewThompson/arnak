@@ -10,16 +10,18 @@ use crate::ItemSubType;
 pub struct Plays {
     /// The username of the user that these plays were requested for. Not included if the plays for
     /// a particular game was requested.
-    #[serde(default)]
+    #[serde(default, rename = "@username")]
     pub username: String,
     /// The ID of the user that these plays were requested for. Not included if the plays for a
     /// particular game was requested.
-    #[serde(default, rename = "userid")]
+    #[serde(default, rename = "@userid")]
     pub user_id: u64,
     /// The total number of plays for the query, only up to 100 being returned depending on the
     /// requested page.
+    #[serde(rename = "@total")]
     pub total: u64,
     /// The page of plays that is returned in the `plays` field of this object. Page size is 100.
+    #[serde(rename = "@page")]
     pub page: u64,
     /// The list of plays, each item in the list being a recorded instance of someone playing a
     /// game or other item. Includes various information about the session including who played and
@@ -32,20 +34,25 @@ pub struct Plays {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Play {
     /// ID of this play.
+    #[serde(rename = "@id")]
     pub id: u64,
     /// The date that the session happened.
+    #[serde(rename = "@date")]
     pub date: NaiveDate,
     /// The number of times the game was played in this session.
+    #[serde(rename = "@quantity")]
     pub quantity: u64,
     /// How long the play session lasted for.
-    #[serde(default, rename = "length", deserialize_with = "deserialize_minutes")]
+    #[serde(default, rename = "@length", deserialize_with = "deserialize_minutes")]
     pub duration: Duration,
     /// True if the game was not finished in this play.
+    #[serde(rename = "@incomplete")]
     pub incomplete: bool,
     /// Where the game was played.
+    #[serde(rename = "@location")]
     pub location: String,
     /// An option to "Save play details but don't use when analyzing plays.".
-    #[serde(rename = "nowinstats")]
+    #[serde(rename = "@nowinstats")]
     pub do_not_count_win_stats: bool,
     /// The game or other item that was played in this session.
     #[serde(rename = "item")]
@@ -65,9 +72,10 @@ pub struct Play {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct PlayedItem {
     /// The name of the item that was played.
+    #[serde(rename = "@name")]
     pub name: String,
     /// The unique identifier for this item.
-    #[serde(rename = "objectid")]
+    #[serde(rename = "@objectid")]
     pub id: u64,
     /// The list of types the item is, such as board game, or board game and board game expansion.
     #[serde(
@@ -88,6 +96,7 @@ struct SubTypesXml {
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 struct SubTypeXml {
+    #[serde(rename = "@value")]
     value: ItemSubType,
 }
 
@@ -124,26 +133,31 @@ where
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Player {
     /// The player's Boardgamegeek username, if they have one.
+    #[serde(rename = "@username")]
     pub username: Option<String>,
     /// The player's Boardgamegeek user ID, if they have one.
-    #[serde(rename = "userid")]
+    #[serde(rename = "@userid")]
     pub user_id: Option<u64>,
     /// The player's name.
+    #[serde(rename = "@name")]
     pub name: String,
     /// The player's in game start position. Arbitrary user input is allowed so this is a string
     /// not a number.
-    #[serde(rename = "startposition")]
+    #[serde(rename = "@startposition")]
     pub start_position: String,
     /// The player's in game color.
+    #[serde(rename = "@color")]
     pub color: String,
     /// The player's in game score.
+    #[serde(rename = "@score")]
     pub score: String,
     /// True if this was the first time this player played this game.
-    #[serde(rename = "new")]
+    #[serde(rename = "@new")]
     pub first_time_playing: bool,
     /// The player's rating of the game.
+    #[serde(rename = "@rating")]
     pub rating: u64,
     /// True if this player won the game.
-    #[serde(rename = "win")]
+    #[serde(rename = "@win")]
     pub won: bool,
 }
