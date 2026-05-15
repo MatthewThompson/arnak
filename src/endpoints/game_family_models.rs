@@ -39,14 +39,16 @@ impl<'de> Deserialize<'de> for GameFamily {
         #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "lowercase")]
         enum Field {
+            #[serde(rename = "@id")]
             Id,
+            #[serde(rename = "@type")]
+            Type,
             Name,
             Image,
             Thumbnail,
             Description,
             // Each game is in an individual XML tag called `link`
             Link,
-            Type,
         }
 
         struct GameFamilyVisitor;
@@ -153,6 +155,15 @@ impl<'de> Deserialize<'de> for GameFamily {
                 })
             }
         }
-        deserializer.deserialize_any(GameFamilyVisitor)
+        const FIELDS: &[&str] = &[
+            "@id",
+            "@type",
+            "thumbnail",
+            "image",
+            "name",
+            "description",
+            "link",
+        ];
+        deserializer.deserialize_struct("GameFamily", FIELDS, GameFamilyVisitor)
     }
 }
