@@ -105,12 +105,7 @@ impl<'de> Deserialize<'de> for SearchResult {
                 })
             }
         }
-        const FIELDS: &[&str] = &[
-            "@id",
-            "@type",
-            "name",
-            "yearpublished",
-        ];
+        const FIELDS: &[&str] = &["@id", "@type", "name", "yearpublished"];
         deserializer.deserialize_struct("SearchResult", FIELDS, SearchResultVisitor)
     }
 }

@@ -122,13 +122,7 @@ impl<'de> Deserialize<'de> for HotListGame {
                 })
             }
         }
-        const FIELDS: &[&str] = &[
-            "@id",
-            "@rank",
-            "thumbnail",
-            "name",
-            "yearpublished",
-        ];
+        const FIELDS: &[&str] = &["@id", "@rank", "thumbnail", "name", "yearpublished"];
         deserializer.deserialize_struct("HotListGame", FIELDS, HotListGameVisitor)
     }
 }
