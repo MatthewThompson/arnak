@@ -102,7 +102,9 @@ impl<'de> Deserialize<'de> for AccessoryDetails {
         #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "lowercase")]
         enum Field {
+            #[serde(rename = "@id")]
             Id,
+            #[serde(rename = "@type")]
             Type,
             Thumbnail,
             Image,
@@ -289,6 +291,19 @@ impl<'de> Deserialize<'de> for AccessoryDetails {
                 })
             }
         }
-        deserializer.deserialize_any(AccessoryDetailsVisitor)
+        const FIELDS: &[&str] = &[
+            "@id",
+            "@type",
+            "thumbnail",
+            "image",
+            "name",
+            "description",
+            "yearpublished",
+            "link",
+            "versions",
+            "marketplacelistings",
+            "comments",
+        ];
+        deserializer.deserialize_struct("AccessoryDetails", FIELDS, AccessoryDetailsVisitor)
     }
 }
