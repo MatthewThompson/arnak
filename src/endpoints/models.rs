@@ -407,6 +407,7 @@ impl<'de> Deserialize<'de> for GameVersion {
         #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "lowercase")]
         enum Field {
+            #[serde(rename = "@id")]
             Id,
             Name,
             Image,
@@ -420,6 +421,7 @@ impl<'de> Deserialize<'de> for GameVersion {
             // Game original version, publisher, artist, are each in an individual XML tag called
             // `link`
             Link,
+            #[serde(rename = "@type")]
             Type,
         }
 
@@ -644,7 +646,21 @@ impl<'de> Deserialize<'de> for GameVersion {
                 })
             }
         }
-        deserializer.deserialize_any(GameVersionVisitor)
+        const FIELDS: &[&str] = &[
+            "@id",
+            "name",
+            "image",
+            "thumbnail",
+            "yearpublished",
+            "productcode",
+            "width",
+            "length",
+            "depth",
+            "weight",
+            "link",
+            "@type",
+        ];
+        deserializer.deserialize_struct("GameVersion", FIELDS, GameVersionVisitor)
     }
 }
 
