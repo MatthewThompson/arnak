@@ -942,8 +942,10 @@ impl<'de> Deserialize<'de> for GameDetails {
         #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "lowercase")]
         enum Field {
-            Type,
+            #[serde(rename = "@id")]
             Id,
+            #[serde(rename = "@type")]
+            Type,
             Thumbnail,
             Image,
             Name,
@@ -1392,6 +1394,29 @@ impl<'de> Deserialize<'de> for GameDetails {
                 })
             }
         }
-        deserializer.deserialize_any(GameDetailsVisitor)
+        const FIELDS: &[&str] = &[
+            "@id",
+            "@type",
+            "thumbnail",
+            "image",
+            "name",
+            "description",
+            "yearpublished",
+            "minplayers",
+            "maxplayers",
+            "playingtime",
+            "minplaytime",
+            "maxplaytime",
+            "minage",
+            "link",
+            "poll",
+            "poll-summary",
+            "statistics",
+            "versions",
+            "videos",
+            "marketplacelistings",
+            "comments",
+        ];
+        deserializer.deserialize_struct("GameDetails", FIELDS, GameDetailsVisitor)
     }
 }
