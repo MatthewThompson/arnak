@@ -28,48 +28,58 @@ pub(crate) fn deserialize_xml_string<T: serde::de::DeserializeOwned>(
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct XmlIntValue {
+    #[serde(rename = "@value")]
     pub(crate) value: u64,
 }
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct XmlSignedValue {
+    #[serde(rename = "@value")]
     pub(crate) value: i64,
 }
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct XmlFloatValue {
+    #[serde(rename = "@value")]
     pub(crate) value: f64,
 }
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct XmlStringValue {
+    #[serde(rename = "@value")]
     pub(crate) value: String,
 }
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct XmlDateValue {
-    #[serde(deserialize_with = "deserialize_date")]
+    #[serde(rename = "@value", deserialize_with = "deserialize_date")]
     pub(crate) value: NaiveDate,
 }
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct XmlDateTimeValue {
-    #[serde(deserialize_with = "deserialize_date_time_with_zone")]
+    #[serde(
+        rename = "@value",
+        deserialize_with = "deserialize_date_time_with_zone"
+    )]
     pub(crate) value: DateTime<Utc>,
 }
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct XmlName {
-    #[serde(rename = "type")]
+    #[serde(rename = "@type")]
     pub(crate) name_type: NameType,
+    #[serde(rename = "@value")]
     pub(crate) value: String,
 }
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct XmlLink {
-    #[serde(rename = "type")]
+    #[serde(rename = "@type")]
     pub(crate) link_type: ItemType,
+    #[serde(rename = "@id")]
     pub(crate) id: u64,
+    #[serde(rename = "@value")]
     pub(crate) value: String,
 }
 
